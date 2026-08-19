@@ -93,7 +93,7 @@ main { display: block; min-height: 40vh; }
 @keyframes scrollPromo { from { transform: translateX(0); } to { transform: translateX(-50%); } }
 
 /* ============ HEADER / NAV ============ */
-.progress { position: fixed; top: 34px; left: 0; right: 0; height: 2px; background: linear-gradient(90deg, var(--gold), var(--rose), var(--violet)); transform-origin: 0; z-index: 999; }
+.progress { position: fixed; top: 64px; left: 0; right: 0; height: 2px; background: linear-gradient(90deg, var(--gold), var(--rose), var(--violet)); transform-origin: 0; z-index: 999; }
 .header { position: sticky; top: 0; z-index: 80; background: rgba(10,8,16,0.72); backdrop-filter: blur(20px); border-bottom: 1px solid var(--line); }
 .nav { max-width: 1320px; height: 76px; margin: auto; padding: 0 28px; display: flex; align-items: center; justify-content: space-between; gap: 16px; }
 .logo { font-family: "Fraunces", serif; font-size: 24px; letter-spacing: -0.03em; display: flex; align-items: baseline; gap: 6px; }
