@@ -1,20 +1,952 @@
 <!doctype html>
 <html lang="en">
-  <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width,initial-scale=1.0" />
-    <meta name="theme-color" content="#0a0810" />
-    <meta name="description" content="PearlSkino BD — authentic imported skincare and fragrance, curated for Bangladesh. Shop cleansers, serums, sunscreens and signature scents." />
-    <title>PearlSkino BD — Beauty, Illuminated</title>
-    <link rel="preconnect" href="https://fonts.googleapis.com" />
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-    <link
-      href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,300;0,9..144,450;0,9..144,600;1,9..144,400;1,9..144,500&family=Manrope:wght@400;500;600;700;800&family=Space+Grotesk:wght@400;500;600&display=swap"
-      rel="stylesheet"
-    />
-  </head>
-  <body>
-    <div id="root"></div>
-    <script type="module" src="/src/main.jsx"></script>
-  </body>
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1.0" />
+<meta name="theme-color" content="#0a0810" />
+<meta name="description" content="PearlSkino BD — authentic imported skincare and fragrance, curated for Bangladesh." />
+<title>PearlSkino BD — Beauty, Illuminated</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,300;0,9..144,450;0,9..144,600;1,9..144,400;1,9..144,500&family=Manrope:wght@400;500;600;700;800&family=Space+Grotesk:wght@400;500;600&display=swap" rel="stylesheet" />
+<link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+<div class="app-shell">
+  <div class="bg-layer" aria-hidden="true">
+    <div class="aurora aurora-a"></div>
+    <div class="aurora aurora-b"></div>
+    <div class="aurora aurora-c"></div>
+    <canvas id="sparkle" class="sparkle-canvas"></canvas>
+    <div class="vignette"></div>
+    <div class="grain"></div>
+  </div>
+
+  <div class="progress" id="progress"></div>
+
+  <div class="promobar">
+    <div class="promobar-track">
+      <span class="promobar-set">✦ 100% Authentic Products ✦ Free Delivery Over ৳2,500 ✦ Nationwide Shipping ✦ Cash on Delivery in Select Areas</span>
+      <span class="promobar-set">✦ 100% Authentic Products ✦ Free Delivery Over ৳2,500 ✦ Nationwide Shipping ✦ Cash on Delivery in Select Areas</span>
+    </div>
+  </div>
+
+  <header class="header">
+    <div class="nav">
+      <button class="icon mobile-only" id="menuBtn" aria-label="Menu">☰</button>
+      <a class="logo" href="#/">Pearl<span class="logo-accent">Skino</span> <em>BD</em></a>
+      <nav class="nav-links desktop-only" id="navLinks">
+        <a href="#/shop" data-route="/shop">Shop</a>
+        <a href="#/shop?category=fragrance" data-route="/shop">Fragrance</a>
+        <a href="#/about" data-route="/about">Our Story</a>
+        <a href="#/contact" data-route="/contact">Contact</a>
+      </nav>
+      <div class="actions">
+        <button class="icon" id="searchBtn" aria-label="Search">🔍</button>
+        <a class="icon desktop-only" href="#/shop" aria-label="Wishlist" title="Wishlist" id="wishIcon">♡<i class="dot" id="wishDot" style="display:none"></i></a>
+        <button class="bag" id="cartBtn" aria-label="Cart">🛍 <b id="cartCount">0</b></button>
+      </div>
+    </div>
+    <form class="mobile-search" id="searchForm" style="display:none">
+      <span>🔍</span>
+      <input id="searchInput" placeholder="Search PearlSkino BD…" />
+    </form>
+    <nav class="mobile-menu-panel" id="mobileMenu" style="display:none">
+      <a href="#/shop">Shop</a>
+      <a href="#/about">Our Story</a>
+      <a href="#/contact">Contact</a>
+      <a href="#/faq">FAQ</a>
+    </nav>
+  </header>
+
+  <main id="app"></main>
+
+  <footer class="footer">
+    <div class="footer-top">
+      <div class="footer-brand">
+        <a class="logo" href="#/">Pearl<span class="logo-accent">Skino</span> <em>BD</em></a>
+        <p>Skincare and fragrance, thoughtfully curated for Bangladesh.</p>
+        <div class="footer-social">
+          <a href="#" aria-label="Facebook page">F</a>
+          <a href="#" aria-label="Instagram page">IG</a>
+        </div>
+      </div>
+      <div class="footer-links">
+        <div>
+          <b>SHOP</b>
+          <a href="#/shop">All products</a>
+          <a href="#/shop?category=fragrance">Fragrance</a>
+          <a href="#/shop?category=serums">Serums &amp; Actives</a>
+          <a href="#/shop?category=suncare">Suncare</a>
+        </div>
+        <div>
+          <b>HELP</b>
+          <a href="#/faq">FAQ</a>
+          <a href="#/contact">Contact</a>
+          <a href="#/about">Our story</a>
+        </div>
+        <div>
+          <b>GET IN TOUCH</b>
+          <a href="mailto:hello@pearlskino.bd">✉ hello@pearlskino.bd</a>
+          <a href="#/contact">💬 Messenger only</a>
+        </div>
+      </div>
+    </div>
+    <div class="footer-bottom">
+      <span>© <span id="year"></span> PearlSkino BD. All rights reserved.</span>
+      <span>Secure checkout via SSLCOMMERZ · Bangladesh</span>
+    </div>
+  </footer>
+
+  <div class="backdrop" id="backdrop" style="display:none"></div>
+  <aside class="drawer" id="drawer" style="display:none"></aside>
+  <div class="toast" id="toast" style="display:none"></div>
+</div>
+
+<script>
+/* =========================================================
+   DATA
+========================================================= */
+const IMG = {
+  cdnimFront: "https://images.unsplash.com/photo-1594035910387-fea47794261f?auto=format&fit=crop&w=1000&q=85",
+  cdnimAlt: "https://images.unsplash.com/photo-1541643600914-78b084683601?auto=format&fit=crop&w=1000&q=85",
+  mayarFront: "https://images.unsplash.com/photo-1563170351-be82bc888aa4?auto=format&fit=crop&w=1000&q=85",
+  mayarAlt: "https://images.unsplash.com/photo-1592945403244-b3fbafd7f539?auto=format&fit=crop&w=1000&q=85",
+  tropicalFront: "https://images.unsplash.com/photo-1588405748880-12d1d2a59f75?auto=format&fit=crop&w=1000&q=85",
+  tropicalAlt: "https://images.unsplash.com/photo-1612817288484-6f916006741a?auto=format&fit=crop&w=1000&q=85",
+  cosrxFront: "https://images.unsplash.com/photo-1556229010-6c3f2c9ca5f8?auto=format&fit=crop&w=1000&q=85",
+  cosrxAlt: "https://images.unsplash.com/photo-1571781926291-c477ebfd024b?auto=format&fit=crop&w=1000&q=85",
+  simpleFront: "https://images.unsplash.com/photo-1620916566398-39f1143ab7be?auto=format&fit=crop&w=1000&q=85",
+  simpleAlt: "https://images.unsplash.com/photo-1556228578-8c89e6adf883?auto=format&fit=crop&w=1000&q=85",
+  ceraveFront: "https://images.unsplash.com/photo-1611930022073-b7a4ba5fcccd?auto=format&fit=crop&w=1000&q=85",
+  ceraveAlt: "https://images.unsplash.com/photo-1556228720-195a672e8a03?auto=format&fit=crop&w=1000&q=85",
+};
+
+const CATEGORIES = [
+  { id: "fragrance", label: "Fragrance" },
+  { id: "cleansers", label: "Cleansers" },
+  { id: "serums", label: "Serums & Actives" },
+  { id: "moisturizers", label: "Moisturizers" },
+  { id: "suncare", label: "Suncare" },
+  { id: "bodycare", label: "Body & Soap" },
+];
+
+const PRODUCTS = [
+  { id:"cdnim", name:"Club de Nuit Intense Man", brand:"Armaf", subtitle:"Eau de Parfum · 5 ml Decant", category:"fragrance", tags:["Bestseller","Woody"], price:450, oldPrice:550, rating:4.9, reviews:212, stock:18, image:IMG.cdnimFront, alt:IMG.cdnimAlt, description:"A cult-favourite dupe of a legendary pineapple-leather scent, decanted into a travel-friendly 5ml so you can carry the whole bottle's presence without the weight.", notes:["Pineapple","Birch","Musk"] },
+  { id:"mayar", name:"Lattafa Mayar", brand:"Lattafa", subtitle:"Eau de Parfum · 5 ml Decant", category:"fragrance", tags:["Floral"], price:390, oldPrice:450, rating:4.8, reviews:154, stock:22, image:IMG.mayarFront, alt:IMG.mayarAlt, description:"Soft, powdery and unmistakably feminine — Mayar opens bright and settles into a warm, skin-close vanilla musk that lasts from morning meetings to evening plans.", notes:["Bergamot","Jasmine","Vanilla"] },
+  { id:"tropical", name:"Rayhaan Tropical Vibe", brand:"Rayhaan", subtitle:"Eau de Parfum · 5 ml Decant", category:"fragrance", tags:["Fresh","Limited Stock"], price:350, oldPrice:400, rating:4.8, reviews:96, stock:9, image:IMG.tropicalFront, alt:IMG.tropicalAlt, description:"Sun-warmed fruit and coconut milk over a driftwood base — the scent equivalent of a beach holiday, bottled small enough to keep in a bag.", notes:["Coconut","Mango","Driftwood"] },
+  { id:"3wclinic-vitac", name:"3W Clinic Vitamin C Toning Mist", brand:"3W Clinic", subtitle:"Brightening facial mist · 150 ml", category:"serums", tags:["Brightening"], price:780, oldPrice:null, rating:4.6, reviews:61, stock:27, image:IMG.tropicalAlt, alt:IMG.mayarAlt, description:"A vitamin-C mist that sets makeup, wakes up dull skin and layers under moisturizer for an extra brightening step in seconds.", notes:null },
+  { id:"cosrx", name:"COSRX Low pH Good Morning Gel Cleanser", brand:"COSRX", subtitle:"Gentle daily cleanser · 150 ml", category:"cleansers", tags:["Oily Skin","Bestseller"], price:1250, oldPrice:null, rating:4.9, reviews:340, stock:40, image:IMG.cosrxFront, alt:IMG.cosrxAlt, description:"The internet-famous BHA gel cleanser that respects your skin barrier while actually cutting through the day's oil, sunscreen and grime.", notes:null },
+  { id:"simple", name:"Simple Kind to Skin Refreshing Facial Wash", brand:"Simple", subtitle:"Refreshing face wash · 150 ml", category:"cleansers", tags:["Fragrance-Free"], price:850, oldPrice:null, rating:4.8, reviews:128, stock:33, image:IMG.simpleFront, alt:IMG.simpleAlt, description:"No dyes, no harsh fragrance — just a soft, hydrating cleanse for skin that reacts to everything else on the market.", notes:null },
+  { id:"deconstruct-niacinamide", name:"Deconstruct Niacinamide 10% Serum", brand:"Deconstruct", subtitle:"Pore-refining serum · 30 ml", category:"serums", tags:["Oily Skin"], price:990, oldPrice:1150, rating:4.7, reviews:88, stock:24, image:IMG.ceraveAlt, alt:IMG.cosrxAlt, description:"10% niacinamide formulated to visibly tighten pores and even out tone without the sticky after-feel of cheaper dupes.", notes:null },
+  { id:"skin1004-centella", name:"SKIN1004 Madagascar Centella Ampoule", brand:"SKIN1004", subtitle:"Calming ampoule · 100 ml", category:"serums", tags:["Sensitive Skin","Bestseller"], price:1450, oldPrice:null, rating:4.9, reviews:267, stock:21, image:IMG.simpleAlt, alt:IMG.ceraveFront, description:"99% Centella Asiatica extract that calms redness and irritation on contact — the ampoule that turned a pharmacy ingredient into a cult skincare icon.", notes:null },
+  { id:"axisy-mugwort", name:"AXIS-Y Mugwort Pore Clarifying Toner", brand:"AXIS-Y", subtitle:"Clarifying toner · 200 ml", category:"cleansers", tags:["Oily Skin"], price:1650, oldPrice:null, rating:4.7, reviews:143, stock:19, image:IMG.cosrxAlt, alt:IMG.simpleFront, description:"Mugwort and BHA team up to clear congestion while soothing the redness that usually comes with exfoliating acids.", notes:null },
+  { id:"cerave-routine", name:"CeraVe Cleanse · Hydrate · Protect Routine", brand:"CeraVe", subtitle:"3-step skincare routine", category:"moisturizers", tags:["Fragrance-Free","Bestseller"], price:2850, oldPrice:null, rating:4.9, reviews:301, stock:15, image:IMG.ceraveFront, alt:IMG.ceraveAlt, description:"Dermatologist-favourite ceramides, in the exact three-step lineup that keeps a compromised moisture barrier calm and repaired.", notes:null },
+  { id:"ordinary-niacinamide", name:"The Ordinary Niacinamide 10% + Zinc 1%", brand:"The Ordinary", subtitle:"Blemish-formula serum · 30 ml", category:"serums", tags:["Oily Skin","Bestseller"], price:890, oldPrice:null, rating:4.8, reviews:412, stock:46, image:IMG.cosrxFront, alt:IMG.simpleAlt, description:"The formula that made high-percentage actives affordable — visibly balances oil production and blemish-prone texture.", notes:null },
+  { id:"beautyofjoseon-suncare", name:"Beauty of Joseon Relief Sun: Rice + Probiotics", brand:"Beauty of Joseon", subtitle:"SPF50+ PA++++ · 50 ml", category:"suncare", tags:["Bestseller","No White Cast"], price:1550, oldPrice:1750, rating:4.9, reviews:389, stock:30, image:IMG.tropicalFront, alt:IMG.mayarFront, description:"The sunscreen that broke the internet — rice-water finish, zero white cast, and skincare-grade ingredients doing double duty as your daily SPF.", notes:null },
+  { id:"missha-suncare", name:"Missha All-Around Safe Block Essence Sun", brand:"Missha", subtitle:"SPF45 PA+++ · 50 ml", category:"suncare", tags:["Lightweight"], price:1350, oldPrice:null, rating:4.6, reviews:118, stock:26, image:IMG.mayarAlt, alt:IMG.tropicalAlt, description:"An essence-textured sunscreen that layers invisibly under makeup — protection that never fights your base.", notes:null },
+  { id:"kojiesan-soap", name:"Kojie San Skin Brightening Soap (Twin Pack)", brand:"Kojie San", subtitle:"Kojic acid soap · 2 × 135 g", category:"bodycare", tags:["Bestseller"], price:650, oldPrice:null, rating:4.7, reviews:205, stock:52, image:IMG.ceraveAlt, alt:IMG.ceraveFront, description:"The soap that built a reputation on its own — kojic acid across body and face for visibly brighter, more even-toned skin over time.", notes:null },
+];
+
+const TESTIMONIALS = [
+  { quote:"The whole experience feels far more premium than I expected from a Messenger-first shop — packaging, tracking, everything.", name:"Sadia R.", role:"Dhaka" },
+  { quote:"The decants let me test a scent before committing to a full bottle. Smart, and honestly kind of addictive.", name:"Nabila T.", role:"Chattogram" },
+  { quote:"Clean checkout, real tracking updates, and the products are exactly what's advertised. That's rarer than it should be.", name:"Fahim M.", role:"Sylhet" },
+  { quote:"My skin finally calmed down after switching to the SKIN1004 ampoule they recommended. Small shop, big difference.", name:"Proma K.", role:"Khulna" },
+];
+
+const FAQ = [
+  { q:"How fast do you deliver in Dhaka?", a:"Orders inside Dhaka are dispatched through local courier partners, typically arriving in 1–3 business days. Your exact ETA is confirmed at checkout." },
+  { q:"Do you deliver nationwide in Bangladesh?", a:"Yes — nationwide delivery is supported across all 64 districts. Delivery time and charge depend on your destination." },
+  { q:"Are your products authentic?", a:"Every SKU we carry is sourced with authenticity and traceability as a non-negotiable. We'd rather run out of stock than risk carrying something we can't vouch for." },
+  { q:"Can I pay online?", a:"Yes. Checkout runs through SSLCOMMERZ, so your card and mobile banking details never touch our servers directly." },
+  { q:"What if I need to change or cancel an order?", a:"Reach out as soon as possible through the contact page or our Messenger line — changes are possible as long as the order hasn't shipped." },
+  { q:"Do you offer free delivery?", a:"Orders above ৳2,500 ship free nationwide. Below that threshold, a flat delivery charge applies and is shown before you pay." },
+];
+
+const BENEFITS = [
+  { title:"Verified authentic", small:"Every batch checked before it reaches you." },
+  { title:"Nationwide delivery", small:"All 64 districts, tracked door to door." },
+  { title:"Secure checkout", small:"SSLCOMMERZ-powered, PCI-compliant payments." },
+  { title:"Real support", small:"A human replies — not a chatbot loop." },
+];
+
+const BRAND_STORY = {
+  heading: "Beauty shouldn't be a gamble.",
+  paragraphs: [
+    "PearlSkino BD started the way most honest things do — with frustration. Too many imported skincare and fragrance listings in Bangladesh turned out to be repackaged, expired, or simply fake, and there was no easy way to tell until it was too late.",
+    "So we built the opposite: a small, tightly curated edit of skincare and fragrance we'd use ourselves, sourced with paperwork we can stand behind, and sold with the kind of checkout and delivery experience a serious brand actually deserves.",
+    "No mystery ingredients, no vague sourcing stories — just the routines and scents that work, delivered the way you'd expect from a brand three times our size.",
+  ],
+};
+
+/* =========================================================
+   HELPERS
+========================================================= */
+const money = (n) => `৳${Number(n).toLocaleString("en-BD")}`;
+const findProduct = (id) => PRODUCTS.find((p) => p.id === id);
+const esc = (s) => String(s).replace(/[&<>"']/g, (c) => ({ "&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;" }[c]));
+
+/* =========================================================
+   STATE
+========================================================= */
+const store = {
+  cart: JSON.parse(localStorage.getItem("pearlskino-cart") || "[]"),
+  wishlist: JSON.parse(localStorage.getItem("pearlskino-wishlist") || "[]"),
+  save() {
+    localStorage.setItem("pearlskino-cart", JSON.stringify(this.cart));
+    localStorage.setItem("pearlskino-wishlist", JSON.stringify(this.wishlist));
+    renderCartBadge();
+  },
+  addToCart(id, qty = 1) {
+    const p = findProduct(id);
+    if (!p) return;
+    const found = this.cart.find((i) => i.id === id);
+    if (found) found.qty += qty;
+    else this.cart.push({ ...p, qty });
+    this.save();
+    showToast(`${p.name} added to your bag`);
+    openDrawer();
+  },
+  changeQty(id, delta) {
+    const item = this.cart.find((i) => i.id === id);
+    if (!item) return;
+    item.qty += delta;
+    if (item.qty <= 0) this.cart = this.cart.filter((i) => i.id !== id);
+    this.save();
+    renderDrawer();
+  },
+  removeFromCart(id) {
+    this.cart = this.cart.filter((i) => i.id !== id);
+    this.save();
+    renderDrawer();
+  },
+  clearCart() { this.cart = []; this.save(); },
+  toggleWishlist(id) {
+    const p = findProduct(id);
+    const exists = this.wishlist.some((i) => i.id === id);
+    if (exists) { this.wishlist = this.wishlist.filter((i) => i.id !== id); showToast(`${p.name} removed from wishlist`); }
+    else { this.wishlist.push(p); showToast(`${p.name} saved to wishlist`); }
+    this.save();
+  },
+  isWishlisted(id) { return this.wishlist.some((i) => i.id === id); },
+  get count() { return this.cart.reduce((a, i) => a + i.qty, 0); },
+  get subtotal() { return this.cart.reduce((a, i) => a + i.price * i.qty, 0); },
+  get shipping() { return this.subtotal ? (this.subtotal >= 2500 ? 0 : 80) : 0; },
+  get total() { return this.subtotal + this.shipping; },
+};
+
+function showToast(msg) {
+  const t = document.getElementById("toast");
+  t.textContent = "✓ " + msg;
+  t.style.display = "flex";
+  clearTimeout(showToast._t);
+  showToast._t = setTimeout(() => (t.style.display = "none"), 2400);
+}
+
+function renderCartBadge() { document.getElementById("cartCount").textContent = store.count; }
+
+/* =========================================================
+   PEARL ORB (signature motif)
+========================================================= */
+function pearlOrb(size = 420) {
+  return `<div class="pearl-orb" style="width:${size}px;height:${size}px">
+    <div class="pearl-orb-glow"></div>
+    <div class="pearl-orb-core"><div class="pearl-orb-sheen"></div></div>
+    <div class="pearl-orb-ring pearl-orb-ring-a"></div>
+    <div class="pearl-orb-ring pearl-orb-ring-b"></div>
+    <span class="pearl-moon pearl-moon-a"></span>
+    <span class="pearl-moon pearl-moon-b"></span>
+    <span class="pearl-moon pearl-moon-c"></span>
+  </div>`;
+}
+
+/* =========================================================
+   SHARED COMPONENTS
+========================================================= */
+function productCard(p) {
+  const saved = store.isWishlisted(p.id);
+  return `
+  <article class="product reveal">
+    <a href="#/product/${p.id}" class="photo">
+      <img src="${p.image}" alt="${esc(p.name)}" loading="lazy" />
+      <img class="alt" src="${p.alt}" alt="" loading="lazy" />
+      <div class="badges">
+        <span class="tagset">
+          ${p.oldPrice ? '<b class="sale-badge">SALE</b>' : ""}
+          ${p.stock <= 10 ? '<b class="low-badge">LOW STOCK</b>' : ""}
+        </span>
+        <button class="wish ${saved ? "on" : ""}" data-wish="${p.id}" aria-label="Save to wishlist">♡</button>
+      </div>
+      <button class="quickadd" data-add="${p.id}">🛍 Add to bag</button>
+    </a>
+    <div class="pinfo">
+      <div>
+        <small>${esc(p.brand)}</small>
+        <h3><a href="#/product/${p.id}">${esc(p.name)}</a></h3>
+        <p>${esc(p.subtitle)}</p>
+      </div>
+      <strong>${money(p.price)} ${p.oldPrice ? `<del>${money(p.oldPrice)}</del>` : ""}</strong>
+      <span class="rating">★ ${p.rating} <em>(${p.reviews})</em></span>
+    </div>
+  </article>`;
+}
+
+function faqItem(f, i, openIndex) {
+  return `<div class="faq-item">
+    <button data-faq="${i}">${esc(f.q)} <span style="transform:${openIndex === i ? "rotate(180deg)" : "none"};display:inline-block;transition:.25s">⌄</span></button>
+    ${openIndex === i ? `<p>${esc(f.a)}</p>` : ""}
+  </div>`;
+}
+
+/* =========================================================
+   PAGES
+========================================================= */
+let homeFaqOpen = 0;
+let saleEnd = Date.now() + 7 * 3600000 + 41 * 60000;
+
+function pageHome() {
+  const bestsellers = PRODUCTS.filter((p) => p.tags.includes("Bestseller")).slice(0, 6);
+  return `
+  <section class="hero">
+    <div class="hero-inner">
+      <div>
+        <div class="badge"><i></i>100% Authentic Products <b>in Bangladesh</b></div>
+        <span class="eyebrow">PEARLSKINO BD · BEAUTY &amp; FRAGRANCE EDIT</span>
+        <h1>Find your <em>signature</em> glow.</h1>
+        <p>Curated skincare and fragrance, sourced with paperwork we can stand behind — and delivered across Bangladesh like the serious brand it deserves to be treated as.</p>
+        <div class="ctas">
+          <a class="btn dark" href="#/shop">Shop the edit →</a>
+          <a class="btn glass" href="#/about">Our story</a>
+        </div>
+        <div class="proof">
+          <span>🛡 Verified authentic</span>
+          <span>🚚 Nationwide delivery</span>
+          <span>✦ 4.8★ average rating</span>
+        </div>
+      </div>
+      <div class="hero-orb-wrap" id="heroOrb">
+        ${pearlOrb(440)}
+        <div class="hero-floating hero-floating-a"><strong>4.9★</strong><small>Centella Ampoule</small></div>
+        <div class="hero-floating hero-floating-b"><strong>SPF50+</strong><small>Zero white cast</small></div>
+      </div>
+    </div>
+  </section>
+
+  <div class="sale-wrap">
+    <div class="sale">
+      <div>
+        <span class="eyebrow">LIMITED-TIME</span>
+        <h3>Buy any 3, unlock a special discount.</h3>
+        <p>Mix skincare and fragrance freely — the discount applies automatically at checkout.</p>
+      </div>
+      <div class="count" id="countdown"></div>
+      <a href="#/shop" aria-label="Shop the sale">→</a>
+    </div>
+  </div>
+
+  <div class="trust">${BENEFITS.map((b) => `<span>${esc(b.title)}</span>`).join("")}</div>
+
+  <section class="section">
+    <div class="section-heading">
+      <div><span class="eyebrow">Shop by category</span><h2>Two worlds, one edit.</h2><p>Skincare built around real routines, and fragrance decants sized for discovery.</p></div>
+    </div>
+    <div class="categories">
+      <a href="#/shop?category=serums" class="category"><img src="${IMG.simpleFront}" alt="Skincare"/><div><small>Skincare</small><b>Cleansers &amp; serums</b><span>→</span></div></a>
+      <a href="#/shop?category=fragrance" class="category"><img src="${IMG.cdnimFront}" alt="Fragrance"/><div><small>Fragrance</small><b>Decants</b><span>→</span></div></a>
+      <a href="#/shop?category=suncare" class="category"><img src="${IMG.tropicalFront}" alt="Suncare"/><div><small>Suncare</small><b>SPF, done right</b><span>→</span></div></a>
+    </div>
+  </section>
+
+  <section class="section">
+    <div class="section-heading">
+      <div><span class="eyebrow">Fan favourites</span><h2>Bestsellers this month.</h2><p>The routines and scents our customers keep reordering.</p></div>
+      <a class="btn glass heading-link" href="#/shop">View all →</a>
+    </div>
+    <div class="grid">${bestsellers.map(productCard).join("")}</div>
+  </section>
+
+  <section class="section story">
+    <div class="story-img"><img src="${IMG.ceraveAlt}" alt="PearlSkino BD curated products"/><span>Curated<br/>since day one</span></div>
+    <div>
+      <span class="eyebrow">OUR STORY</span>
+      <h2>${BRAND_STORY.heading}</h2>
+      <p>${BRAND_STORY.paragraphs[0]}</p>
+      <div class="benefits">${BENEFITS.map((b) => `<div>🛡<b>${esc(b.title)}<small>${esc(b.small)}</small></b></div>`).join("")}</div>
+      <a class="btn dark" href="#/about" style="margin-top:28px">Read our full story →</a>
+    </div>
+  </section>
+
+  <section class="section">
+    <div class="center"><span class="eyebrow">LOVE NOTES</span><h2>From the community.</h2></div>
+    <div class="reviews-grid">${TESTIMONIALS.slice(0, 3).map((t) => `<div class="review"><div>★★★★★</div><blockquote>&ldquo;${esc(t.quote)}&rdquo;</blockquote><small>— ${esc(t.name)}, ${esc(t.role)}</small></div>`).join("")}</div>
+  </section>
+
+  <section id="faq" class="section faq">
+    <div>
+      <span class="eyebrow">QUESTIONS, ANSWERED</span>
+      <h2>Need to know?</h2>
+      <p>Everything important before your order leaves the PearlSkino studio.</p>
+      <a class="btn glass" href="#/faq" style="margin-top:18px">See full FAQ →</a>
+    </div>
+    <div id="homeFaqList">${FAQ.slice(0, 5).map((f, i) => faqItem(f, i, homeFaqOpen)).join("")}</div>
+  </section>
+
+  ${newsletterSection()}
+  `;
+}
+
+function newsletterSection() {
+  return `
+  <section class="newsletter">
+    <div>
+      <span class="eyebrow">The PearlSkino Letter</span>
+      <h2>A little beauty, delivered.</h2>
+      <p>New drops, fragrance finds and quiet little offers. No noise, unsubscribe anytime.</p>
+    </div>
+    <form id="newsletterForm">
+      <input type="email" required placeholder="Your email address" />
+      <button class="btn dark" type="submit">Join the edit →</button>
+    </form>
+  </section>`;
+}
+
+function pageShop(params) {
+  const category = params.get("category") || "All";
+  const q = params.get("q") || "";
+  let list = PRODUCTS.filter((p) =>
+    (category === "All" || p.category === category) &&
+    (!q || `${p.name} ${p.brand} ${p.subtitle}`.toLowerCase().includes(q.toLowerCase()))
+  );
+  return `
+  <section class="section shop-page">
+    <div class="section-heading">
+      <div><span class="eyebrow">The full edit</span><h2>Shop everything.</h2><p>Every product we carry, sourced and checked before it reaches you.</p></div>
+      <form class="searchbox" id="shopSearchForm">🔍<input id="shopSearchInput" value="${esc(q)}" placeholder="Search products, brands…"/></form>
+    </div>
+    <div class="shop-toolbar">
+      <div class="filters" id="shopFilters">
+        <button data-cat="All" class="${category === "All" ? "active" : ""}">All</button>
+        ${CATEGORIES.map((c) => `<button data-cat="${c.id}" class="${category === c.id ? "active" : ""}">${esc(c.label)}</button>`).join("")}
+      </div>
+      <div class="sortbox">⚙<select id="sortSelect">
+        <option value="featured">Featured</option>
+        <option value="price-asc">Price: Low to High</option>
+        <option value="price-desc">Price: High to Low</option>
+        <option value="rating">Top Rated</option>
+      </select></div>
+    </div>
+    ${q ? `<p class="results-note">${list.length} result${list.length !== 1 ? "s" : ""} for &ldquo;${esc(q)}&rdquo;</p>` : ""}
+    <div class="grid" id="shopGrid">${list.length ? list.map(productCard).join("") : `<div class="empty-state" style="grid-column:1/-1"><h4>No products match those filters.</h4><p>Try a different category or clear your search.</p></div>`}</div>
+  </section>`;
+}
+
+function pageProduct(id) {
+  const p = findProduct(id);
+  if (!p) return `<section class="section empty-state"><h4>We couldn't find that product.</h4><a class="btn dark" href="#/shop">Back to shop</a></section>`;
+  const related = PRODUCTS.filter((x) => x.category === p.category && x.id !== p.id).slice(0, 3);
+  const saved = store.isWishlisted(p.id);
+  return `
+  <section class="section product-detail">
+    <button class="back-link" onclick="history.back()">← Back</button>
+    <div class="pd-grid">
+      <div class="pd-gallery">
+        <div class="pd-main-photo"><img id="pdMainImg" src="${p.image}" alt="${esc(p.name)}"/></div>
+        <div class="pd-thumbs">
+          <button class="active" data-thumb="0"><img src="${p.image}" alt=""/></button>
+          <button data-thumb="1"><img src="${p.alt}" alt=""/></button>
+        </div>
+      </div>
+      <div>
+        <span class="eyebrow">${esc(p.brand)}</span>
+        <h1 class="pd-title">${esc(p.name)}</h1>
+        <p class="pd-subtitle">${esc(p.subtitle)}</p>
+        <div class="pd-rating">★ ${p.rating} <span>(${p.reviews} reviews)</span></div>
+        <div class="pd-price">${money(p.price)} ${p.oldPrice ? `<del>${money(p.oldPrice)}</del>` : ""}</div>
+        <p class="pd-desc">${esc(p.description)}</p>
+        ${p.notes ? `<div class="pd-notes"><small>SCENT NOTES</small><div>${p.notes.map((n) => `<span>${esc(n)}</span>`).join("")}</div></div>` : ""}
+        <div class="pd-stock">${p.stock <= 10 ? `<span class="low">Only ${p.stock} left in stock</span>` : `<span class="ok">✓ In stock</span>`}</div>
+        <div class="pd-actions">
+          <div class="qty"><button id="pdQtyMinus">−</button><span id="pdQtyVal">1</span><button id="pdQtyPlus">+</button></div>
+          <button class="btn dark wide" id="pdAddBtn" data-id="${p.id}">🛍 Add to bag</button>
+          <button class="btn glass icon-btn ${saved ? "on" : ""}" id="pdWishBtn" data-id="${p.id}">♡</button>
+        </div>
+        <div class="pd-trust"><span>🛡 Verified authentic</span><span>🚚 Nationwide delivery</span></div>
+      </div>
+    </div>
+    ${related.length ? `<div class="related"><h3>You may also like</h3><div class="grid">${related.map(productCard).join("")}</div></div>` : ""}
+  </section>`;
+}
+
+function pageCart() {
+  if (!store.cart.length) {
+    return `<section class="section empty-state"><h4>Your bag is empty.</h4><p>Browse the edit and find something worth carrying home.</p><a class="btn dark" href="#/shop">Shop the edit →</a></section>`;
+  }
+  return `
+  <section class="section cart-page">
+    <div class="section-heading"><div><span class="eyebrow">Your bag</span><h2>Review your order.</h2></div></div>
+    <div class="cart-page-grid">
+      <div class="cart-page-items" id="cartRows">${store.cart.map(cartRow).join("")}</div>
+      <aside class="cart-page-summary">
+        <h3>Order summary</h3>
+        <p>Subtotal <b>${money(store.subtotal)}</b></p>
+        <p>Delivery <b>${store.shipping ? money(store.shipping) : "FREE"}</b></p>
+        ${store.shipping > 0 ? `<small class="ship-hint">Add ${money(2500 - store.subtotal)} more for free delivery.</small>` : ""}
+        <h4>Total <b>${money(store.total)}</b></h4>
+        <a class="checkout" href="#/checkout">Proceed to secure checkout →</a>
+        <a class="btn glass wide" href="#/shop" style="margin-top:10px">Continue shopping</a>
+      </aside>
+    </div>
+  </section>`;
+}
+
+function cartRow(i) {
+  return `<div class="cart-row" data-row="${i.id}">
+    <img src="${i.image}" alt="${esc(i.name)}"/>
+    <div class="cart-row-info"><b>${esc(i.name)}</b><small>${esc(i.subtitle)}</small><strong>${money(i.price)}</strong></div>
+    <div class="qty"><button data-qty-minus="${i.id}">−</button>${i.qty}<button data-qty-plus="${i.id}">+</button></div>
+    <strong class="cart-row-total">${money(i.price * i.qty)}</strong>
+    <button class="cart-remove" data-remove="${i.id}">🗑</button>
+  </div>`;
+}
+
+function pageCheckout() {
+  if (!store.cart.length) {
+    return `<section class="section empty-state"><h4>Your bag is empty.</h4><p>Add something to your bag before checking out.</p><a class="btn dark" href="#/shop">Shop the edit</a></section>`;
+  }
+  return `
+  <section class="section checkout-page">
+    <a class="back-link" href="#/cart">← Back to bag</a>
+    <div class="checkout-grid">
+      <div>
+        <span class="eyebrow">Secure checkout</span>
+        <h1>Almost yours.</h1>
+        <p class="checkout-lede">🔒 Payments are processed securely through SSLCOMMERZ — your card details never touch our servers.</p>
+        <form class="checkout-form" id="checkoutForm">
+          <label>Full name<input name="name" required/></label>
+          <label>Phone number<input name="phone" required/></label>
+          <label>Email (optional)<input name="email" type="email"/></label>
+          <label>Delivery address<input name="address" required/></label>
+          <label>City<input name="city" required value="Dhaka"/></label>
+          <label>Postcode (optional)<input name="postcode"/></label>
+          <p class="form-error" id="checkoutError" style="display:none"></p>
+          <button class="btn dark wide" type="submit" id="payBtn">Pay ${money(store.total)} securely 🛡</button>
+        </form>
+      </div>
+      <aside class="checkout-summary">
+        <b>YOUR ORDER</b>
+        ${store.cart.map((i) => `<p>${esc(i.name)} × ${i.qty} <b>${money(i.price * i.qty)}</b></p>`).join("")}
+        <hr/>
+        <p>Subtotal <b>${money(store.subtotal)}</b></p>
+        <p>Delivery <b>${store.shipping ? money(store.shipping) : "FREE"}</b></p>
+        <h3>Total <b>${money(store.total)}</b></h3>
+      </aside>
+    </div>
+  </section>`;
+}
+
+function pageOrderStatus(params) {
+  const status = params.get("payment") || "success";
+  if (status === "success") store.clearCart();
+  const copy = {
+    success: { icon:"✅", title:"Order confirmed.", body:"Thank you — your payment went through and your order is now being prepared. A confirmation will be sent to the contact details you provided." },
+    failed: { icon:"✕", title:"Payment failed.", body:"Your payment didn't go through and you haven't been charged. Please try again, or reach out if the issue continues." },
+    cancelled: { icon:"⚠", title:"Payment cancelled.", body:"You cancelled the payment before it completed. Your bag is still saved if you'd like to try again." },
+  }[status] || {};
+  return `
+  <section class="section order-status">
+    <div class="order-status-icon" style="font-size:40px">${copy.icon}</div>
+    <h1>${copy.title}</h1>
+    <p>${copy.body}</p>
+    <div class="ctas">
+      <a class="btn dark" href="#/shop">Continue shopping →</a>
+      ${status !== "success" ? `<a class="btn glass" href="#/checkout">Try again</a>` : ""}
+    </div>
+  </section>`;
+}
+
+function pageAbout() {
+  return `
+  <section class="page-hero">
+    <div><span class="eyebrow">OUR STORY</span><h1>${BRAND_STORY.heading}</h1></div>
+    ${pearlOrb(200)}
+  </section>
+  <section class="section about-body">${BRAND_STORY.paragraphs.map((p) => `<p>${esc(p)}</p>`).join("")}</section>
+  <section class="section">
+    <div class="section-heading center" style="flex-direction:column;text-align:center"><span class="eyebrow">Why customers stay</span><h2>What we hold ourselves to.</h2></div>
+    <div class="benefit-grid">${BENEFITS.map((b) => `<div class="benefit-card">🛡<b>${esc(b.title)}</b><small>${esc(b.small)}</small></div>`).join("")}</div>
+  </section>
+  <section class="section">
+    <div class="center"><span class="eyebrow">In their words</span><h2>What Bangladesh is saying.</h2></div>
+    <div class="reviews-grid">${TESTIMONIALS.map((t) => `<div class="review"><div>★★★★★</div><blockquote>&ldquo;${esc(t.quote)}&rdquo;</blockquote><small>— ${esc(t.name)}, ${esc(t.role)}</small></div>`).join("")}</div>
+  </section>
+  <section class="cta-band"><div><h2>Ready to find your routine?</h2><a class="btn dark" href="#/shop">Shop the edit →</a></div></section>`;
+}
+
+function pageContact() {
+  return `
+  <section class="section contact-page">
+    <div class="section-heading"><div><span class="eyebrow">Get in touch</span><h2>We're a message away.</h2><p>Orders are handled via Messenger, but this form reaches the same inbox.</p></div></div>
+    <div class="contact-grid">
+      <form class="checkout-form" id="contactForm">
+        <label>Name<input name="name" required/></label>
+        <label>Email<input name="email" type="email" required/></label>
+        <label>Message<textarea name="message" rows="5" required></textarea></label>
+        <button class="btn dark wide" type="submit" id="contactBtn">Send message</button>
+      </form>
+      <div class="contact-cards">
+        <div class="contact-card">💬<b>Messenger</b><small>Fastest way to reach us — order taking happens here.</small></div>
+        <div class="contact-card">✉<b>hello@pearlskino.bd</b><small>For anything that needs a paper trail.</small></div>
+        <div class="contact-card">📍<b>Bangladesh, nationwide</b><small>Free pickup available in selected metropolitan areas.</small></div>
+        <div class="contact-social"><a href="#" aria-label="Facebook page">F</a><a href="#" aria-label="Instagram page">IG</a></div>
+      </div>
+    </div>
+  </section>`;
+}
+
+let faqPageOpen = 0;
+function pageFAQ() {
+  return `
+  <section class="section faq-page">
+    <div class="section-heading center" style="flex-direction:column;text-align:center"><span class="eyebrow">Questions, answered</span><h2>Everything you need to know.</h2></div>
+    <div class="faq-list" id="faqPageList">${FAQ.map((f, i) => faqItem(f, i, faqPageOpen)).join("")}</div>
+  </section>`;
+}
+
+function pageNotFound() {
+  return `<section class="section not-found">${pearlOrb(160)}<span class="eyebrow">404</span><h1>This page slipped away.</h1><p>The page you're looking for doesn't exist, or has moved.</p><a class="btn dark" href="#/">Back to home →</a></section>`;
+}
+
+/* =========================================================
+   CART DRAWER
+========================================================= */
+function renderDrawer() {
+  const d = document.getElementById("drawer");
+  d.innerHTML = `
+    <div class="drawerhead">
+      <div><span class="eyebrow">Your bag</span><h3>${store.cart.length} item${store.cart.length !== 1 ? "s" : ""}</h3></div>
+      <button id="closeDrawer">✕</button>
+    </div>
+    ${!store.cart.length
+      ? `<div class="empty">🛍<h4>Your bag is waiting.</h4><a class="btn dark" href="#/shop" id="drawerShopLink">Start shopping</a></div>`
+      : `<div class="items">${store.cart.map((i) => `
+          <div class="item"><img src="${i.image}" alt="${esc(i.name)}"/>
+            <div><b>${esc(i.name)}</b><small>${esc(i.subtitle)}</small><strong>${money(i.price)}</strong>
+              <div class="qty"><button data-qty-minus="${i.id}">−</button>${i.qty}<button data-qty-plus="${i.id}">+</button></div>
+            </div>
+          </div>`).join("")}</div>
+        <div class="summary">
+          <p>Subtotal <b>${money(store.subtotal)}</b></p>
+          <p>Delivery <b>${store.shipping ? money(store.shipping) : "FREE"}</b></p>
+          <h4>Total <b>${money(store.total)}</b></h4>
+          <a class="checkout" href="#/checkout" id="drawerCheckoutLink">Proceed to secure checkout →</a>
+        </div>`}
+  `;
+}
+
+function openDrawer() {
+  renderDrawer();
+  document.getElementById("drawer").style.display = "flex";
+  document.getElementById("backdrop").style.display = "block";
+}
+function closeDrawer() {
+  document.getElementById("drawer").style.display = "none";
+  document.getElementById("backdrop").style.display = "none";
+}
+
+/* =========================================================
+   ROUTER
+========================================================= */
+function parseHash() {
+  const hash = location.hash.slice(1) || "/";
+  const [path, qs] = hash.split("?");
+  return { path: path || "/", params: new URLSearchParams(qs || "") };
+}
+
+function render() {
+  const { path, params } = parseHash();
+  const app = document.getElementById("app");
+  let html;
+  if (path === "/") html = pageHome();
+  else if (path === "/shop") html = pageShop(params);
+  else if (path.startsWith("/product/")) html = pageProduct(path.split("/product/")[1]);
+  else if (path === "/cart") html = pageCart();
+  else if (path === "/checkout") html = pageCheckout();
+  else if (path === "/order-status") html = pageOrderStatus(params);
+  else if (path === "/about") html = pageAbout();
+  else if (path === "/contact") html = pageContact();
+  else if (path === "/faq") html = pageFAQ();
+  else html = pageNotFound();
+
+  app.style.opacity = 0;
+  app.innerHTML = html;
+  requestAnimationFrame(() => { app.style.transition = "opacity .25s"; app.style.opacity = 1; });
+  window.scrollTo({ top: 0, behavior: "instant" in window ? "instant" : "auto" });
+
+  document.querySelectorAll("[data-route]").forEach((a) => a.classList.toggle("active", a.getAttribute("data-route") === path));
+  document.getElementById("mobileMenu").style.display = "none";
+  document.getElementById("searchForm").style.display = "none";
+
+  bindPageEvents(path, params);
+  observeReveal();
+  attachHeroParallax();
+}
+
+/* =========================================================
+   EVENT BINDING (delegated + page-specific)
+========================================================= */
+document.addEventListener("click", (e) => {
+  const add = e.target.closest("[data-add]");
+  if (add) { e.preventDefault(); store.addToCart(add.dataset.add); render(); return; }
+
+  const wish = e.target.closest("[data-wish]");
+  if (wish) { e.preventDefault(); store.toggleWishlist(wish.dataset.wish); render(); return; }
+
+  const qtyMinus = e.target.closest("[data-qty-minus]");
+  if (qtyMinus) { store.changeQty(qtyMinus.dataset.qtyMinus, -1); if (location.hash.startsWith("#/cart")) render(); return; }
+
+  const qtyPlus = e.target.closest("[data-qty-plus]");
+  if (qtyPlus) { store.changeQty(qtyPlus.dataset.qtyPlus, 1); if (location.hash.startsWith("#/cart")) render(); return; }
+
+  const remove = e.target.closest("[data-remove]");
+  if (remove) { store.removeFromCart(remove.dataset.remove); render(); return; }
+
+  const faqBtn = e.target.closest("[data-faq]");
+  if (faqBtn) {
+    const i = Number(faqBtn.dataset.faq);
+    if (faqBtn.closest("#homeFaqList")) { homeFaqOpen = homeFaqOpen === i ? -1 : i; render(); }
+    else if (faqBtn.closest("#faqPageList")) { faqPageOpen = faqPageOpen === i ? -1 : i; render(); }
+    return;
+  }
+
+  const catBtn = e.target.closest("#shopFilters [data-cat]");
+  if (catBtn) {
+    const next = new URLSearchParams(parseHash().params);
+    if (catBtn.dataset.cat === "All") next.delete("category"); else next.set("category", catBtn.dataset.cat);
+    location.hash = `/shop?${next.toString()}`;
+    return;
+  }
+
+  if (e.target.id === "closeDrawer" || e.target.id === "backdrop" || e.target.id === "cartBtn") {
+    if (e.target.id === "cartBtn") { openDrawer(); return; }
+    closeDrawer();
+  }
+  if (e.target.id === "drawerShopLink" || e.target.id === "drawerCheckoutLink") closeDrawer();
+
+  const thumb = e.target.closest("[data-thumb]");
+  if (thumb) {
+    const p = findProduct(location.hash.split("/product/")[1]);
+    document.getElementById("pdMainImg").src = thumb.dataset.thumb === "0" ? p.image : p.alt;
+    document.querySelectorAll(".pd-thumbs button").forEach((b) => b.classList.remove("active"));
+    thumb.classList.add("active");
+  }
+
+  if (e.target.id === "pdQtyPlus" || e.target.id === "pdQtyMinus") {
+    const el = document.getElementById("pdQtyVal");
+    let v = Number(el.textContent);
+    v = e.target.id === "pdQtyPlus" ? v + 1 : Math.max(1, v - 1);
+    el.textContent = v;
+  }
+  const pdAdd = e.target.closest("#pdAddBtn");
+  if (pdAdd) { store.addToCart(pdAdd.dataset.id, Number(document.getElementById("pdQtyVal").textContent)); }
+  const pdWish = e.target.closest("#pdWishBtn");
+  if (pdWish) { store.toggleWishlist(pdWish.dataset.id); render(); }
+});
+
+function bindPageEvents(path) {
+  if (path === "/shop") {
+    document.getElementById("shopSearchForm")?.addEventListener("submit", (e) => {
+      e.preventDefault();
+      const next = new URLSearchParams(parseHash().params);
+      const v = document.getElementById("shopSearchInput").value;
+      if (v) next.set("q", v); else next.delete("q");
+      location.hash = `/shop?${next.toString()}`;
+    });
+    document.getElementById("sortSelect")?.addEventListener("change", (e) => {
+      const list = PRODUCTS.filter((p) => {
+        const { params } = parseHash();
+        const category = params.get("category") || "All";
+        const q = params.get("q") || "";
+        return (category === "All" || p.category === category) && (!q || `${p.name} ${p.brand}`.toLowerCase().includes(q.toLowerCase()));
+      });
+      const sort = e.target.value;
+      if (sort === "price-asc") list.sort((a, b) => a.price - b.price);
+      if (sort === "price-desc") list.sort((a, b) => b.price - a.price);
+      if (sort === "rating") list.sort((a, b) => b.rating - a.rating);
+      document.getElementById("shopGrid").innerHTML = list.map(productCard).join("");
+      observeReveal();
+    });
+  }
+
+  if (path === "/checkout") {
+    document.getElementById("checkoutForm")?.addEventListener("submit", async (e) => {
+      e.preventDefault();
+      const btn = document.getElementById("payBtn");
+      const errEl = document.getElementById("checkoutError");
+      errEl.style.display = "none";
+      btn.disabled = true;
+      btn.textContent = "Connecting…";
+      const fd = new FormData(e.target);
+      const customer = Object.fromEntries(fd.entries());
+      try {
+        const res = await fetch("/api/payment/create-session", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ customer, items: store.cart, totals: { subtotal: store.subtotal, shipping: store.shipping, total: store.total } }),
+        });
+        const data = await res.json();
+        if (!res.ok) throw new Error(data.error || "Payment could not be started.");
+        window.location.href = data.redirectUrl;
+      } catch (err) {
+        errEl.textContent = err.message || "Something went wrong. Please try again.";
+        errEl.style.display = "block";
+        btn.disabled = false;
+        btn.textContent = `Pay ${money(store.total)} securely 🛡`;
+      }
+    });
+  }
+
+  if (path === "/contact") {
+    document.getElementById("contactForm")?.addEventListener("submit", (e) => {
+      e.preventDefault();
+      document.getElementById("contactBtn").textContent = "Message sent ✓";
+    });
+  }
+
+  document.getElementById("newsletterForm")?.addEventListener("submit", (e) => {
+    e.preventDefault();
+    e.target.querySelector("button").innerHTML = "Joined ✓";
+  });
+}
+
+/* =========================================================
+   NAV / HEADER INTERACTIONS
+========================================================= */
+document.getElementById("menuBtn").addEventListener("click", () => {
+  const m = document.getElementById("mobileMenu");
+  m.style.display = m.style.display === "none" ? "flex" : "none";
+  m.style.flexDirection = "column";
+});
+document.getElementById("searchBtn").addEventListener("click", () => {
+  const f = document.getElementById("searchForm");
+  f.style.display = f.style.display === "none" ? "flex" : "none";
+  if (f.style.display === "flex") document.getElementById("searchInput").focus();
+});
+document.getElementById("searchForm").addEventListener("submit", (e) => {
+  e.preventDefault();
+  const v = document.getElementById("searchInput").value;
+  location.hash = `/shop${v ? `?q=${encodeURIComponent(v)}` : ""}`;
+  document.getElementById("searchForm").style.display = "none";
+});
+
+window.addEventListener("hashchange", render);
+window.addEventListener("load", () => {
+  document.getElementById("year").textContent = new Date().getFullYear();
+  renderCartBadge();
+  render();
+  startParticles();
+  startProgressBar();
+  startCountdown();
+});
+
+/* =========================================================
+   COUNTDOWN
+========================================================= */
+function startCountdown() {
+  function tick() {
+    const el = document.getElementById("countdown");
+    if (!el) return;
+    const remain = Math.max(0, saleEnd - Date.now());
+    const hh = String(Math.floor(remain / 3600000)).padStart(2, "0");
+    const mm = String(Math.floor((remain % 3600000) / 60000)).padStart(2, "0");
+    const ss = String(Math.floor((remain % 60000) / 1000)).padStart(2, "0");
+    el.innerHTML = `<div><b>${hh}</b><span>HRS</span></div><div><b>${mm}</b><span>MIN</span></div><div><b>${ss}</b><span>SEC</span></div>`;
+  }
+  tick();
+  setInterval(tick, 1000);
+}
+
+/* =========================================================
+   SCROLL PROGRESS BAR
+========================================================= */
+function startProgressBar() {
+  window.addEventListener("scroll", () => {
+    const h = document.documentElement;
+    const scrolled = (h.scrollTop) / (h.scrollHeight - h.clientHeight || 1);
+    document.getElementById("progress").style.transform = `scaleX(${scrolled})`;
+  });
+}
+
+/* =========================================================
+   SCROLL REVEAL
+========================================================= */
+function observeReveal() {
+  const els = document.querySelectorAll(".reveal:not(.show)");
+  if (!("IntersectionObserver" in window)) { els.forEach((el) => el.classList.add("show")); return; }
+  const io = new IntersectionObserver((entries) => {
+    entries.forEach((entry) => { if (entry.isIntersecting) { entry.target.classList.add("show"); io.unobserve(entry.target); } });
+  }, { threshold: 0.15 });
+  els.forEach((el) => io.observe(el));
+}
+
+/* =========================================================
+   HERO ORB PARALLAX
+========================================================= */
+function attachHeroParallax() {
+  const wrap = document.getElementById("heroOrb");
+  if (!wrap) return;
+  const orb = wrap.querySelector(".pearl-orb");
+  function onMove(e) {
+    const rect = wrap.getBoundingClientRect();
+    const cx = rect.left + rect.width / 2;
+    const cy = rect.top + rect.height / 2;
+    const rx = Math.max(-1, Math.min(1, (e.clientY - cy) / (rect.height * 1.4))) * -10;
+    const ry = Math.max(-1, Math.min(1, (e.clientX - cx) / (rect.width * 1.4))) * 10;
+    orb.style.transform = `rotateX(${rx}deg) rotateY(${ry}deg)`;
+  }
+  window.addEventListener("pointermove", onMove);
+}
+
+/* =========================================================
+   BACKGROUND SPARKLE PARTICLES
+========================================================= */
+function startParticles() {
+  const canvas = document.getElementById("sparkle");
+  const ctx = canvas.getContext("2d");
+  let particles = [], w = 0, h = 0;
+  const reduced = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+  const dpr = Math.min(window.devicePixelRatio || 1, 2);
+
+  function spawn(fromBottom) {
+    return { x: Math.random() * w, y: fromBottom ? h + 10 : Math.random() * h, r: Math.random() * 1.6 + 0.4, speed: Math.random() * 0.18 + 0.04, drift: (Math.random() - 0.5) * 0.15, alpha: Math.random() * 0.5 + 0.15, phase: Math.random() * Math.PI * 2, hue: Math.random() > 0.55 ? "212,175,120" : Math.random() > 0.5 ? "226,166,181" : "166,139,214" };
+  }
+  function resize() {
+    w = window.innerWidth; h = window.innerHeight;
+    canvas.width = w * dpr; canvas.height = h * dpr;
+    canvas.style.width = w + "px"; canvas.style.height = h + "px";
+    ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+    particles = Array.from({ length: Math.round((w * h) / 22000) }, () => spawn(false));
+  }
+  function tick(t) {
+    ctx.clearRect(0, 0, w, h);
+    for (const p of particles) {
+      p.y -= p.speed; p.x += p.drift;
+      const tw = 0.5 + 0.5 * Math.sin(t / 900 + p.phase);
+      if (p.y < -10) Object.assign(p, spawn(true));
+      if (p.x < -10) p.x = w + 10;
+      if (p.x > w + 10) p.x = -10;
+      ctx.beginPath();
+      ctx.fillStyle = `rgba(${p.hue},${(p.alpha * tw).toFixed(3)})`;
+      ctx.arc(p.x, p.y, p.r, 0, Math.PI * 2);
+      ctx.fill();
+    }
+    requestAnimationFrame(tick);
+  }
+  resize();
+  window.addEventListener("resize", resize);
+  if (!reduced) requestAnimationFrame(tick);
+  else { ctx.clearRect(0, 0, w, h); for (const p of particles) { ctx.beginPath(); ctx.fillStyle = `rgba(${p.hue},${p.alpha})`; ctx.arc(p.x, p.y, p.r, 0, Math.PI * 2); ctx.fill(); } }
+}
+</script>
+</body>
 </html>
