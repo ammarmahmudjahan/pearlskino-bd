@@ -1,7 +1,80 @@
-import express from "express";import cors from "cors";import dotenv from "dotenv";import crypto from "crypto";
-dotenv.config();const app=express(),PORT=process.env.PORT||4000,CLIENT=process.env.CLIENT_URL||"http://localhost:5173",sandbox=String(process.env.SSLCOMMERZ_SANDBOX).toLowerCase()!=="false",base=sandbox?"https://sandbox.sslcommerz.com":"https://securepay.sslcommerz.com";
-app.use(cors({origin:CLIENT}));app.use(express.json());app.get("/api/health",(_,r)=>r.json({ok:true,gateway:sandbox?"sandbox":"live"}));
-app.post("/api/payment/create-session",async(req,res)=>{try{const{customer,items,totals}=req.body||{};if(!customer?.name||!customer?.phone||!customer?.address||!items?.length)return res.status(400).json({error:"Missing checkout information."});if(!process.env.SSLCOMMERZ_STORE_ID||!process.env.SSLCOMMERZ_STORE_PASSWORD)return res.status(503).json({error:"Payment gateway is not configured. Add credentials to .env."});
-const tranId=`PS-${Date.now()}-${crypto.randomBytes(3).toString("hex")}`,p=new URLSearchParams({store_id:process.env.SSLCOMMERZ_STORE_ID,store_passwd:process.env.SSLCOMMERZ_STORE_PASSWORD,total_amount:Number(totals.total).toFixed(2),currency:"BDT",tran_id:tranId,success_url:`${CLIENT}/?payment=success`,fail_url:`${CLIENT}/?payment=failed`,cancel_url:`${CLIENT}/?payment=cancelled`,ipn_url:`${CLIENT}/api/payment/ipn`,product_category:"beauty",product_name:items.map(i=>i.name).join(", ").slice(0,250),product_profile:"physical-goods",cus_name:customer.name,cus_email:customer.email||"customer@pearlskino.bd",cus_add1:customer.address,cus_city:customer.city||"Dhaka",cus_state:"Bangladesh",cus_postcode:customer.postcode||"1000",cus_country:"Bangladesh",cus_phone:customer.phone,ship_name:customer.name,ship_add1:customer.address,ship_city:customer.city||"Dhaka",ship_state:"Bangladesh",ship_postcode:customer.postcode||"1000",ship_country:"Bangladesh"});
-const r=await fetch(`${base}/gwprocess/v4/api.php`,{method:"POST",headers:{"Content-Type":"application/x-www-form-urlencoded"},body:p}),d=await r.json();if(d.status!=="SUCCESS"||!d.GatewayPageURL)return res.status(502).json({error:"Payment session could not be created.",gateway:d});res.json({redirectUrl:d.GatewayPageURL,tranId})}catch(e){console.error(e);res.status(500).json({error:"Payment service error."})}});
-app.post("/api/payment/ipn",express.urlencoded({extended:true}),async(req,res)=>{console.log("IPN",req.body?.tran_id,req.body?.status);res.send("IPN received")});app.listen(PORT,()=>console.log(`PearlSkino API on :${PORT}`));
+import express from "express";
+import cors from "cors";
+import dotenv from "dotenv";
+import crypto from "crypto";
+
+dotenv.config();
+
+const app = express();
+const PORT = process.env.PORT || 4000;
+const CLIENT = process.env.CLIENT_URL || "http://localhost:5173";
+const sandbox = String(process.env.SSLCOMMERZ_SANDBOX).toLowerCase() !== "false";
+const base = sandbox ? "https://sandbox.sslcommerz.com" : "https://securepay.sslcommerz.com";
+
+app.use(cors({ origin: CLIENT }));
+app.use(express.json());
+
+app.get("/api/health", (_, res) => res.json({ ok: true, gateway: sandbox ? "sandbox" : "live" }));
+
+app.post("/api/payment/create-session", async (req, res) => {
+  try {
+    const { customer, items, totals } = req.body || {};
+    if (!customer?.name || !customer?.phone || !customer?.address || !items?.length) {
+      return res.status(400).json({ error: "Missing checkout information." });
+    }
+    if (!process.env.SSLCOMMERZ_STORE_ID || !process.env.SSLCOMMERZ_STORE_PASSWORD) {
+      return res.status(503).json({ error: "Payment gateway is not configured. Add credentials to .env." });
+    }
+
+    const tranId = `PS-${Date.now()}-${crypto.randomBytes(3).toString("hex")}`;
+    const params = new URLSearchParams({
+      store_id: process.env.SSLCOMMERZ_STORE_ID,
+      store_passwd: process.env.SSLCOMMERZ_STORE_PASSWORD,
+      total_amount: Number(totals.total).toFixed(2),
+      currency: "BDT",
+      tran_id: tranId,
+      success_url: `${CLIENT}/order-status?payment=success`,
+      fail_url: `${CLIENT}/order-status?payment=failed`,
+      cancel_url: `${CLIENT}/order-status?payment=cancelled`,
+      ipn_url: `${CLIENT}/api/payment/ipn`,
+      product_category: "beauty",
+      product_name: items.map((i) => i.name).join(", ").slice(0, 250),
+      product_profile: "physical-goods",
+      cus_name: customer.name,
+      cus_email: customer.email || "customer@pearlskino.bd",
+      cus_add1: customer.address,
+      cus_city: customer.city || "Dhaka",
+      cus_state: "Bangladesh",
+      cus_postcode: customer.postcode || "1000",
+      cus_country: "Bangladesh",
+      cus_phone: customer.phone,
+      ship_name: customer.name,
+      ship_add1: customer.address,
+      ship_city: customer.city || "Dhaka",
+      ship_state: "Bangladesh",
+      ship_postcode: customer.postcode || "1000",
+      ship_country: "Bangladesh",
+    });
+
+    const r = await fetch(`${base}/gwprocess/v4/api.php`, {
+      method: "POST",
+      headers: { "Content-Type": "application/x-www-form-urlencoded" },
+      body: params,
+    });
+    const d = await r.json();
+    if (d.status !== "SUCCESS" || !d.GatewayPageURL) {
+      return res.status(502).json({ error: "Payment session could not be created.", gateway: d });
+    }
+    res.json({ redirectUrl: d.GatewayPageURL, tranId });
+  } catch (e) {
+    console.error(e);
+    res.status(500).json({ error: "Payment service error." });
+  }
+});
+
+app.post("/api/payment/ipn", express.urlencoded({ extended: true }), async (req, res) => {
+  console.log("IPN", req.body?.tran_id, req.body?.status);
+  res.send("IPN received");
+});
+
+app.listen(PORT, () => console.log(`PearlSkino API on :${PORT}`));

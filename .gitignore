@@ -1,5 +1,4 @@
-﻿node_modules
-.DS_Store
+node_modules
 dist
-dist-ssr
-*.local
+.env
+.DS_Store
