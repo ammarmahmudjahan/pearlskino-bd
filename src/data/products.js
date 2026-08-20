@@ -109,7 +109,7 @@ export const PRODUCTS = [
     "oldPrice": 500,
     "rating": 4.8,
     "reviews": 96,
-    "stock": 9,
+    "stock": 10,
     "image": "https://images.unsplash.com/photo-1588405748880-12d1d2a59f75?auto=format&fit=crop&w=1000&q=85",
     "alt": "https://images.unsplash.com/photo-1612817288484-6f916006741a?auto=format&fit=crop&w=1000&q=85",
     "description": "Sun-warmed fruit and coconut milk over a driftwood base — the scent equivalent of a beach holiday, bottled small enough to keep in a bag.",
