@@ -1,5 +1,8 @@
 import { useState } from "react";
-import { useProducts } from "../hooks/useProducts";
+import {
+  useProducts,
+  publishProducts,
+} from "../hooks/useProducts";
 
 import {
   DndContext,
@@ -56,7 +59,7 @@ function SortableProductRow({
       }`}
     >
 
-      {/* POSITION / DRAG HANDLE */}
+      {/* POSITION */}
 
       <div className="product-position">
 
@@ -165,20 +168,39 @@ function SortableProductRow({
 
 export default function ProductManager() {
 
-  const [products, setProducts] =
-    useProducts();
-
-  const [editingProduct, setEditingProduct] =
-    useState(null);
-
-  const [isAdding, setIsAdding] =
-    useState(false);
-
-  const [search, setSearch] =
-    useState("");
+  const [
+    products,
+    setProducts,
+  ] = useProducts();
 
 
-  /* DRAG SENSOR */
+  const [
+    editingProduct,
+    setEditingProduct,
+  ] = useState(null);
+
+
+  const [
+    isAdding,
+    setIsAdding,
+  ] = useState(false);
+
+
+  const [
+    search,
+    setSearch,
+  ] = useState("");
+
+
+  const [
+    publishing,
+    setPublishing,
+  ] = useState(false);
+
+
+  /* =======================================================
+     DRAG SENSOR
+  ======================================================= */
 
   const sensors = useSensors(
     useSensor(PointerSensor, {
@@ -190,21 +212,84 @@ export default function ProductManager() {
 
 
   /* =======================================================
+     PUBLISH HELPER
+  ======================================================= */
+
+  async function publishUpdatedProducts(
+    updatedProducts
+  ) {
+
+    try {
+
+      setPublishing(true);
+
+      await publishProducts(
+        updatedProducts
+      );
+
+      return true;
+
+    } catch (error) {
+
+      console.error(
+        "Publish failed:",
+        error
+      );
+
+      alert(
+        "Changes were saved locally, but publishing failed.\n\nMake sure the local admin server is running on port 3001."
+      );
+
+      return false;
+
+    } finally {
+
+      setPublishing(false);
+
+    }
+  }
+
+
+  /* =======================================================
      ADD PRODUCT
   ======================================================= */
 
   function startAdd() {
 
     setEditingProduct({
+
       id: `product-${Date.now()}`,
+
       name: "",
+
       brand: "",
-      category: "",
+
+      category: "fragrance",
+
+      subtitle: "",
+
+      tags: [],
+
       price: 0,
+
+      oldPrice: null,
+
+      rating: 5,
+
+      reviews: 0,
+
       stock: 0,
+
       status: "active",
+
       description: "",
+
       image: "",
+
+      alt: "",
+
+      notes: null,
+
     });
 
     setIsAdding(true);
@@ -236,15 +321,25 @@ export default function ProductManager() {
       value,
     } = e.target;
 
-    setEditingProduct((current) => ({
-      ...current,
 
-      [name]:
-        name === "price" ||
-        name === "stock"
-          ? Number(value)
-          : value,
-    }));
+    setEditingProduct(
+      (current) => ({
+
+        ...current,
+
+        [name]:
+          name === "price" ||
+          name === "stock" ||
+          name === "oldPrice" ||
+          name === "rating" ||
+          name === "reviews"
+            ? value === ""
+              ? 0
+              : Number(value)
+            : value,
+
+      })
+    );
   }
 
 
@@ -252,15 +347,17 @@ export default function ProductManager() {
      SAVE PRODUCT
   ======================================================= */
 
-  function saveProduct(e) {
+  async function saveProduct(e) {
 
     e.preventDefault();
 
+
     const name =
-      editingProduct.name.trim();
+      editingProduct.name?.trim() || "";
+
 
     const brand =
-      editingProduct.brand.trim();
+      editingProduct.brand?.trim() || "";
 
 
     if (!name) {
@@ -276,32 +373,37 @@ export default function ProductManager() {
     /* DUPLICATE CHECK */
 
     const duplicate =
-      products.find((product) => {
+      products.find(
+        (product) => {
 
-        if (
-          product.id ===
-          editingProduct.id
-        ) {
-          return false;
+          if (
+            product.id ===
+            editingProduct.id
+          ) {
+            return false;
+          }
+
+
+          const sameName =
+            product.name
+              ?.trim()
+              .toLowerCase() ===
+            name.toLowerCase();
+
+
+          const sameBrand =
+            (product.brand || "")
+              .trim()
+              .toLowerCase() ===
+            brand.toLowerCase();
+
+
+          return (
+            sameName &&
+            sameBrand
+          );
         }
-
-        const sameName =
-          product.name
-            ?.trim()
-            .toLowerCase() ===
-          name.toLowerCase();
-
-        const sameBrand =
-          (product.brand || "")
-            .trim()
-            .toLowerCase() ===
-          brand.toLowerCase();
-
-        return (
-          sameName &&
-          sameBrand
-        );
-      });
+      );
 
 
     if (duplicate) {
@@ -314,39 +416,98 @@ export default function ProductManager() {
     }
 
 
-    /* ADD */
+    /* =====================================================
+       PREPARE UPDATED PRODUCT
+    ===================================================== */
+
+    const updatedProduct = {
+
+      ...editingProduct,
+
+      name,
+
+      brand,
+
+      image:
+        editingProduct.image || "",
+
+      alt:
+        editingProduct.alt ||
+        editingProduct.image ||
+        "",
+
+      status:
+        editingProduct.status ||
+        "active",
+
+    };
+
+
+    let updatedProducts;
+
+
+    /* =====================================================
+       ADD
+    ===================================================== */
 
     if (isAdding) {
 
-      setProducts((current) => [
-        ...current,
+      updatedProducts = [
 
-        {
-          ...editingProduct,
-          name,
-          brand,
-        },
-      ]);
+        ...products,
+
+        updatedProduct,
+
+      ];
+
     }
 
 
-    /* EDIT */
+    /* =====================================================
+       EDIT
+    ===================================================== */
 
     else {
 
-      setProducts((current) =>
-        current.map(
+      updatedProducts =
+        products.map(
           (product) =>
             product.id ===
             editingProduct.id
-              ? {
-                  ...editingProduct,
-                  name,
-                  brand,
-                }
+              ? updatedProduct
               : product
-        )
+        );
+
+    }
+
+
+    /* =====================================================
+       SAVE LOCALLY
+    ===================================================== */
+
+    setProducts(
+      updatedProducts
+    );
+
+
+    /* =====================================================
+       PUBLISH TO SERVER
+    ===================================================== */
+
+    const success =
+      await publishUpdatedProducts(
+        updatedProducts
       );
+
+
+    if (success) {
+
+      alert(
+        isAdding
+          ? "Product added and published successfully."
+          : "Product updated and published successfully."
+      );
+
     }
 
 
@@ -357,10 +518,10 @@ export default function ProductManager() {
 
 
   /* =======================================================
-     DELETE
+     DELETE PRODUCT
   ======================================================= */
 
-  function deleteProduct(id) {
+  async function deleteProduct(id) {
 
     const product =
       products.find(
@@ -368,24 +529,53 @@ export default function ProductManager() {
           item.id === id
       );
 
-    if (!product) return;
+
+    if (!product) {
+      return;
+    }
 
 
     const confirmed =
       window.confirm(
-        `Delete "${product.name}"?`
+        `Delete "${product.name}"?\n\nThis will remove it from the published product catalog.`
       );
 
 
-    if (!confirmed) return;
+    if (!confirmed) {
+      return;
+    }
 
 
-    setProducts((current) =>
-      current.filter(
+    const updatedProducts =
+      products.filter(
         (item) =>
           item.id !== id
-      )
+      );
+
+
+    /* SAVE LOCALLY */
+
+    setProducts(
+      updatedProducts
     );
+
+
+    /* PUBLISH */
+
+    const success =
+      await publishUpdatedProducts(
+        updatedProducts
+      );
+
+
+    if (success) {
+
+      alert(
+        `"${product.name}" was deleted and published successfully.`
+      );
+
+    }
+
   }
 
 
@@ -393,7 +583,7 @@ export default function ProductManager() {
      DRAG END
   ======================================================= */
 
-  function handleDragEnd(event) {
+  async function handleDragEnd(event) {
 
     const {
       active,
@@ -401,7 +591,9 @@ export default function ProductManager() {
     } = event;
 
 
-    if (!over) return;
+    if (!over) {
+      return;
+    }
 
 
     if (
@@ -412,38 +604,51 @@ export default function ProductManager() {
     }
 
 
-    setProducts((current) => {
-
-      const oldIndex =
-        current.findIndex(
-          (product) =>
-            product.id ===
-            active.id
-        );
+    const oldIndex =
+      products.findIndex(
+        (product) =>
+          product.id ===
+          active.id
+      );
 
 
-      const newIndex =
-        current.findIndex(
-          (product) =>
-            product.id ===
-            over.id
-        );
+    const newIndex =
+      products.findIndex(
+        (product) =>
+          product.id ===
+          over.id
+      );
 
 
-      if (
-        oldIndex === -1 ||
-        newIndex === -1
-      ) {
-        return current;
-      }
+    if (
+      oldIndex === -1 ||
+      newIndex === -1
+    ) {
+      return;
+    }
 
 
-      return arrayMove(
-        current,
+    const updatedProducts =
+      arrayMove(
+        products,
         oldIndex,
         newIndex
       );
-    });
+
+
+    /* SAVE LOCALLY */
+
+    setProducts(
+      updatedProducts
+    );
+
+
+    /* PUBLISH */
+
+    await publishUpdatedProducts(
+      updatedProducts
+    );
+
   }
 
 
@@ -468,19 +673,29 @@ export default function ProductManager() {
       (product) => {
 
         const text = `
+
           ${product.name || ""}
+
           ${product.category || ""}
+
           ${product.brand || ""}
+
           ${product.id || ""}
+
         `.toLowerCase();
 
 
         return text.includes(
           search.toLowerCase()
         );
+
       }
     );
 
+
+  /* =======================================================
+     RENDER
+  ======================================================= */
 
   return (
 
@@ -505,13 +720,36 @@ export default function ProductManager() {
         />
 
 
-        <button
-          type="button"
-          className="add-product-button"
-          onClick={startAdd}
+        <div
+          style={{
+            display: "flex",
+            gap: "10px",
+            alignItems: "center",
+          }}
         >
-          + Add Product
-        </button>
+
+          {publishing && (
+            <span
+              style={{
+                fontSize: "13px",
+                opacity: 0.7,
+              }}
+            >
+              Publishing...
+            </span>
+          )}
+
+
+          <button
+            type="button"
+            className="add-product-button"
+            onClick={startAdd}
+            disabled={publishing}
+          >
+            + Add Product
+          </button>
+
+        </div>
 
       </div>
 
@@ -614,20 +852,30 @@ export default function ProductManager() {
                   return (
 
                     <SortableProductRow
-                      key={product.id}
-                      product={product}
+                      key={
+                        product.id
+                      }
+
+                      product={
+                        product
+                      }
+
                       index={
                         originalIndex
                       }
+
                       startEdit={
                         startEdit
                       }
+
                       deleteProduct={
                         deleteProduct
                       }
+
                     />
 
                   );
+
                 }
               )}
 
@@ -763,7 +1011,28 @@ export default function ProductManager() {
               </div>
 
 
-              {/* PRICE / STOCK */}
+              {/* SUBTITLE */}
+
+              <label>
+
+                Subtitle
+
+                <input
+                  name="subtitle"
+                  value={
+                    editingProduct.subtitle ||
+                    ""
+                  }
+                  onChange={
+                    handleChange
+                  }
+                  placeholder="e.g. Eau de Parfum · 5 ml Decant"
+                />
+
+              </label>
+
+
+              {/* PRICE / OLD PRICE */}
 
               <div className="editor-grid">
 
@@ -789,6 +1058,32 @@ export default function ProductManager() {
 
                 <label>
 
+                  Old Price
+
+                  <input
+                    type="number"
+                    name="oldPrice"
+                    min="0"
+                    value={
+                      editingProduct.oldPrice ??
+                      ""
+                    }
+                    onChange={
+                      handleChange
+                    }
+                  />
+
+                </label>
+
+              </div>
+
+
+              {/* STOCK / RATING */}
+
+              <div className="editor-grid">
+
+                <label>
+
                   Stock
 
                   <input
@@ -806,7 +1101,51 @@ export default function ProductManager() {
 
                 </label>
 
+
+                <label>
+
+                  Rating
+
+                  <input
+                    type="number"
+                    name="rating"
+                    min="0"
+                    max="5"
+                    step="0.1"
+                    value={
+                      editingProduct.rating ??
+                      5
+                    }
+                    onChange={
+                      handleChange
+                    }
+                  />
+
+                </label>
+
               </div>
+
+
+              {/* REVIEWS */}
+
+              <label>
+
+                Review Count
+
+                <input
+                  type="number"
+                  name="reviews"
+                  min="0"
+                  value={
+                    editingProduct.reviews ??
+                    0
+                  }
+                  onChange={
+                    handleChange
+                  }
+                />
+
+              </label>
 
 
               {/* STATUS */}
@@ -839,123 +1178,235 @@ export default function ProductManager() {
               </label>
 
 
-             {/* PRODUCT IMAGE */}
+              {/* TAGS */}
 
-<div className="product-image-editor">
+              <label>
 
-  <p className="image-editor-title">
-    Product Image
-  </p>
+                Tags
 
-  {/* IMAGE PREVIEW */}
+                <input
+                  name="tags"
+                  value={
+                    Array.isArray(
+                      editingProduct.tags
+                    )
+                      ? editingProduct.tags.join(
+                          ", "
+                        )
+                      : editingProduct.tags ||
+                        ""
+                  }
+                  onChange={(e) => {
 
-  {editingProduct.image ? (
-    <div className="image-preview">
-
-      <img
-        src={editingProduct.image}
-        alt="Product preview"
-      />
-
-    </div>
-  ) : (
-    <div className="image-preview image-preview-empty">
-
-      <span>✦</span>
-
-      <p>
-        No image selected
-      </p>
-
-    </div>
-  )}
-
-
-  {/* UPLOAD FROM PC */}
-
-  <label className="image-upload-button">
-
-    📁 Upload from PC
-
-    <input
-      type="file"
-      accept="image/png,image/jpeg,image/webp"
-      hidden
-      onChange={(e) => {
-
-        const file =
-          e.target.files?.[0];
-
-        if (!file) return;
-
-        const reader =
-          new FileReader();
-
-        reader.onload = () => {
-
-          setEditingProduct(
-            (current) => ({
-              ...current,
-              image: reader.result,
-            })
-          );
-
-        };
-
-        reader.readAsDataURL(file);
-
-      }}
-    />
-
-  </label>
+                    const tags =
+                      e.target.value
+                        .split(",")
+                        .map(
+                          (tag) =>
+                            tag.trim()
+                        )
+                        .filter(
+                          Boolean
+                        );
 
 
-  {/* IMAGE URL */}
+                    setEditingProduct(
+                      (current) => ({
+                        ...current,
+                        tags,
+                      })
+                    );
 
-  <label className="image-url-field">
+                  }}
+                  placeholder="Bestseller, Fresh, Limited Stock"
+                />
 
-    <span>
-      Or use an image URL
-    </span>
-
-    <input
-      name="image"
-      value={
-        editingProduct.image?.startsWith(
-          "data:"
-        )
-          ? ""
-          : editingProduct.image || ""
-      }
-      onChange={handleChange}
-      placeholder="https://example.com/image.jpg"
-    />
-
-  </label>
+              </label>
 
 
-  {/* REMOVE */}
+              {/* =================================================
+                  PRODUCT IMAGE
+              ================================================= */}
 
-  {editingProduct.image && (
+              <div className="product-image-editor">
 
-    <button
-      type="button"
-      className="remove-image-button"
-      onClick={() =>
-        setEditingProduct(
-          (current) => ({
-            ...current,
-            image: "",
-          })
-        )
-      }
-    >
-      ✕ Remove Image
-    </button>
+                <p className="image-editor-title">
+                  Product Image
+                </p>
 
-  )}
 
-</div>
+                {/* IMAGE PREVIEW */}
+
+                {editingProduct.image ? (
+
+                  <div className="image-preview">
+
+                    <img
+                      src={
+                        editingProduct.image
+                      }
+                      alt={
+                        editingProduct.name ||
+                        "Product preview"
+                      }
+                    />
+
+                  </div>
+
+                ) : (
+
+                  <div
+                    className="
+                      image-preview
+                      image-preview-empty
+                    "
+                  >
+
+                    <span>
+                      ✦
+                    </span>
+
+                    <p>
+                      No image selected
+                    </p>
+
+                  </div>
+
+                )}
+
+
+                {/* UPLOAD */}
+
+                <label className="image-upload-button">
+
+                  📁 Upload from PC
+
+                  <input
+                    type="file"
+                    accept="
+                      image/png,
+                      image/jpeg,
+                      image/webp
+                    "
+                    hidden
+                    onChange={(e) => {
+
+                      const file =
+                        e.target.files?.[0];
+
+
+                      if (!file) {
+                        return;
+                      }
+
+
+                      const reader =
+                        new FileReader();
+
+
+                      reader.onload = () => {
+
+                        setEditingProduct(
+                          (current) => ({
+                            ...current,
+
+                            image:
+                              reader.result,
+
+                            alt:
+                              current.alt ||
+                              current.name ||
+                              "Product image",
+
+                          })
+                        );
+
+                      };
+
+
+                      reader.readAsDataURL(
+                        file
+                      );
+
+                    }}
+                  />
+
+                </label>
+
+
+                {/* URL */}
+
+                <label className="image-url-field">
+
+                  <span>
+                    Or use an image URL
+                  </span>
+
+                  <input
+                    name="image"
+                    value={
+                      editingProduct.image?.startsWith(
+                        "data:"
+                      )
+                        ? ""
+                        : editingProduct.image ||
+                          ""
+                    }
+                    onChange={
+                      handleChange
+                    }
+                    placeholder="https://example.com/image.jpg"
+                  />
+
+                </label>
+
+
+                {/* ALT TEXT */}
+
+                <label className="image-url-field">
+
+                  <span>
+                    Image Alt Text
+                  </span>
+
+                  <input
+                    name="alt"
+                    value={
+                      editingProduct.alt ||
+                      ""
+                    }
+                    onChange={
+                      handleChange
+                    }
+                    placeholder="Product image description"
+                  />
+
+                </label>
+
+
+                {/* REMOVE */}
+
+                {editingProduct.image && (
+
+                  <button
+                    type="button"
+                    className="remove-image-button"
+                    onClick={() =>
+                      setEditingProduct(
+                        (current) => ({
+                          ...current,
+                          image: "",
+                          alt: "",
+                        })
+                      )
+                    }
+                  >
+                    ✕ Remove Image
+                  </button>
+
+                )}
+
+              </div>
 
 
               {/* DESCRIPTION */}
@@ -989,6 +1440,9 @@ export default function ProductManager() {
                   onClick={
                     cancelEdit
                   }
+                  disabled={
+                    publishing
+                  }
                 >
                   Cancel
                 </button>
@@ -997,11 +1451,16 @@ export default function ProductManager() {
                 <button
                   type="submit"
                   className="save-product-button"
+                  disabled={
+                    publishing
+                  }
                 >
 
-                  {isAdding
-                    ? "Create Product"
-                    : "Save Changes"}
+                  {publishing
+                    ? "Publishing..."
+                    : isAdding
+                      ? "Create & Publish"
+                      : "Save & Publish"}
 
                 </button>
 
@@ -1016,5 +1475,6 @@ export default function ProductManager() {
       )}
 
     </div>
+
   );
 }
