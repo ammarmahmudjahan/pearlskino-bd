@@ -4,16 +4,51 @@ import { PRODUCTS } from "../data/products";
 const STORAGE_KEY = "pearlskino_products";
 const API_URL = "http://localhost:3001/api/products";
 
-/*
-|--------------------------------------------------------------------------
-| Load products
-|--------------------------------------------------------------------------
-| Priority:
-| 1. Local admin server -> src/data/products.js
-| 2. Browser localStorage
-| 3. Original PRODUCTS fallback
-|--------------------------------------------------------------------------
-*/
+/* =========================================================
+   PARSE PRODUCTS FILE
+========================================================= */
+
+function extractProductsFromFile(file) {
+  if (!file || typeof file !== "string") {
+    return null;
+  }
+
+  const match = file.match(
+    /export\s+const\s+PRODUCTS\s*=\s*(\[[\s\S]*?\])\s*;?\s*(?:export\s+const|$)/
+  );
+
+  if (!match) {
+    console.warn(
+      "Could not find PRODUCTS array in products.js"
+    );
+
+    return null;
+  }
+
+  try {
+    const parsed = Function(
+      `"use strict"; return (${match[1]})`
+    )();
+
+    if (!Array.isArray(parsed)) {
+      return null;
+    }
+
+    return parsed;
+  } catch (error) {
+    console.error(
+      "Could not parse products from server:",
+      error
+    );
+
+    return null;
+  }
+}
+
+
+/* =========================================================
+   LOAD PRODUCTS
+========================================================= */
 
 export function useProducts() {
   const [products, setProductsState] = useState(() => {
@@ -21,9 +56,16 @@ export function useProducts() {
 
     if (saved) {
       try {
-        return JSON.parse(saved);
-      } catch {
-        return PRODUCTS;
+        const parsed = JSON.parse(saved);
+
+        if (Array.isArray(parsed)) {
+          return parsed;
+        }
+      } catch (error) {
+        console.warn(
+          "Could not read saved products:",
+          error
+        );
       }
     }
 
@@ -32,56 +74,45 @@ export function useProducts() {
 
   const [loading, setLoading] = useState(true);
 
-  /*
-  |--------------------------------------------------------------------------
-  | Load latest products from local server
-  |--------------------------------------------------------------------------
-  */
+
+  /* =======================================================
+     LOAD FROM LOCAL ADMIN SERVER
+  ======================================================= */
 
   useEffect(() => {
+    let cancelled = false;
+
     async function loadProducts() {
       try {
         const response = await fetch(API_URL);
 
         if (!response.ok) {
-          throw new Error("Failed to load products");
+          throw new Error(
+            `Server returned ${response.status}`
+          );
         }
 
         const data = await response.json();
 
-        if (data.success && data.file) {
-          /*
-           * The server returns the complete products.js file.
-           *
-           * We don't directly execute that file in the browser.
-           * Instead, we extract the PRODUCTS array from it.
-           */
-
-          const match = data.file.match(
-            /export const PRODUCTS\s*=\s*(\[[\s\S]*?\]);\s*(?:export const|$)/
+        if (!data.success || !data.file) {
+          throw new Error(
+            "Invalid product server response"
           );
+        }
 
-          if (match) {
-            try {
-              const parsedProducts = Function(
-                `"use strict"; return (${match[1]})`
-              )();
+        const parsedProducts =
+          extractProductsFromFile(data.file);
 
-              if (Array.isArray(parsedProducts)) {
-                setProductsState(parsedProducts);
+        if (
+          !cancelled &&
+          Array.isArray(parsedProducts)
+        ) {
+          setProductsState(parsedProducts);
 
-                localStorage.setItem(
-                  STORAGE_KEY,
-                  JSON.stringify(parsedProducts)
-                );
-              }
-            } catch (error) {
-              console.error(
-                "Could not parse products from server:",
-                error
-              );
-            }
-          }
+          localStorage.setItem(
+            STORAGE_KEY,
+            JSON.stringify(parsedProducts)
+          );
         }
       } catch (error) {
         console.warn(
@@ -89,18 +120,23 @@ export function useProducts() {
           error
         );
       } finally {
-        setLoading(false);
+        if (!cancelled) {
+          setLoading(false);
+        }
       }
     }
 
     loadProducts();
+
+    return () => {
+      cancelled = true;
+    };
   }, []);
 
-  /*
-  |--------------------------------------------------------------------------
-  | Update products
-  |--------------------------------------------------------------------------
-  */
+
+  /* =======================================================
+     UPDATE PRODUCTS
+  ======================================================= */
 
   function setProducts(update) {
     setProductsState((current) => {
@@ -118,33 +154,35 @@ export function useProducts() {
     });
   }
 
-  return [products, setProducts, loading];
+
+  return [
+    products,
+    setProducts,
+    loading,
+  ];
 }
 
 
-/*
-|--------------------------------------------------------------------------
-| Publish products
-|--------------------------------------------------------------------------
-|
-| Sends the current product list to:
-|
-|     http://localhost:3001/api/products
-|
-| The local server then updates:
-|
-|     src/data/products.js
-|
-|--------------------------------------------------------------------------
-*/
+/* =========================================================
+   PUBLISH PRODUCTS
+========================================================= */
 
 export async function publishProducts(products) {
+  if (!Array.isArray(products)) {
+    return {
+      success: false,
+      error: "Products must be an array.",
+    };
+  }
+
   try {
     const response = await fetch(API_URL, {
       method: "PUT",
+
       headers: {
         "Content-Type": "application/json",
       },
+
       body: JSON.stringify({
         products,
       }),
@@ -154,17 +192,20 @@ export async function publishProducts(products) {
 
     if (!response.ok || !data.success) {
       throw new Error(
-        data.error || "Failed to publish products"
+        data.error ||
+        `Publish failed with status ${response.status}`
       );
     }
 
-    /*
-     * Keep browser storage synchronized.
-     */
+    /* Keep browser storage synchronized */
 
     localStorage.setItem(
       STORAGE_KEY,
       JSON.stringify(products)
+    );
+
+    console.log(
+      "PearlSkino products published successfully."
     );
 
     return {
@@ -173,13 +214,15 @@ export async function publishProducts(products) {
     };
   } catch (error) {
     console.error(
-      "Publish failed:",
+      "PearlSkino product publishing failed:",
       error
     );
 
     return {
       success: false,
-      error: error.message,
+      error:
+        error?.message ||
+        "Unknown publishing error.",
     };
   }
 }

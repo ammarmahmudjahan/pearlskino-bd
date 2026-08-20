@@ -39,48 +39,125 @@ app.get("/api/products", async (req, res) => {
       file,
     });
   } catch (error) {
-    console.error(error);
+    console.error("GET PRODUCTS ERROR:", error);
 
     res.status(500).json({
       success: false,
-      message: "Could not read products.js",
+      error: "Could not read products.js",
     });
   }
 });
 
 /*
 |--------------------------------------------------------------------------
-| SAVE PRODUCTS
+| PUBLISH PRODUCTS
+|--------------------------------------------------------------------------
+|
+| The admin panel sends:
+|
+| PUT /api/products
+|
+| {
+|   products: [...]
+| }
+|
+| This converts the product array into the PRODUCTS export
+| used by the React application and writes it to:
+|
+| src/data/products.js
+|
 |--------------------------------------------------------------------------
 */
 
-app.post("/api/products", async (req, res) => {
+app.put("/api/products", async (req, res) => {
   try {
-    const { file } = req.body;
+    const { products } = req.body;
 
-    if (typeof file !== "string") {
+    if (!Array.isArray(products)) {
       return res.status(400).json({
         success: false,
-        message: "Invalid file content.",
+        error: "Invalid products data.",
       });
+    }
+
+    const existingFile =
+      await fs.promises.readFile(
+        productsFile,
+        "utf8"
+      );
+
+    const productsText =
+      JSON.stringify(
+        products,
+        null,
+        2
+      );
+
+    const productsExport =
+      `export const PRODUCTS = ${productsText};`;
+
+    /*
+     * Replace the existing PRODUCTS export.
+     *
+     * Everything before PRODUCTS is preserved.
+     * Everything after PRODUCTS is also preserved.
+     */
+
+    const productsPattern =
+      /export const PRODUCTS\s*=\s*\[[\s\S]*?\];/;
+
+    let updatedFile;
+
+    if (productsPattern.test(existingFile)) {
+
+      updatedFile =
+        existingFile.replace(
+          productsPattern,
+          productsExport
+        );
+
+    } else {
+
+      /*
+       * Safety fallback:
+       * If PRODUCTS export cannot be found,
+       * append it to the file instead of destroying
+       * the existing file.
+       */
+
+      updatedFile =
+        `${existingFile.trim()}\n\n${productsExport}\n`;
+
     }
 
     await fs.promises.writeFile(
       productsFile,
-      file,
+      updatedFile,
       "utf8"
+    );
+
+    console.log(
+      `Published ${products.length} products to src/data/products.js`
     );
 
     res.json({
       success: true,
-      message: "products.js updated successfully.",
+      message:
+        "Products published successfully.",
+      count: products.length,
     });
+
   } catch (error) {
-    console.error(error);
+
+    console.error(
+      "PUBLISH PRODUCTS ERROR:",
+      error
+    );
 
     res.status(500).json({
       success: false,
-      message: "Could not update products.js",
+      error:
+        "Could not update products.js",
     });
   }
 });
