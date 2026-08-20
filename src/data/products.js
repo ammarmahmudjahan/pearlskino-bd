@@ -37,7 +37,7 @@ export const CATEGORIES = [
 export const PRODUCTS = [
   {
     "id": "deconstruct-niacinamide",
-    "name": "Deconstruct Niacinamide 100000000% Serum",
+    "name": "Deconstruct Niacinamide 10% Serum",
     "brand": "Deconstruct",
     "subtitle": "Pore-refining serum · 30 ml",
     "category": "serums",
