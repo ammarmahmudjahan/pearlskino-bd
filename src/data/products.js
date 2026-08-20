@@ -44,7 +44,7 @@ export const PRODUCTS = [
     "tags": [
       "Oily Skin"
     ],
-    "price": 990,
+    "price": 9,
     "oldPrice": 1150,
     "rating": 4.7,
     "reviews": 88,
