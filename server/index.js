@@ -3,173 +3,487 @@ import cors from "cors";
 import fs from "fs";
 import path from "path";
 import { fileURLToPath } from "url";
+import { execFile } from "child_process";
+import { promisify } from "util";
+
+const execFileAsync = promisify(execFile);
 
 const app = express();
 const PORT = 3001;
 
+
+/* =========================================================
+   PROJECT PATH
+========================================================= */
+
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
-const productsFile = path.join(
+const projectRoot = path.join(
   __dirname,
-  "..",
+  ".."
+);
+
+const productsFile = path.join(
+  projectRoot,
   "src",
   "data",
   "products.js"
 );
 
+
+/* =========================================================
+   MIDDLEWARE
+========================================================= */
+
 app.use(cors());
-app.use(express.json({ limit: "20mb" }));
 
-/*
-|--------------------------------------------------------------------------
-| GET PRODUCTS
-|--------------------------------------------------------------------------
-*/
+app.use(
+  express.json({
+    limit: "20mb",
+  })
+);
 
-app.get("/api/products", async (req, res) => {
-  try {
-    const file = await fs.promises.readFile(
-      productsFile,
-      "utf8"
-    );
 
-    res.json({
-      success: true,
-      file,
-    });
-  } catch (error) {
-    console.error("GET PRODUCTS ERROR:", error);
+/* =========================================================
+   GET PRODUCTS
+========================================================= */
 
-    res.status(500).json({
-      success: false,
-      error: "Could not read products.js",
-    });
-  }
-});
+app.get(
+  "/api/products",
+  async (req, res) => {
 
-/*
-|--------------------------------------------------------------------------
-| PUBLISH PRODUCTS
-|--------------------------------------------------------------------------
-|
-| The admin panel sends:
-|
-| PUT /api/products
-|
-| {
-|   products: [...]
-| }
-|
-| This converts the product array into the PRODUCTS export
-| used by the React application and writes it to:
-|
-| src/data/products.js
-|
-|--------------------------------------------------------------------------
-*/
+    try {
 
-app.put("/api/products", async (req, res) => {
-  try {
-    const { products } = req.body;
+      const file =
+        await fs.promises.readFile(
+          productsFile,
+          "utf8"
+        );
 
-    if (!Array.isArray(products)) {
-      return res.status(400).json({
-        success: false,
-        error: "Invalid products data.",
+      res.json({
+        success: true,
+        file,
       });
+
+    } catch (error) {
+
+      console.error(
+        "GET PRODUCTS ERROR:",
+        error
+      );
+
+      res.status(500).json({
+        success: false,
+        error:
+          "Could not read products.js",
+      });
+
     }
 
-    const existingFile =
-      await fs.promises.readFile(
+  }
+);
+
+
+/* =========================================================
+   SAVE PRODUCTS
+========================================================= */
+
+app.put(
+  "/api/products",
+  async (req, res) => {
+
+    try {
+
+      const {
+        products,
+      } = req.body;
+
+
+      if (!Array.isArray(products)) {
+
+        return res.status(400).json({
+          success: false,
+          error:
+            "Invalid products data.",
+        });
+
+      }
+
+
+      const existingFile =
+        await fs.promises.readFile(
+          productsFile,
+          "utf8"
+        );
+
+
+      const productsText =
+        JSON.stringify(
+          products,
+          null,
+          2
+        );
+
+
+      const productsExport =
+        `export const PRODUCTS = ${productsText};`;
+
+
+      /*
+       * Replace only the PRODUCTS export.
+       *
+       * Everything else in products.js
+       * remains untouched.
+       */
+
+      const productsPattern =
+        /export const PRODUCTS\s*=\s*\[[\s\S]*?\];/;
+
+
+      let updatedFile;
+
+
+      if (
+        productsPattern.test(
+          existingFile
+        )
+      ) {
+
+        updatedFile =
+          existingFile.replace(
+            productsPattern,
+            productsExport
+          );
+
+      } else {
+
+        updatedFile =
+          `${existingFile.trim()}\n\n${productsExport}\n`;
+
+      }
+
+
+      await fs.promises.writeFile(
         productsFile,
+        updatedFile,
         "utf8"
       );
 
-    const productsText =
-      JSON.stringify(
-        products,
-        null,
-        2
+
+      console.log(
+        `Products saved locally: ${products.length} products`
       );
 
-    const productsExport =
-      `export const PRODUCTS = ${productsText};`;
 
-    /*
-     * Replace the existing PRODUCTS export.
-     *
-     * Everything before PRODUCTS is preserved.
-     * Everything after PRODUCTS is also preserved.
-     */
+      res.json({
+        success: true,
+        message:
+          "Products saved successfully.",
+        count:
+          products.length,
+      });
 
-    const productsPattern =
-      /export const PRODUCTS\s*=\s*\[[\s\S]*?\];/;
+    } catch (error) {
 
-    let updatedFile;
+      console.error(
+        "SAVE PRODUCTS ERROR:",
+        error
+      );
 
-    if (productsPattern.test(existingFile)) {
-
-      updatedFile =
-        existingFile.replace(
-          productsPattern,
-          productsExport
-        );
-
-    } else {
-
-      /*
-       * Safety fallback:
-       * If PRODUCTS export cannot be found,
-       * append it to the file instead of destroying
-       * the existing file.
-       */
-
-      updatedFile =
-        `${existingFile.trim()}\n\n${productsExport}\n`;
+      res.status(500).json({
+        success: false,
+        error:
+          error?.message ||
+          "Could not save products.",
+      });
 
     }
 
-    await fs.promises.writeFile(
-      productsFile,
-      updatedFile,
-      "utf8"
-    );
+  }
+);
+
+
+/* =========================================================
+   PUBLISH EVERYTHING TO GITHUB
+========================================================= */
+
+app.post(
+  "/api/publish",
+  async (req, res) => {
+
+    try {
+
+      console.log(
+        "\n========================================"
+      );
+
+      console.log(
+        "Publishing ALL project changes..."
+      );
+
+      console.log(
+        "========================================"
+      );
+
+
+      /* ---------------------------------------------------
+         1. CHECK GIT STATUS
+      --------------------------------------------------- */
+
+      const {
+        stdout: statusOutput,
+      } = await execFileAsync(
+        "git",
+        [
+          "status",
+          "--short",
+        ],
+        {
+          cwd: projectRoot,
+        }
+      );
+
+
+      console.log(
+        "\nGit status:"
+      );
+
+      console.log(
+        statusOutput ||
+        "No changes."
+      );
+
+
+      /* ---------------------------------------------------
+         2. STAGE EVERYTHING
+         
+         - modified files
+         - new files
+         - deleted files
+         - renamed files
+         
+         Everything Git tracks in the repository.
+      --------------------------------------------------- */
+
+      await execFileAsync(
+        "git",
+        [
+          "add",
+          "-A",
+        ],
+        {
+          cwd: projectRoot,
+        }
+      );
+
+
+      /* ---------------------------------------------------
+         3. CHECK FOR STAGED CHANGES
+      --------------------------------------------------- */
+
+      let hasChanges = true;
+
+
+      try {
+
+        await execFileAsync(
+          "git",
+          [
+            "diff",
+            "--cached",
+            "--quiet",
+          ],
+          {
+            cwd: projectRoot,
+          }
+        );
+
+
+        /*
+         * Exit code 0 =
+         * nothing staged.
+         */
+
+        hasChanges = false;
+
+      } catch {
+
+        /*
+         * Exit code 1 =
+         * staged changes exist.
+         */
+
+        hasChanges = true;
+
+      }
+
+
+      if (!hasChanges) {
+
+        console.log(
+          "\nNothing to publish."
+        );
+
+
+        return res.json({
+          success: true,
+          changed: false,
+          message:
+            "Everything is already up to date.",
+        });
+
+      }
+
+
+      /* ---------------------------------------------------
+         4. CREATE COMMIT
+      --------------------------------------------------- */
+
+      const now =
+        new Date()
+          .toISOString()
+          .replace("T", " ")
+          .replace(/\.\d{3}Z$/, " UTC");
+
+
+      const commitMessage =
+        `Update PearlSkino - ${now}`;
+
+
+      console.log(
+        `\nCommit: ${commitMessage}`
+      );
+
+
+      await execFileAsync(
+        "git",
+        [
+          "commit",
+          "-m",
+          commitMessage,
+        ],
+        {
+          cwd: projectRoot,
+        }
+      );
+
+
+      /* ---------------------------------------------------
+         5. PUSH TO GITHUB
+      --------------------------------------------------- */
+
+      console.log(
+        "\nPushing to GitHub..."
+      );
+
+
+      const {
+        stdout: pushOutput,
+        stderr: pushError,
+      } = await execFileAsync(
+        "git",
+        [
+          "push",
+          "origin",
+          "main",
+        ],
+        {
+          cwd: projectRoot,
+        }
+      );
+
+
+      console.log(
+        pushOutput
+      );
+
+      if (pushError) {
+        console.log(
+          pushError
+        );
+      }
+
+
+      /* ---------------------------------------------------
+         6. SUCCESS
+      --------------------------------------------------- */
+
+      console.log(
+        "\n========================================"
+      );
+
+      console.log(
+        "PUBLISH SUCCESSFUL"
+      );
+
+      console.log(
+        "========================================\n"
+      );
+
+
+      res.json({
+
+        success: true,
+
+        changed: true,
+
+        message:
+          "All project changes were committed and pushed to GitHub.",
+
+        commit:
+          commitMessage,
+
+      });
+
+    } catch (error) {
+
+      console.error(
+        "\n========================================"
+      );
+
+      console.error(
+        "PUBLISH ERROR"
+      );
+
+      console.error(
+        "========================================"
+      );
+
+      console.error(
+        error
+      );
+
+
+      res.status(500).json({
+
+        success: false,
+
+        error:
+          error?.stderr ||
+          error?.stdout ||
+          error?.message ||
+          "Git publishing failed.",
+
+      });
+
+    }
+
+  }
+);
+
+
+/* =========================================================
+   SERVER
+========================================================= */
+
+app.listen(
+  PORT,
+  () => {
 
     console.log(
-      `Published ${products.length} products to src/data/products.js`
+      `PearlSkino local admin server running at http://localhost:${PORT}`
     );
 
-    res.json({
-      success: true,
-      message:
-        "Products published successfully.",
-      count: products.length,
-    });
-
-  } catch (error) {
-
-    console.error(
-      "PUBLISH PRODUCTS ERROR:",
-      error
-    );
-
-    res.status(500).json({
-      success: false,
-      error:
-        "Could not update products.js",
-    });
   }
-});
-
-/*
-|--------------------------------------------------------------------------
-| SERVER
-|--------------------------------------------------------------------------
-*/
-
-app.listen(PORT, () => {
-  console.log(
-    `PearlSkino local admin server running at http://localhost:${PORT}`
-  );
-});
+);
