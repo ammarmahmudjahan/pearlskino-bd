@@ -105,7 +105,7 @@ export const PRODUCTS = [
       "Fresh",
       "Limited Stock"
     ],
-    "price": 451,
+    "price": 999,
     "oldPrice": 500,
     "rating": 4.8,
     "reviews": 96,
