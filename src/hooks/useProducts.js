@@ -1,85 +1,79 @@
 import { useEffect, useState } from "react";
+
 import { PRODUCTS } from "../data/products";
 
-const STORAGE_KEY = "pearlskino_products";
+/*
+|--------------------------------------------------------------------------
+| LOCAL ADMIN SERVER
+|--------------------------------------------------------------------------
+|
+| This server exists only on your own computer.
+| It is NOT used by the Vercel production website.
+|
+*/
+
 const API_URL = "http://localhost:3001/api/products";
 
-/* =========================================================
-   PARSE PRODUCTS FILE
-========================================================= */
+/*
+|--------------------------------------------------------------------------
+| ENVIRONMENT
+|--------------------------------------------------------------------------
+|
+| import.meta.env.DEV
+|
+| true  = npm run dev on your computer
+| false = Vercel production build
+|
+*/
 
-function extractProductsFromFile(file) {
-  if (!file || typeof file !== "string") {
-    return null;
-  }
+const IS_DEVELOPMENT = import.meta.env.DEV;
 
-  const match = file.match(
-    /export\s+const\s+PRODUCTS\s*=\s*(\[[\s\S]*?\])\s*;?\s*(?:export\s+const|$)/
-  );
-
-  if (!match) {
-    console.warn(
-      "Could not find PRODUCTS array in products.js"
-    );
-
-    return null;
-  }
-
-  try {
-    const parsed = Function(
-      `"use strict"; return (${match[1]})`
-    )();
-
-    if (!Array.isArray(parsed)) {
-      return null;
-    }
-
-    return parsed;
-  } catch (error) {
-    console.error(
-      "Could not parse products from server:",
-      error
-    );
-
-    return null;
-  }
-}
-
-
-/* =========================================================
-   LOAD PRODUCTS
-========================================================= */
+/*
+|--------------------------------------------------------------------------
+| LOAD PRODUCTS
+|--------------------------------------------------------------------------
+|
+| Production:
+|   Always use the PRODUCTS bundled into the Vercel build.
+|
+| Development:
+|   Try the local admin server first.
+|   If unavailable, use PRODUCTS from products.js.
+|
+*/
 
 export function useProducts() {
-  const [products, setProductsState] = useState(() => {
-    const saved = localStorage.getItem(STORAGE_KEY);
+  const [products, setProductsState] = useState(PRODUCTS);
 
-    if (saved) {
-      try {
-        const parsed = JSON.parse(saved);
-
-        if (Array.isArray(parsed)) {
-          return parsed;
-        }
-      } catch (error) {
-        console.warn(
-          "Could not read saved products:",
-          error
-        );
-      }
-    }
-
-    return PRODUCTS;
-  });
-
-  const [loading, setLoading] = useState(true);
-
-
-  /* =======================================================
-     LOAD FROM LOCAL ADMIN SERVER
-  ======================================================= */
+  const [loading, setLoading] = useState(
+    IS_DEVELOPMENT
+  );
 
   useEffect(() => {
+    /*
+    |--------------------------------------------------------------------------
+    | PRODUCTION
+    |--------------------------------------------------------------------------
+    |
+    | On Vercel there is no localhost:3001.
+    |
+    | The correct product data is already bundled into
+    | the Vite production build.
+    |
+    */
+
+    if (!IS_DEVELOPMENT) {
+      setProductsState(PRODUCTS);
+      setLoading(false);
+      return;
+    }
+
+    /*
+    |--------------------------------------------------------------------------
+    | DEVELOPMENT / LOCAL ADMIN
+    |--------------------------------------------------------------------------
+    */
+
     let cancelled = false;
 
     async function loadProducts() {
@@ -94,31 +88,61 @@ export function useProducts() {
 
         const data = await response.json();
 
-        if (!data.success || !data.file) {
+        if (
+          !data.success ||
+          typeof data.file !== "string"
+        ) {
           throw new Error(
             "Invalid product server response"
           );
         }
 
-        const parsedProducts =
-          extractProductsFromFile(data.file);
+        /*
+        |--------------------------------------------------------------------------
+        | Extract PRODUCTS from products.js
+        |--------------------------------------------------------------------------
+        */
 
-        if (
-          !cancelled &&
-          Array.isArray(parsedProducts)
-        ) {
-          setProductsState(parsedProducts);
+        const match = data.file.match(
+          /export\s+const\s+PRODUCTS\s*=\s*(\[[\s\S]*?\])\s*;?\s*(?:export\s+const|$)/
+        );
 
-          localStorage.setItem(
-            STORAGE_KEY,
-            JSON.stringify(parsedProducts)
+        if (!match) {
+          throw new Error(
+            "Could not find PRODUCTS array in products.js"
           );
         }
+
+        const parsedProducts = Function(
+          `"use strict"; return (${match[1]})`
+        )();
+
+        if (!Array.isArray(parsedProducts)) {
+          throw new Error(
+            "PRODUCTS is not an array."
+          );
+        }
+
+        if (!cancelled) {
+          setProductsState(parsedProducts);
+        }
+
       } catch (error) {
         console.warn(
-          "Local product server unavailable. Using local data.",
+          "Local product server unavailable. Using products.js.",
           error
         );
+
+        /*
+        |--------------------------------------------------------------------------
+        | FALLBACK
+        |--------------------------------------------------------------------------
+        */
+
+        if (!cancelled) {
+          setProductsState(PRODUCTS);
+        }
+
       } finally {
         if (!cancelled) {
           setLoading(false);
@@ -131,12 +155,19 @@ export function useProducts() {
     return () => {
       cancelled = true;
     };
+
   }, []);
 
-
-  /* =======================================================
-     UPDATE PRODUCTS
-  ======================================================= */
+  /*
+  |--------------------------------------------------------------------------
+  | UPDATE PRODUCTS
+  |--------------------------------------------------------------------------
+  |
+  | Used by the local admin.
+  |
+  | We intentionally DO NOT use localStorage.
+  |
+  */
 
   function setProducts(update) {
     setProductsState((current) => {
@@ -145,15 +176,9 @@ export function useProducts() {
           ? update(current)
           : update;
 
-      localStorage.setItem(
-        STORAGE_KEY,
-        JSON.stringify(next)
-      );
-
       return next;
     });
   }
-
 
   return [
     products,
@@ -162,16 +187,43 @@ export function useProducts() {
   ];
 }
 
-
-/* =========================================================
-   PUBLISH PRODUCTS
-========================================================= */
+/*
+|--------------------------------------------------------------------------
+| PUBLISH PRODUCTS
+|--------------------------------------------------------------------------
+|
+| The admin sends the complete product array to:
+|
+|   localhost:3001
+|
+| The local server writes it to:
+|
+|   src/data/products.js
+|
+| After that your Publish All Changes BAT commits
+| and pushes the changed file to GitHub.
+|
+*/
 
 export async function publishProducts(products) {
   if (!Array.isArray(products)) {
     return {
       success: false,
       error: "Products must be an array.",
+    };
+  }
+
+  /*
+  |--------------------------------------------------------------------------
+  | Publishing is only possible from the local admin.
+  |--------------------------------------------------------------------------
+  */
+
+  if (!IS_DEVELOPMENT) {
+    return {
+      success: false,
+      error:
+        "Product publishing is only available in local development.",
     };
   }
 
@@ -193,16 +245,9 @@ export async function publishProducts(products) {
     if (!response.ok || !data.success) {
       throw new Error(
         data.error ||
-        `Publish failed with status ${response.status}`
+          `Publish failed with status ${response.status}`
       );
     }
-
-    /* Keep browser storage synchronized */
-
-    localStorage.setItem(
-      STORAGE_KEY,
-      JSON.stringify(products)
-    );
 
     console.log(
       "PearlSkino products published successfully."
@@ -212,6 +257,7 @@ export async function publishProducts(products) {
       success: true,
       data,
     };
+
   } catch (error) {
     console.error(
       "PearlSkino product publishing failed:",
