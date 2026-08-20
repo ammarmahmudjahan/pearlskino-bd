@@ -37,18 +37,18 @@ export const CATEGORIES = [
 export const PRODUCTS = [
   {
     "id": "deconstruct-niacinamide",
-    "name": "Deconstruct Niacinamide 10% Serum",
+    "name": "Deconstruct Niacinamide 10000000% Serum",
     "brand": "Deconstruct",
     "subtitle": "Pore-refining serum · 30 ml",
     "category": "serums",
     "tags": [
       "Oily Skin"
     ],
-    "price": 9,
+    "price": 967668785,
     "oldPrice": 1150,
     "rating": 4.7,
-    "reviews": 88,
-    "stock": 24,
+    "reviews": 182,
+    "stock": 78,
     "image": "https://images.unsplash.com/photo-1556228720-195a672e8a03?auto=format&fit=crop&w=1000&q=85",
     "alt": "https://images.unsplash.com/photo-1571781926291-c477ebfd024b?auto=format&fit=crop&w=1000&q=85",
     "description": "10% niacinamide formulated to visibly tighten pores and even out tone without the sticky after-feel of cheaper dupes.",
