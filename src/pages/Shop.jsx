@@ -1,3 +1,4 @@
+
 import { Link } from "react-router-dom";
 import { useProducts } from "../hooks/useProducts";
 
@@ -24,8 +25,15 @@ export default function Shop() {
 
         <section className="shop-hero">
 
+          <div className="page-brand-logo">
+            <img
+              src="/logo.png"
+              alt="PearlSkino BD"
+            />
+          </div>
+
           <p className="eyebrow">
-            PEARLSKINO BD
+            THE PEARLSKINO EDIT
           </p>
 
           <h1>
@@ -73,6 +81,10 @@ export default function Shop() {
   }
 
 
+  /* =========================
+     SHOP
+  ========================== */
+
   return (
     <main className="shop-page">
 
@@ -82,8 +94,15 @@ export default function Shop() {
 
       <section className="shop-hero">
 
+        <div className="page-brand-logo">
+          <img
+            src="/logo.png"
+            alt="PearlSkino BD"
+          />
+        </div>
+
         <p className="eyebrow">
-          PEARLSKINO BD
+          THE PEARLSKINO EDIT
         </p>
 
         <h1>
@@ -113,21 +132,16 @@ export default function Shop() {
               "";
 
             const price =
-              Number(
-                product.price || 0
-              );
+              Number(product.price || 0);
 
             const stock =
-              Number(
-                product.stock || 0
-              );
+              Number(product.stock || 0);
 
             const outOfStock =
               stock <= 0;
 
 
             return (
-
               <article
                 className={`product-card ${
                   outOfStock
@@ -167,7 +181,7 @@ export default function Shop() {
                   )}
 
 
-                  {/* PRODUCT POSITION */}
+                  {/* PRODUCT NUMBER */}
 
                   <span className="product-number">
                     {String(
@@ -230,7 +244,9 @@ export default function Shop() {
                   )}
 
 
-                  {/* BOTTOM */}
+                  {/* =========================
+                      PRICE + VIEW
+                  ========================== */}
 
                   <div className="product-card-bottom">
 
@@ -267,7 +283,6 @@ export default function Shop() {
                 </div>
 
               </article>
-
             );
           }
         )}

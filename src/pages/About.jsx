@@ -22,11 +22,23 @@ export default function About() {
         <div className="about-sparkle sparkle-2">✧</div>
         <div className="about-sparkle sparkle-3">⋆</div>
 
+
         <div className="about-hero-content">
+
+          {/* BRAND LOGO */}
+
+          <div className="about-hero-logo">
+            <img
+              src="/logo.png"
+              alt="PearlSkino BD"
+            />
+          </div>
+
 
           <p className="eyebrow">
             THE PEARLSKINO STORY
           </p>
+
 
           <h1>
             Beauty should feel
@@ -34,11 +46,13 @@ export default function About() {
             <em>beautiful.</em>
           </h1>
 
+
           <p className="about-hero-text">
             PearlSkino BD is a curated beauty and fragrance
             destination created for people who believe that
             the little details make all the difference.
           </p>
+
 
           <div className="about-hero-line">
             <span></span>

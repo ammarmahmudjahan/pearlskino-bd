@@ -127,6 +127,12 @@ export default function FAQ() {
             zIndex: 1,
           }}
         >
+            <div className="faq-hero-logo">
+  <img
+    src="/logo.png"
+    alt="PearlSkino BD"
+  />
+</div>
           PEARLSKINO HELP CENTER
         </span>
 

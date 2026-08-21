@@ -1,3 +1,4 @@
+
 import { Link } from "react-router-dom";
 import { useProducts } from "../hooks/useProducts";
 
@@ -19,8 +20,10 @@ export default function Home() {
           MOVING ADVERTISING STRIP
       ========================================= */}
 
-      <div className="home-marquee" aria-label="PearlSkino announcements">
-
+      <div
+        className="home-marquee"
+        aria-label="PearlSkino announcements"
+      >
         <div className="home-marquee-track">
 
           <span>✦ FREE PICKUP IN SELECTED AREAS</span>
@@ -34,7 +37,6 @@ export default function Home() {
           <span>✧ CURATED WITH CARE</span>
 
         </div>
-
       </div>
 
 
@@ -48,11 +50,23 @@ export default function Home() {
         <div className="pearl pearl-2"></div>
         <div className="pearl pearl-3"></div>
 
+
         <div className="hero-content">
 
+          {/* COMPACT BRAND LOGO */}
+
+          <div className="home-hero-logo">
+            <img
+              src="/logo.png"
+              alt="PearlSkino BD"
+            />
+          </div>
+
+
           <p className="eyebrow">
-            PEARLSKINO BD
+            CURATED BEAUTY • PEARLSKINO BD
           </p>
+
 
           <h1>
             Your glow,
@@ -60,10 +74,33 @@ export default function Home() {
             <span>your story.</span>
           </h1>
 
+
           <p className="hero-text">
             Discover carefully selected skincare and fragrances
             designed to make every day feel a little more beautiful.
           </p>
+
+
+          <div className="hero-buttons">
+
+            <Link
+              to="/shop"
+              className="hero-button"
+            >
+              Explore Collection
+              <span>↗</span>
+            </Link>
+
+
+            <Link
+              to="/about"
+              className="hero-button secondary"
+            >
+              Our Story
+              <span>→</span>
+            </Link>
+
+          </div>
 
         </div>
 
@@ -90,11 +127,13 @@ export default function Home() {
 
           </div>
 
+
           <Link
             to="/shop"
             className="home-featured-link"
           >
-            View all →
+            View all
+            <span>→</span>
           </Link>
 
         </div>
@@ -138,6 +177,7 @@ export default function Home() {
 
                   </div>
 
+
                   <div className="home-product-info">
 
                     <span>
@@ -174,47 +214,62 @@ export default function Home() {
 
 
       {/* =========================================
-          EXPLORE / INTRO
+          FINAL CTA
       ========================================= */}
 
-    <section className="intro home-final-cta">
+      <section className="intro home-final-cta">
 
-  <p className="eyebrow">
-    FIND YOUR BEAUTY RITUAL
-  </p>
+        <p className="eyebrow">
+          FIND YOUR BEAUTY RITUAL
+        </p>
 
-  <h2>
-    A little beauty,
-    <br />
-    <em>made personal.</em>
-  </h2>
 
-  <p>
-    From everyday essentials to captivating scents,
-    discover pieces chosen to become part of your story.
-  </p>
+        <h2>
+          A little beauty,
+          <br />
+          <em>made personal.</em>
+        </h2>
 
-  <div className="home-final-actions">
 
-    <Link
-      to="/shop"
-      className="home-explore-button"
-    >
-      <span>Explore Collection</span>
-      <strong>↗</strong>
-    </Link>
+        <p>
+          From everyday essentials to captivating scents,
+          discover pieces chosen to become part of your story.
+        </p>
 
-    <Link
-      to="/about"
-      className="home-story-button"
-    >
-      <span>Discover Our Story</span>
-      <strong>→</strong>
-    </Link>
 
-  </div>
+        <div className="home-final-actions">
 
-</section>
+          <Link
+            to="/shop"
+            className="home-explore-button"
+          >
+            <span>
+              Explore Collection
+            </span>
+
+            <strong>
+              ↗
+            </strong>
+          </Link>
+
+
+          <Link
+            to="/about"
+            className="home-story-button"
+          >
+            <span>
+              Discover Our Story
+            </span>
+
+            <strong>
+              →
+            </strong>
+          </Link>
+
+        </div>
+
+      </section>
+
     </main>
   );
 }

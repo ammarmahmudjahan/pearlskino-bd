@@ -65,17 +65,30 @@ export default function Contact() {
           ✧
         </span>
 
+
         <div className="contact-hero-content">
+
+          {/* BRAND LOGO */}
+
+          <div className="contact-hero-logo">
+            <img
+              src="/logo.png"
+              alt="PearlSkino BD"
+            />
+          </div>
+
 
           <p className="eyebrow">
             PEARLSKINO BD
           </p>
+
 
           <h1>
             Let's talk
             <br />
             <em>beauty.</em>
           </h1>
+
 
           <p>
             Have a question, need help choosing a fragrance,
@@ -93,8 +106,6 @@ export default function Contact() {
       ===================================================== */}
 
       <section className="contact-main">
-
-        {/* LEFT SIDE */}
 
         <div className="contact-info">
 
@@ -126,12 +137,8 @@ export default function Contact() {
 
               <div>
                 <span>MESSENGER</span>
-                <strong>
-                  PearlSkino BD
-                </strong>
-                <small>
-                  Fastest way to reach us
-                </small>
+                <strong>PearlSkino BD</strong>
+                <small>Fastest way to reach us</small>
               </div>
 
             </div>
@@ -145,12 +152,8 @@ export default function Contact() {
 
               <div>
                 <span>ORDERS</span>
-                <strong>
-                  Cash on Delivery
-                </strong>
-                <small>
-                  Available in selected areas
-                </small>
+                <strong>Cash on Delivery</strong>
+                <small>Available in selected areas</small>
               </div>
 
             </div>
@@ -164,12 +167,8 @@ export default function Contact() {
 
               <div>
                 <span>PICKUP</span>
-                <strong>
-                  Selected Locations
-                </strong>
-                <small>
-                  Pickup availability may vary
-                </small>
+                <strong>Selected Locations</strong>
+                <small>Pickup availability may vary</small>
               </div>
 
             </div>

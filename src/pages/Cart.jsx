@@ -18,6 +18,12 @@ export default function Cart() {
       <main className="page cart-page-luxury">
         <section className="cart-empty-luxury">
 
+        <div className="cart-empty-logo">
+    <img
+      src="/logo.png"
+      alt="PearlSkino BD"
+    />
+  </div>
           <div className="cart-orbit">
             <span>✦</span>
             <span>✧</span>
@@ -60,6 +66,41 @@ export default function Cart() {
       ========================== */}
 
       <section className="cart-luxury-hero">
+        <section className="cart-luxury-hero">
+
+  <div>
+
+    <div className="cart-hero-logo">
+      <img
+        src="/logo.png"
+        alt="PearlSkino BD"
+      />
+    </div>
+
+    <p className="eyebrow">
+      PEARLSKINO BD · YOUR COLLECTION
+    </p>
+
+    <h1>
+      A little beauty,
+      <em> all yours.</em>
+    </h1>
+
+    <p>
+      Thoughtfully selected pieces, gathered
+      together for your next beauty moment.
+    </p>
+
+  </div>
+
+  <div className="cart-hero-count">
+    <span>{count}</span>
+    <small>
+      {count === 1 ? "ITEM" : "ITEMS"}
+    </small>
+  </div>
+
+</section>
 
         <div>
           <p className="eyebrow">

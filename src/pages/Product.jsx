@@ -1,3 +1,4 @@
+
 import { Link, useParams } from "react-router-dom";
 import { useEffect, useState } from "react";
 
@@ -37,6 +38,13 @@ export default function Product() {
       <main className="product-page">
 
         <section className="product-not-found">
+
+          <div className="product-page-brand-logo">
+            <img
+              src="/logo.png"
+              alt="PearlSkino BD"
+            />
+          </div>
 
           <p className="eyebrow">
             PEARLSKINO BD
@@ -123,7 +131,13 @@ export default function Product() {
 
   function increaseQuantity() {
     setQuantity((current) =>
-      Math.min(stock, current + 1)
+      Math.min(
+        Math.max(
+          1,
+          stock - cartQuantity
+        ),
+        current + 1
+      )
     );
   }
 
@@ -138,11 +152,6 @@ export default function Product() {
       return;
     }
 
-
-    /*
-      Don't allow the customer to
-      exceed available stock.
-    */
 
     const remainingStock =
       Math.max(
@@ -232,6 +241,15 @@ export default function Product() {
 
         <div className="product-detail-info">
 
+          {/* BRAND LOGO */}
+
+          <div className="product-page-brand-logo">
+            <img
+              src="/logo.png"
+              alt="PearlSkino BD"
+            />
+          </div>
+
 
           {/* BRAND */}
 
@@ -270,12 +288,10 @@ export default function Product() {
           {/* PRICE */}
 
           <div className="product-detail-price">
-
             ৳
             {Number(
               product.price || 0
             ).toLocaleString()}
-
           </div>
 
 
@@ -402,19 +418,15 @@ export default function Product() {
               >
 
                 <span className="cart-icon">
-
                   {added
                     ? "✓"
                     : "🛒"}
-
                 </span>
 
                 <span>
-
                   {added
                     ? "Added to Cart"
                     : "Add to Cart"}
-
                 </span>
 
               </button>
@@ -435,12 +447,10 @@ export default function Product() {
               className="add-to-cart-button"
               disabled
             >
-
               {product.status ===
               "inactive"
                 ? "Currently Unavailable"
                 : "Out of Stock"}
-
             </button>
 
           )}
