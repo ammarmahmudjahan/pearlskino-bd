@@ -33,7 +33,7 @@ export default function Shop() {
           </div>
 
           <p className="eyebrow">
-            THE PEARLSKINO EDIT
+            THE PEARLSKINO BD SHOP
           </p>
 
           <h1>
@@ -102,7 +102,7 @@ export default function Shop() {
         </div>
 
         <p className="eyebrow">
-          THE PEARLSKINO EDIT
+          THE PEARLSKINO BD SHOP
         </p>
 
         <h1>

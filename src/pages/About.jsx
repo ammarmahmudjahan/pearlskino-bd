@@ -36,7 +36,7 @@ export default function About() {
 
 
           <p className="eyebrow">
-            THE PEARLSKINO STORY
+            THE PEARLSKINO BD STORY
           </p>
 
 

@@ -79,7 +79,7 @@ export default function Contact() {
 
 
           <p className="eyebrow">
-            PEARLSKINO BD
+            PEARLSKINO BD CONNECT
           </p>
 
 
