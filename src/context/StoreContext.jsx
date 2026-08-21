@@ -16,11 +16,9 @@ const WISHLIST_KEY = "pearlskino-wishlist";
 export function StoreProvider({ children }) {
   /* =========================
      PRODUCTS
-     USE ADMIN-MANAGED PRODUCTS
   ========================== */
 
   const [products] = useProducts();
-
 
   /* =========================
      CART
@@ -36,7 +34,6 @@ export function StoreProvider({ children }) {
     }
   });
 
-
   /* =========================
      WISHLIST
   ========================== */
@@ -51,6 +48,11 @@ export function StoreProvider({ children }) {
     }
   });
 
+  /* =========================
+     CART NOTIFICATION
+  ========================== */
+
+  const [cartNotice, setCartNotice] = useState(null);
 
   /* =========================
      SAVE CART
@@ -63,7 +65,6 @@ export function StoreProvider({ children }) {
     );
   }, [cart]);
 
-
   /* =========================
      SAVE WISHLIST
   ========================== */
@@ -75,18 +76,17 @@ export function StoreProvider({ children }) {
     );
   }, [wishlist]);
 
-
   /* =========================
      ADD TO CART
   ========================== */
 
   function addToCart(id, quantity = 1) {
     const product = products.find(
-      (item) => String(item.id) === String(id)
+      (item) =>
+        String(item.id) === String(id)
     );
 
     if (!product) return;
-
 
     const stock = Number(
       product.stock || 0
@@ -99,17 +99,13 @@ export function StoreProvider({ children }) {
       return;
     }
 
-
     setCart((current) => {
-
       const existing = current.find(
         (item) =>
           String(item.id) === String(id)
       );
 
-
       if (existing) {
-
         const currentQty =
           Number(existing.qty || 1);
 
@@ -129,7 +125,6 @@ export function StoreProvider({ children }) {
         );
       }
 
-
       return [
         ...current,
         {
@@ -141,26 +136,58 @@ export function StoreProvider({ children }) {
         },
       ];
     });
+
+    /* =========================
+       SHOW PREMIUM CART NOTICE
+    ========================== */
+
+    setCartNotice({
+      id: product.id,
+      name: product.name,
+      brand: product.brand,
+      image:
+        product.image ||
+        product.images?.[0] ||
+        "",
+      price: product.price,
+    });
+
+    window.clearTimeout(
+      window.__pearlskinoCartNoticeTimer
+    );
+
+    window.__pearlskinoCartNoticeTimer =
+      window.setTimeout(() => {
+        setCartNotice(null);
+      }, 4500);
   }
 
+  /* =========================
+     CLOSE CART NOTICE
+  ========================== */
+
+  function closeCartNotice() {
+    window.clearTimeout(
+      window.__pearlskinoCartNoticeTimer
+    );
+
+    setCartNotice(null);
+  }
 
   /* =========================
      CHANGE QUANTITY
   ========================== */
 
   function changeQty(id, delta) {
-
     setCart((current) =>
       current
         .map((item) => {
-
           if (
             String(item.id) !==
             String(id)
           ) {
             return item;
           }
-
 
           const product =
             products.find(
@@ -169,23 +196,19 @@ export function StoreProvider({ children }) {
                 String(id)
             );
 
-
           const stock = Number(
             product?.stock ??
-            item.stock ??
-            999999
+              item.stock ??
+              999999
           );
-
 
           const currentQty =
             Number(item.qty || 1);
-
 
           const newQty = Math.min(
             stock,
             currentQty + delta
           );
-
 
           return {
             ...item,
@@ -198,7 +221,6 @@ export function StoreProvider({ children }) {
         )
     );
   }
-
 
   /* =========================
      REMOVE
@@ -214,7 +236,6 @@ export function StoreProvider({ children }) {
     );
   }
 
-
   /* =========================
      CLEAR CART
   ========================== */
@@ -223,21 +244,17 @@ export function StoreProvider({ children }) {
     setCart([]);
   }
 
-
   /* =========================
      WISHLIST
   ========================== */
 
   function toggleWishlist(id) {
-
     setWishlist((current) => {
-
       const exists = current.some(
         (item) =>
           String(item.id) ===
           String(id)
       );
-
 
       if (exists) {
         return current.filter(
@@ -247,20 +264,17 @@ export function StoreProvider({ children }) {
         );
       }
 
-
       const product = products.find(
         (item) =>
           String(item.id) ===
           String(id)
       );
 
-
       return product
         ? [...current, product]
         : current;
     });
   }
-
 
   function isWishlisted(id) {
     return wishlist.some(
@@ -269,7 +283,6 @@ export function StoreProvider({ children }) {
         String(id)
     );
   }
-
 
   /* =========================
      CART COUNT
@@ -285,7 +298,6 @@ export function StoreProvider({ children }) {
       ),
     [cart]
   );
-
 
   /* =========================
      SUBTOTAL
@@ -303,7 +315,6 @@ export function StoreProvider({ children }) {
     [cart]
   );
 
-
   /* =========================
      SHIPPING
   ========================== */
@@ -314,14 +325,12 @@ export function StoreProvider({ children }) {
       : 80
     : 0;
 
-
   /* =========================
      TOTAL
   ========================== */
 
   const total =
     subtotal + shipping;
-
 
   /* =========================
      CONTEXT VALUE
@@ -338,7 +347,11 @@ export function StoreProvider({ children }) {
     shipping,
     total,
 
+    cartNotice,
+
     addToCart,
+    closeCartNotice,
+
     changeQty,
     removeFromCart,
     clearCart,
@@ -346,7 +359,6 @@ export function StoreProvider({ children }) {
     toggleWishlist,
     isWishlisted,
   };
-
 
   return (
     <StoreContext.Provider
@@ -357,19 +369,15 @@ export function StoreProvider({ children }) {
   );
 }
 
-
 export function useStore() {
-
   const context =
     useContext(StoreContext);
-
 
   if (!context) {
     throw new Error(
       "useStore must be used inside StoreProvider"
     );
   }
-
 
   return context;
 }

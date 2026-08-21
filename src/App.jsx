@@ -1,4 +1,12 @@
-import { BrowserRouter, Routes, Route } from "react-router-dom";
+
+import {
+  BrowserRouter,
+  Routes,
+  Route,
+  useLocation,
+} from "react-router-dom";
+
+import { useEffect } from "react";
 
 import Header from "./components/Header";
 import CartDrawer from "./components/CartDrawer";
@@ -14,46 +22,96 @@ import FAQ from "./pages/FAQ";
 
 import Admin from "./admin/Admin";
 
+
+/* =========================================================
+   SCROLL TO TOP
+   Automatically moves the page to the top whenever
+   the route changes.
+========================================================= */
+
+function ScrollToTop() {
+  const { pathname } = useLocation();
+
+  useEffect(() => {
+    window.scrollTo({
+      top: 0,
+      left: 0,
+      behavior: "instant",
+    });
+  }, [pathname]);
+
+  return null;
+}
+
+
+/* =========================================================
+   APP
+========================================================= */
+
 export default function App() {
   return (
     <BrowserRouter>
+
+      {/* RESET SCROLL POSITION ON EVERY PAGE CHANGE */}
+      <ScrollToTop />
+
+      {/* HEADER */}
       <Header />
 
+      {/* ROUTES */}
       <Routes>
-        <Route path="/" element={<Home />} />
 
-        <Route path="/shop" element={<Shop />} />
+        <Route
+          path="/"
+          element={<Home />}
+        />
+
+        <Route
+          path="/shop"
+          element={<Shop />}
+        />
 
         <Route
           path="/product/:id"
           element={<Product />}
         />
 
-        <Route path="/cart" element={<Cart />} />
+        <Route
+          path="/cart"
+          element={<Cart />}
+        />
 
         <Route
           path="/checkout"
           element={<Checkout />}
         />
 
-        <Route path="/about" element={<About />} />
+        <Route
+          path="/about"
+          element={<About />}
+        />
 
         <Route
           path="/contact"
           element={<Contact />}
         />
 
-        <Route path="/faq" element={<FAQ />} />
+        <Route
+          path="/faq"
+          element={<FAQ />}
+        />
 
         {/* ADMIN */}
         <Route
           path="/admin"
           element={<Admin />}
         />
+
       </Routes>
 
       {/* CART DRAWER */}
       <CartDrawer />
+
     </BrowserRouter>
   );
 }

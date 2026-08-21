@@ -1,11 +1,48 @@
+
 import React, { useState } from "react";
+
+import { GOOGLE_FORMS } from "../config/googleForms";
+import { submitToGoogleForm } from "../utils/googleForms";
 
 export default function Contact() {
   const [submitted, setSubmitted] = useState(false);
+  const [sending, setSending] = useState(false);
 
-  function handleSubmit(event) {
+  async function handleSubmit(event) {
     event.preventDefault();
-    setSubmitted(true);
+
+    if (sending) {
+      return;
+    }
+
+    setSending(true);
+
+    const form = event.currentTarget;
+    const formData = new FormData(form);
+
+    const result = await submitToGoogleForm(
+      GOOGLE_FORMS.contact.url,
+      {
+        [GOOGLE_FORMS.contact.fields.name]:
+          formData.get("name"),
+
+        [GOOGLE_FORMS.contact.fields.phone]:
+          formData.get("phone"),
+
+        [GOOGLE_FORMS.contact.fields.message]:
+          formData.get("message"),
+      }
+    );
+
+    setSending(false);
+
+    if (result.success) {
+      setSubmitted(true);
+    } else {
+      alert(
+        "We couldn't send your message. Please try again."
+      );
+    }
   }
 
   return (
@@ -180,6 +217,7 @@ export default function Contact() {
                   name="name"
                   placeholder="Your name"
                   required
+                  disabled={sending}
                 />
               </label>
 
@@ -192,6 +230,7 @@ export default function Contact() {
                   name="phone"
                   placeholder="01XXXXXXXXX"
                   required
+                  disabled={sending}
                 />
               </label>
 
@@ -204,6 +243,7 @@ export default function Contact() {
                   rows="5"
                   placeholder="Tell us what you're looking for..."
                   required
+                  disabled={sending}
                 />
               </label>
 
@@ -211,9 +251,15 @@ export default function Contact() {
               <button
                 type="submit"
                 className="contact-submit"
+                disabled={sending}
               >
-                Send Message
-                <span>→</span>
+                {sending
+                  ? "Sending..."
+                  : "Send Message"}
+
+                <span>
+                  {sending ? "…" : "→"}
+                </span>
               </button>
 
             </form>
