@@ -1,4 +1,4 @@
-﻿
+
 /* =========================================================
    PEARLSKINO BD
    PREMIUM PEARL / SOFT LUXURY DESIGN SYSTEM
@@ -146,7 +146,7 @@ a {
 }
 
 .logo::after {
-  content: "âœ¦";
+  content: "✦";
 
   position: absolute;
   top: -8px;
@@ -459,7 +459,7 @@ a {
 }
 
 .primary-button::after {
-  content: "âœ¦";
+  content: "✦";
 
   position: absolute;
 
@@ -1044,7 +1044,7 @@ a {
 }
 
 .pearl::after {
-  content: "âœ¦";
+  content: "✦";
 
   position: absolute;
 
@@ -1197,7 +1197,7 @@ a {
 }
 
 .hero-button::after {
-  content: "âœ¦";
+  content: "✦";
 
   position: absolute;
 
@@ -2149,7 +2149,7 @@ a {
 }
 
 .add-to-cart-button::after {
-  content: "âœ¦";
+  content: "✦";
 
   position: absolute;
 
@@ -6071,7 +6071,7 @@ a {
 }
 
 .about-pearl-1::after {
-  content: "âœ¦";
+  content: "✦";
   position: absolute;
   right: 18px;
   top: 28px;
@@ -6556,7 +6556,7 @@ a {
 }
 
 .about-cta::before {
-  content: "âœ¦";
+  content: "✦";
   position: absolute;
 
   top: 28px;
@@ -6569,7 +6569,7 @@ a {
 }
 
 .about-cta::after {
-  content: "âœ§";
+  content: "✧";
   position: absolute;
 
   right: 55px;
@@ -7876,7 +7876,7 @@ a {
 /* tiny orbit */
 
 .cart-success-icon::after {
-  content: "âœ¦";
+  content: "✦";
 
   position: absolute;
 
@@ -8274,7 +8274,7 @@ a {
 }
 
 .home-product-image::after {
-  content: "âœ¦";
+  content: "✦";
 
   position: absolute;
 
