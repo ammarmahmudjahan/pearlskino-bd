@@ -1,0 +1,401 @@
+/* =========================================================
+   PREMIUM CART SUCCESS MESSAGE
+========================================================= */
+
+.cart-success-message {
+  position: fixed;
+  right: 28px;
+  bottom: 28px;
+  z-index: 9999;
+
+  width: min(430px, calc(100vw - 32px));
+
+  display: grid;
+  grid-template-columns: 58px minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 16px;
+
+  padding: 16px 18px;
+
+  border: 1px solid rgba(255, 255, 255, 0.75);
+  border-radius: 24px;
+
+  background:
+    radial-gradient(
+      circle at 90% 10%,
+      rgba(221, 196, 232, 0.35),
+      transparent 35%
+    ),
+    linear-gradient(
+      135deg,
+      rgba(255, 253, 250, 0.97),
+      rgba(247, 241, 249, 0.97)
+    );
+
+  box-shadow:
+    0 20px 55px rgba(82, 61, 91, 0.18),
+    0 5px 18px rgba(82, 61, 91, 0.08);
+
+  backdrop-filter: blur(18px);
+  -webkit-backdrop-filter: blur(18px);
+
+  animation:
+    cartSuccessIn 0.55s cubic-bezier(.22, 1, .36, 1)
+    both;
+}
+
+
+
+/* soft pearl glow */
+
+.cart-success-message::before {
+  content: "";
+
+  position: absolute;
+  inset: 0;
+
+  border-radius: inherit;
+
+  background:
+    radial-gradient(
+      circle at 12% 50%,
+      rgba(205, 185, 221, 0.22),
+      transparent 30%
+    );
+
+  pointer-events: none;
+}
+
+
+
+/* =========================================================
+   SPARKLES
+========================================================= */
+
+.cart-success-sparkles {
+  position: absolute;
+
+  top: -15px;
+  right: 24px;
+
+  display: flex;
+  align-items: center;
+  gap: 5px;
+
+  color: #b59bc1;
+
+  pointer-events: none;
+
+  animation:
+    cartSparkleFloat 2.8s ease-in-out infinite;
+}
+
+
+.cart-success-sparkles span:nth-child(1) {
+  font-size: 15px;
+}
+
+
+.cart-success-sparkles span:nth-child(2) {
+  font-size: 10px;
+  opacity: .7;
+}
+
+
+.cart-success-sparkles span:nth-child(3) {
+  font-size: 13px;
+  opacity: .55;
+}
+
+
+
+/* =========================================================
+   SUCCESS ICON
+========================================================= */
+
+.cart-success-icon {
+  position: relative;
+
+  width: 58px;
+  height: 58px;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  border-radius: 50%;
+
+  color: #80638e;
+
+  font-size: 22px;
+  font-weight: 600;
+
+  background:
+    radial-gradient(
+      circle at 35% 30%,
+      #ffffff,
+      #f3eaf6 55%,
+      #e6d8eb 100%
+    );
+
+  border: 1px solid rgba(181, 155, 193, .35);
+
+  box-shadow:
+    inset 0 2px 5px rgba(255,255,255,.9),
+    0 8px 20px rgba(128, 99, 142, .15);
+}
+
+
+
+/* tiny orbit */
+
+.cart-success-icon::after {
+  content: "✦";
+
+  position: absolute;
+
+  top: -5px;
+  right: -3px;
+
+  font-size: 10px;
+
+  color: #b79bc4;
+
+  animation:
+    cartMiniSparkle 1.8s ease-in-out infinite;
+}
+
+
+
+/* =========================================================
+   CONTENT
+========================================================= */
+
+.cart-success-content {
+  position: relative;
+
+  min-width: 0;
+
+  display: flex;
+  flex-direction: column;
+
+  gap: 5px;
+}
+
+
+.cart-success-content strong {
+  display: block;
+
+  margin: 0;
+
+  color: #39313d;
+
+  font-family: Georgia, serif;
+
+  font-size: 17px;
+  font-weight: 600;
+
+  line-height: 1.2;
+
+  letter-spacing: -.2px;
+}
+
+
+.cart-success-content small {
+  display: block;
+
+  max-width: 210px;
+
+  overflow: hidden;
+
+  color: #877b89;
+
+  font-size: 11px;
+  font-weight: 500;
+
+  line-height: 1.4;
+
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+
+
+
+/* =========================================================
+   VIEW CART
+========================================================= */
+
+.cart-success-message > a {
+  position: relative;
+
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+
+  min-width: 82px;
+
+  padding: 10px 13px;
+
+  border-radius: 999px;
+
+  background: #39313d;
+
+  color: #fff;
+
+  font-size: 10px;
+  font-weight: 700;
+
+  letter-spacing: .08em;
+  text-transform: uppercase;
+
+  text-decoration: none;
+
+  transition:
+    transform .25s ease,
+    box-shadow .25s ease,
+    background .25s ease;
+}
+
+
+.cart-success-message > a:hover {
+  transform: translateY(-2px);
+
+  background: #80638e;
+
+  box-shadow:
+    0 8px 20px rgba(128, 99, 142, .22);
+}
+
+
+
+/* =========================================================
+   ANIMATIONS
+========================================================= */
+
+@keyframes cartSuccessIn {
+
+  0% {
+    opacity: 0;
+    transform:
+      translateY(24px)
+      scale(.94);
+  }
+
+  60% {
+    opacity: 1;
+    transform:
+      translateY(-3px)
+      scale(1.01);
+  }
+
+  100% {
+    opacity: 1;
+    transform:
+      translateY(0)
+      scale(1);
+  }
+
+}
+
+
+
+@keyframes cartSparkleFloat {
+
+  0%,
+  100% {
+    transform:
+      translateY(0)
+      rotate(0deg);
+  }
+
+  50% {
+    transform:
+      translateY(-5px)
+      rotate(8deg);
+  }
+
+}
+
+
+
+@keyframes cartMiniSparkle {
+
+  0%,
+  100% {
+    opacity: .4;
+    transform: scale(.8) rotate(0deg);
+  }
+
+  50% {
+    opacity: 1;
+    transform: scale(1.15) rotate(20deg);
+  }
+
+}
+
+
+
+/* =========================================================
+   MOBILE
+========================================================= */
+
+@media (max-width: 600px) {
+
+  .cart-success-message {
+    right: 16px;
+    bottom: 16px;
+
+    width: calc(100vw - 32px);
+
+    grid-template-columns: 50px minmax(0, 1fr);
+
+    gap: 12px;
+
+    padding: 14px 15px;
+
+    border-radius: 21px;
+  }
+
+
+  .cart-success-icon {
+    width: 50px;
+    height: 50px;
+
+    font-size: 19px;
+  }
+
+
+  .cart-success-content strong {
+    font-size: 15px;
+  }
+
+
+  .cart-success-content small {
+    max-width: 100%;
+
+    font-size: 10px;
+  }
+
+
+  .cart-success-message > a {
+    grid-column: 2;
+
+    justify-self: start;
+
+    min-width: 78px;
+
+    padding: 8px 12px;
+
+    font-size: 9px;
+  }
+
+
+  .cart-success-sparkles {
+    top: -12px;
+    right: 18px;
+  }
+
+}
+
+/* MOBILE REFINEMENT */
+@media(max-width:700px){.cart-success-popup{width:min(92vw,460px);padding:28px 20px;border-radius:24px}.success-icon{width:70px;height:70px}}

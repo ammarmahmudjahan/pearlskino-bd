@@ -279,7 +279,7 @@ a {
 }
 
 /* =========================================================
-   HEADER — MOBILE
+   HEADER â€” MOBILE
    (nav scrolls within itself so it can never push the
    page wider than the viewport, which was causing the
    header to overflow and leave blank space on the right)
@@ -583,7 +583,7 @@ a {
   }
 }
 /* =========================================================
-   HOME — AUTO ADVERTISEMENT STRIP
+   HOME â€” AUTO ADVERTISEMENT STRIP
 ========================================================= */
 
 .home-ad-strip {
@@ -646,7 +646,7 @@ a {
   }
 }
 /* =========================================================
-   HOME — HORIZONTAL FEATURED PRODUCTS
+   HOME â€” HORIZONTAL FEATURED PRODUCTS
 ========================================================= */
 
 .home-featured {
@@ -868,7 +868,7 @@ a {
 
 }
 /* =========================================================
-   HOME HERO LOGO — COMPACT BRAND MARK
+   HOME HERO LOGO â€” COMPACT BRAND MARK
 ========================================================= */
 
 .home-hero-logo {
@@ -1745,7 +1745,7 @@ a {
 }
 
 /* =========================================================
-   SHOP + PRODUCT GRID — MOBILE
+   SHOP + PRODUCT GRID â€” MOBILE
 ========================================================= */
 
 @media (max-width: 900px) {
@@ -1775,23 +1775,62 @@ a {
 @media (max-width: 560px) {
 
   .product-grid {
-    width: min(560px, 92%);
-
-    grid-template-columns: 1fr;
-
-    gap: 22px;
+    width: 92%;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 14px;
   }
 
   .product-image {
-    height: 340px;
+    height: 210px;
   }
 
   .product-info {
-    padding: 20px;
+    padding: 14px;
   }
 
   .product-info h2 {
-    font-size: 23px;
+    font-size: 17px;
+    line-height: 1.2;
+  }
+
+  .product-description {
+    min-height: 0;
+    margin: 8px 0 12px;
+    font-size: 10px;
+    line-height: 1.5;
+  }
+
+  .product-card-bottom {
+    gap: 7px;
+    padding-top: 12px;
+  }
+
+  .product-price {
+    font-size: 14px;
+  }
+
+  .product-availability {
+    font-size: 8px;
+  }
+
+  .view-product {
+    padding: 7px 9px;
+    font-size: 9px;
+  }
+
+  .product-number {
+    top: 9px;
+    left: 9px;
+    width: 29px;
+    height: 29px;
+    font-size: 8px;
+  }
+
+  .product-stock-badge {
+    top: 8px;
+    right: 8px;
+    padding: 6px 8px;
+    font-size: 8px;
   }
 }
 
@@ -4080,7 +4119,7 @@ a {
 
 
 /* =========================================================
-   PEARLSKINO BD — LUXURY CHECKOUT
+   PEARLSKINO BD â€” LUXURY CHECKOUT
 ========================================================= */
 
 .checkout-luxury-page {
@@ -4695,7 +4734,7 @@ a {
 
 
 /* =========================================================
-   RIGHT — ORDER CARD
+   RIGHT â€” ORDER CARD
 ========================================================= */
 
 .checkout-order-card {
@@ -5879,7 +5918,7 @@ a {
 }
 
 /* =========================================================
-   ABOUT PAGE — PREMIUM EDITORIAL
+   ABOUT PAGE â€” PREMIUM EDITORIAL
 ========================================================= */
 
 .about-page {
@@ -6718,7 +6757,7 @@ a {
 
 }
 /* =========================================================
-   CONTACT PAGE — PREMIUM EDITORIAL
+   CONTACT PAGE â€” PREMIUM EDITORIAL
 ========================================================= */
 
 .contact-page {
@@ -8075,7 +8114,7 @@ a {
 
 }
 /* =========================================================
-   HOME — FEATURED PRODUCT RAIL
+   HOME â€” FEATURED PRODUCT RAIL
 ========================================================= */
 
 .home-featured {
@@ -8433,7 +8472,7 @@ a {
   }
 }
 /* =========================================================
-   HOME — MOVING ADVERTISING STRIP
+   HOME â€” MOVING ADVERTISING STRIP
 ========================================================= */
 
 .home-marquee {
@@ -8500,7 +8539,7 @@ a {
 
 
 /* =========================================================
-   MOBILE — MARQUEE
+   MOBILE â€” MARQUEE
 ========================================================= */
 
 @media (max-width: 700px) {
@@ -8548,7 +8587,7 @@ a {
 
 }
 /* =========================================================
-   HOME — FINAL EDITORIAL CTA
+   HOME â€” FINAL EDITORIAL CTA
 ========================================================= */
 
 .home-final-cta {
@@ -8978,7 +9017,7 @@ a {
 
 }
 /* =========================================================
-   SHOP + PRODUCT — PEARLSKINO PAGE BRANDING
+   SHOP + PRODUCT â€” PEARLSKINO PAGE BRANDING
    Add at the END of index.css
 ========================================================= */
 
@@ -9029,7 +9068,7 @@ a {
 
 
 /* =========================================================
-   SHOP HERO — KEEP IT COMPACT
+   SHOP HERO â€” KEEP IT COMPACT
 ========================================================= */
 
 .shop-hero .page-brand-logo {
@@ -9127,7 +9166,7 @@ a {
 
 
 /* =========================================================
-   MOBILE — SHOP
+   MOBILE â€” SHOP
 ========================================================= */
 
 @media (max-width: 700px) {
@@ -9146,7 +9185,7 @@ a {
 
 
 /* =========================================================
-   MOBILE — PRODUCT
+   MOBILE â€” PRODUCT
 ========================================================= */
 
 @media (max-width: 700px) {
@@ -9418,3 +9457,4 @@ a {
   }
 
 }
+
