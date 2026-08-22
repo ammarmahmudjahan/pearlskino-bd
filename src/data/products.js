@@ -37,7 +37,7 @@ export const CATEGORIES = [
 export const PRODUCTS = [
   {
     "id": "product-1787380674618",
-    "name": "Club de Nuit Intense Man",
+    "name": "Club de Nuit Intense",
     "brand": "Armaf",
     "category": "fragrance",
     "subtitle": "Eau de Parfum",

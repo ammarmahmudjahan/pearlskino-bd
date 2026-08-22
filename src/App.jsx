@@ -1,5 +1,4 @@
-
-import {
+﻿import {
   BrowserRouter,
   Routes,
   Route,
@@ -25,8 +24,6 @@ import Admin from "./admin/Admin";
 
 /* =========================================================
    SCROLL TO TOP
-   Automatically moves the page to the top whenever
-   the route changes.
 ========================================================= */
 
 function ScrollToTop() {
@@ -45,20 +42,22 @@ function ScrollToTop() {
 
 
 /* =========================================================
-   APP
+   APP SHELL
 ========================================================= */
 
-export default function App() {
-  return (
-    <BrowserRouter>
+function AppShell() {
+  const { pathname } = useLocation();
 
-      {/* RESET SCROLL POSITION ON EVERY PAGE CHANGE */}
+  const isAdmin =
+    pathname === "/admin" ||
+    pathname.startsWith("/admin/");
+
+  return (
+    <>
       <ScrollToTop />
 
-      {/* HEADER */}
-      <Header />
+      {!isAdmin && <Header />}
 
-      {/* ROUTES */}
       <Routes>
 
         <Route
@@ -101,7 +100,6 @@ export default function App() {
           element={<FAQ />}
         />
 
-        {/* ADMIN */}
         <Route
           path="/admin"
           element={<Admin />}
@@ -109,9 +107,20 @@ export default function App() {
 
       </Routes>
 
-      {/* CART DRAWER */}
-      <CartDrawer />
+      {!isAdmin && <CartDrawer />}
+    </>
+  );
+}
 
+
+/* =========================================================
+   APP
+========================================================= */
+
+export default function App() {
+  return (
+    <BrowserRouter>
+      <AppShell />
     </BrowserRouter>
   );
 }

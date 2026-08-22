@@ -838,12 +838,6 @@ function SettingsPage() {
       JSON.stringify(settings)
     );
 
-    window.dispatchEvent(
-      new CustomEvent(
-        "pearlskino-settings-updated"
-      )
-    );
-
 
     setSaved(true);
 
@@ -1786,7 +1780,6 @@ export default function Admin() {
     </div>
   );
 }
-
 
 
 

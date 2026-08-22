@@ -1,4 +1,4 @@
-﻿import {
+import {
   createContext,
   useContext,
   useEffect,
@@ -14,92 +14,6 @@ const CART_KEY = "pearlskino-cart";
 const WISHLIST_KEY = "pearlskino-wishlist";
 
 export function StoreProvider({ children }) {
-
-  /* =========================================================
-     ADMIN STORE SETTINGS
-  ========================================================= */
-
-  const DEFAULT_STORE_SETTINGS = {
-    deliveryCharge: 80,
-    freeDeliveryThreshold: 2500,
-    codEnabled: true,
-    pickupEnabled: true,
-  };
-
-  function getStoreSettings() {
-    try {
-      const saved = localStorage.getItem(
-        "pearlskino-admin-settings"
-      );
-
-      if (!saved) {
-        return DEFAULT_STORE_SETTINGS;
-      }
-
-      return {
-        ...DEFAULT_STORE_SETTINGS,
-        ...JSON.parse(saved),
-      };
-
-    } catch (error) {
-      console.warn(
-        "Unable to load PearlSkino store settings.",
-        error
-      );
-
-      return DEFAULT_STORE_SETTINGS;
-    }
-  }
-
-  const [storeSettings, setStoreSettings] = useState(
-    getStoreSettings
-  );
-
-  useEffect(() => {
-
-    function refreshStoreSettings() {
-      setStoreSettings(getStoreSettings());
-    }
-
-    function handleStorageChange(event) {
-      if (
-        event.key ===
-        "pearlskino-admin-settings"
-      ) {
-        refreshStoreSettings();
-      }
-    }
-
-    function handleAdminSettingsChange() {
-      refreshStoreSettings();
-    }
-
-    window.addEventListener(
-      "storage",
-      handleStorageChange
-    );
-
-    window.addEventListener(
-      "pearlskino-settings-updated",
-      handleAdminSettingsChange
-    );
-
-    refreshStoreSettings();
-
-    return () => {
-      window.removeEventListener(
-        "storage",
-        handleStorageChange
-      );
-
-      window.removeEventListener(
-        "pearlskino-settings-updated",
-        handleAdminSettingsChange
-      );
-    };
-
-  }, []);
-
   /* =========================
      PRODUCTS
   ========================== */
@@ -406,12 +320,9 @@ export function StoreProvider({ children }) {
   ========================== */
 
   const shipping = subtotal
-    ? (
-        Number(storeSettings.freeDeliveryThreshold || 0) > 0 &&
-        subtotal >= Number(storeSettings.freeDeliveryThreshold)
-      )
+    ? subtotal >= 2500
       ? 0
-      : Number(storeSettings.deliveryCharge || 0)
+      : 80
     : 0;
 
   /* =========================
@@ -436,8 +347,8 @@ export function StoreProvider({ children }) {
     shipping,
     total,
 
-    storeSettings,
     cartNotice,
+
     addToCart,
     closeCartNotice,
 
@@ -470,10 +381,3 @@ export function useStore() {
 
   return context;
 }
-
-
-
-
-
-
-

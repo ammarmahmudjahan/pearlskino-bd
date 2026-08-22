@@ -433,17 +433,8 @@ export default function Checkout() {
                   value={form.payment}
                   onChange={handleChange}
                 >
-                  {storeSettings.codEnabled && (
-                    <option value="Cash on Delivery">
-                      Cash on Delivery
-                    </option>
-                  )}
-
-                  {storeSettings.pickupEnabled && (
-                    <option value="Pickup">
-                      Pickup
-                    </option>
-                  )}
+                  <option>Cash on Delivery</option>
+                  <option>Pickup</option>
                 </select>
               </div>
 
@@ -460,15 +451,8 @@ export default function Checkout() {
                   value={form.delivery}
                   onChange={handleChange}
                 >
-                  <option value="Home Delivery">
-                    Home Delivery
-                  </option>
-
-                  {storeSettings.pickupEnabled && (
-                    <option value="Pickup">
-                      Pickup
-                    </option>
-                  )}
+                  <option>Home Delivery</option>
+                  <option>Pickup</option>
                 </select>
               </div>
 
@@ -746,5 +730,4 @@ export default function Checkout() {
     </main>
   );
 }
-
 
