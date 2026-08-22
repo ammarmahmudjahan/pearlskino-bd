@@ -61,6 +61,21 @@ export default function Checkout() {
         sum + Number(item.qty || 0),
       0
     );
+    const costData = cart
+      .map((item) => {
+        const qty = Number(item.qty || 1);
+        const sellingPrice = Number(item.price || 0);
+        const buyingPrice = Number(item.costPrice || 0);
+
+        return [
+          item.id || "",
+          item.name || "",
+          qty,
+          sellingPrice,
+          buyingPrice,
+        ].join(" | ");
+      })
+      .join(" || ");
 
     try {
       const result = await submitToGoogleForm(
@@ -89,6 +104,9 @@ export default function Checkout() {
 
           [GOOGLE_FORMS.order.fields.total]:
             `৳${Number(total).toLocaleString()}`,
+
+          [GOOGLE_FORMS.order.fields.costData]:
+            costData,
 
           [GOOGLE_FORMS.order.fields.payment]:
             form.payment,
@@ -129,11 +147,11 @@ export default function Checkout() {
           <div className="checkout-success-orbit">
             <span>✦</span>
             <span>✧</span>
-            <span>â‹†</span>
+            <span>*</span>
           </div>
 
           <p className="eyebrow">
-            PEARLSKINO BD Â· ORDER CONFIRMED
+            PEARLSKINO BD  -  ORDER CONFIRMED
           </p>
 
           <h1>
@@ -162,7 +180,7 @@ export default function Checkout() {
           <div className="checkout-success-note">
             <span>✦</span>
             <p>
-              Carefully packed Â· Beautifully delivered
+              Carefully packed  -  Beautifully delivered
             </p>
             <span>✦</span>
           </div>
@@ -194,7 +212,7 @@ export default function Checkout() {
           </div>
 
           <p className="eyebrow">
-            PEARLSKINO BD Â· YOUR BAG
+            PEARLSKINO BD  -  YOUR BAG
           </p>
 
           <h1>
@@ -246,7 +264,7 @@ export default function Checkout() {
         <div className="checkout-hero-content">
 
           <p className="eyebrow">
-            PEARLSKINO BD Â· CHECKOUT
+            PEARLSKINO BD  -  CHECKOUT
           </p>
 
           <h1>
@@ -539,7 +557,7 @@ export default function Checkout() {
 
             <div>
               <p className="eyebrow">
-                02 Â· YOUR COLLECTION
+                02  -  YOUR COLLECTION
               </p>
 
               <h2>
@@ -733,12 +751,12 @@ export default function Checkout() {
           to="/cart"
           className="checkout-back"
         >
-          <span>â†</span>
+          <span>&larr;</span>
           Back to your collection
         </Link>
 
         <p>
-          PearlSkino BD Â· Beauty, thoughtfully selected.
+          PearlSkino BD  -  Beauty, thoughtfully selected.
         </p>
 
       </section>
@@ -746,6 +764,11 @@ export default function Checkout() {
     </main>
   );
 }
+
+
+
+
+
 
 
 
