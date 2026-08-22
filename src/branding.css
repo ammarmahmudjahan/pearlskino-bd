@@ -1,6 +1,7 @@
+/* =========================================================
+   SHOP + PRODUCT — PEARLSKINO PAGE BRANDING
 
-   SHOP + PRODUCT â€” PEARLSKINO PAGE BRANDING
-   Add at the END of index.css
+   Page-specific branding and logo styling
 ========================================================= */
 
 
@@ -11,33 +12,24 @@
 .page-brand-logo {
   width: 72px;
   height: 38px;
-
   margin: 0 auto 16px;
-
   display: flex;
   align-items: center;
   justify-content: center;
-
   position: relative;
   z-index: 2;
 }
 
 .page-brand-logo img {
   display: block;
-
   width: 100%;
   height: 100%;
-
   object-fit: contain;
   object-position: center;
-
   opacity: 0.9;
-
-  filter:
-    drop-shadow(
-      0 4px 10px rgba(82, 61, 91, 0.08)
-    );
-
+  filter: drop-shadow(
+    0 4px 10px rgba(82, 61, 91, 0.08)
+  );
   transition:
     transform 0.3s ease,
     opacity 0.3s ease;
@@ -50,7 +42,7 @@
 
 
 /* =========================================================
-   SHOP HERO â€” KEEP IT COMPACT
+   SHOP HERO — KEEP IT COMPACT
 ========================================================= */
 
 .shop-hero .page-brand-logo {
@@ -79,33 +71,24 @@
 .product-page-brand-logo {
   width: 58px;
   height: 31px;
-
   margin: 0 0 16px;
-
   display: flex;
   align-items: center;
   justify-content: flex-start;
-
   position: relative;
   z-index: 2;
 }
 
 .product-page-brand-logo img {
   display: block;
-
   width: 100%;
   height: 100%;
-
   object-fit: contain;
   object-position: left center;
-
   opacity: 0.88;
-
-  filter:
-    drop-shadow(
-      0 4px 10px rgba(82, 61, 91, 0.07)
-    );
-
+  filter: drop-shadow(
+    0 4px 10px rgba(82, 61, 91, 0.07)
+  );
   transition:
     transform 0.3s ease,
     opacity 0.3s ease;
@@ -148,11 +131,10 @@
 
 
 /* =========================================================
-   MOBILE â€” SHOP
+   MOBILE — SHOP
 ========================================================= */
 
 @media (max-width: 700px) {
-
   .page-brand-logo {
     width: 62px;
     height: 33px;
@@ -162,22 +144,19 @@
   .shop-hero .page-brand-logo {
     margin-bottom: 11px;
   }
-
 }
 
 
 /* =========================================================
-   MOBILE â€” PRODUCT
+   MOBILE — PRODUCT
 ========================================================= */
 
 @media (max-width: 700px) {
-
   .product-page-brand-logo {
     width: 50px;
     height: 27px;
     margin-bottom: 13px;
   }
-
 }
 
 
@@ -186,7 +165,6 @@
 ========================================================= */
 
 @media (max-width: 480px) {
-
   .page-brand-logo {
     width: 55px;
     height: 29px;
@@ -202,7 +180,6 @@
     height: 25px;
     margin-bottom: 11px;
   }
-
 }
 
 
@@ -211,13 +188,13 @@
 ========================================================= */
 
 @media (prefers-reduced-motion: reduce) {
-
   .page-brand-logo img,
   .product-page-brand-logo img {
     transition: none;
   }
-
 }
+
+
 /* =========================================================
    ABOUT + CONTACT LOGO
 ========================================================= */
@@ -241,58 +218,68 @@
   height: 100%;
   object-fit: contain;
   object-position: center;
-  filter: drop-shadow(0 8px 16px rgba(90, 65, 90, .08));
+  filter: drop-shadow(
+    0 8px 16px rgba(90, 65, 90, 0.08)
+  );
   transition:
-    transform .35s ease,
-    filter .35s ease;
+    transform 0.35s ease,
+    filter 0.35s ease;
 }
 
 .about-hero-logo:hover img,
 .contact-hero-logo:hover img {
   transform: translateY(-3px) scale(1.04);
-  filter: drop-shadow(0 12px 22px rgba(90, 65, 90, .13));
+  filter: drop-shadow(
+    0 12px 22px rgba(90, 65, 90, 0.13)
+  );
 }
 
 
-/* ABOUT */
+/* =========================================================
+   ABOUT
+========================================================= */
 
 .about-hero-logo {
   margin-bottom: 18px;
 }
 
 
-/* CONTACT */
+/* =========================================================
+   CONTACT
+========================================================= */
 
 .contact-hero-logo {
   margin-bottom: 18px;
 }
 
 
-/* MOBILE */
+/* =========================================================
+   MOBILE
+========================================================= */
 
 @media (max-width: 600px) {
-
   .about-hero-logo,
   .contact-hero-logo {
     width: 58px;
     height: 58px;
     margin-bottom: 16px;
   }
-
 }
 
 
-/* VERY SMALL PHONES */
+/* =========================================================
+   VERY SMALL PHONES
+========================================================= */
 
 @media (max-width: 380px) {
-
   .about-hero-logo,
   .contact-hero-logo {
     width: 52px;
     height: 52px;
   }
-
 }
+
+
 /* =========================================================
    BRAND LOGOS
 ========================================================= */
@@ -343,12 +330,9 @@
 .faq-hero-logo {
   position: relative;
   z-index: 1;
-
   width: 105px;
   height: 42px;
-
   margin: 0 auto 20px;
-
   display: flex;
   align-items: center;
   justify-content: center;
@@ -368,10 +352,8 @@
 .cart-hero-logo {
   width: 105px;
   height: 40px;
-
   display: flex;
   align-items: center;
-
   margin-bottom: 18px;
 }
 
@@ -390,9 +372,7 @@
 .cart-empty-logo {
   width: 115px;
   height: 44px;
-
   margin: 0 auto 18px;
-
   display: flex;
   align-items: center;
   justify-content: center;
@@ -410,7 +390,6 @@
 ========================================================= */
 
 @media (max-width: 700px) {
-
   .site-header .logo {
     width: 96px;
     height: 36px;
@@ -437,6 +416,4 @@
     width: 100px;
     height: 40px;
   }
-
 }
-
