@@ -272,6 +272,8 @@ export default function ProductManager() {
 
       price: 0,
 
+      costPrice: 0,
+
       oldPrice: null,
 
       rating: 5,
