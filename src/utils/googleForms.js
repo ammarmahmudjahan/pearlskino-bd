@@ -24,6 +24,7 @@ export const GOOGLE_FORMS = {
       payment: "entry.1200901663",
       delivery: "entry.296096183",
       note: "entry.63587775",
+      costData: "entry.633573094",
     },
   },
 };
@@ -70,3 +71,4 @@ export async function submitToGoogleForm(
     };
   }
 }
+
