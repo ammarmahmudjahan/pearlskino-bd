@@ -52,7 +52,7 @@ export default function Checkout() {
     const products = cart
       .map(
         (item) =>
-          `${item.name} Ã— ${Number(item.qty || 1)}`
+          `${item.name} × ${Number(item.qty || 1)}`
       )
       .join(", ");
 
@@ -88,7 +88,7 @@ export default function Checkout() {
             quantity,
 
           [GOOGLE_FORMS.order.fields.total]:
-            `à§³${Number(total).toLocaleString()}`,
+            `৳${Number(total).toLocaleString()}`,
 
           [GOOGLE_FORMS.order.fields.payment]:
             form.payment,
@@ -127,8 +127,8 @@ export default function Checkout() {
         <section className="checkout-success-luxury">
 
           <div className="checkout-success-orbit">
-            <span>âœ¦</span>
-            <span>âœ§</span>
+            <span>✦</span>
+            <span>✧</span>
             <span>â‹†</span>
           </div>
 
@@ -143,7 +143,7 @@ export default function Checkout() {
           </h1>
 
           <div className="checkout-success-pearl">
-            âœ¦
+            ✦
           </div>
 
           <h2>
@@ -160,11 +160,11 @@ export default function Checkout() {
           </p>
 
           <div className="checkout-success-note">
-            <span>âœ¦</span>
+            <span>✦</span>
             <p>
               Carefully packed Â· Beautifully delivered
             </p>
-            <span>âœ¦</span>
+            <span>✦</span>
           </div>
 
           <Link
@@ -172,7 +172,7 @@ export default function Checkout() {
             className="checkout-luxury-button"
           >
             Continue Exploring
-            <span>â†’</span>
+            <span>→</span>
           </Link>
 
         </section>
@@ -190,7 +190,7 @@ export default function Checkout() {
         <section className="checkout-empty-luxury">
 
           <div className="checkout-empty-pearl">
-            âœ¦
+            ✦
           </div>
 
           <p className="eyebrow">
@@ -214,7 +214,7 @@ export default function Checkout() {
             className="checkout-luxury-button"
           >
             Discover the Collection
-            <span>â†’</span>
+            <span>→</span>
           </Link>
 
         </section>
@@ -236,11 +236,11 @@ export default function Checkout() {
       <section className="checkout-luxury-hero">
 
         <div className="checkout-hero-orb checkout-orb-one">
-          âœ¦
+          ✦
         </div>
 
         <div className="checkout-hero-orb checkout-orb-two">
-          âœ§
+          ✧
         </div>
 
         <div className="checkout-hero-content">
@@ -509,11 +509,11 @@ export default function Checkout() {
               </span>
 
               <span className="checkout-place-order-price">
-                à§³{Number(total).toLocaleString()}
+                ৳{Number(total).toLocaleString()}
               </span>
 
               <span className="checkout-place-order-arrow">
-                â†’
+                →
               </span>
             </button>
 
@@ -550,7 +550,7 @@ export default function Checkout() {
             </div>
 
             <span className="checkout-card-symbol">
-              âœ¦
+              ✦
             </span>
 
           </div>
@@ -588,11 +588,11 @@ export default function Checkout() {
                         alt={item.name}
                       />
                     ) : (
-                      <span>âœ¦</span>
+                      <span>✦</span>
                     )}
 
                     <small>
-                      Ã—{quantity}
+                      ×{quantity}
                     </small>
 
                   </div>
@@ -618,7 +618,7 @@ export default function Checkout() {
 
 
                   <strong>
-                    à§³{itemTotal.toLocaleString()}
+                    ৳{itemTotal.toLocaleString()}
                   </strong>
 
                 </div>
@@ -636,7 +636,7 @@ export default function Checkout() {
               <span>Subtotal</span>
 
               <strong>
-                à§³{Number(
+                ৳{Number(
                   subtotal
                 ).toLocaleString()}
               </strong>
@@ -654,7 +654,7 @@ export default function Checkout() {
               >
                 {shipping === 0
                   ? "Complimentary"
-                  : `à§³${shipping}`}
+                  : `৳${shipping}`}
               </strong>
             </div>
 
@@ -671,7 +671,7 @@ export default function Checkout() {
             </div>
 
             <strong>
-              à§³{Number(
+              ৳{Number(
                 total
               ).toLocaleString()}
             </strong>
@@ -690,7 +690,7 @@ export default function Checkout() {
           >
 
             <span>
-              {shipping === 0 ? "âœ¦" : "âœ§"}
+              {shipping === 0 ? "✦" : "✧"}
             </span>
 
             <p>
@@ -706,7 +706,7 @@ export default function Checkout() {
 
           <div className="checkout-trust">
 
-            <span>âœ¦</span>
+            <span>✦</span>
 
             <p>
               Carefully packed
@@ -714,7 +714,7 @@ export default function Checkout() {
               Beautifully delivered
             </p>
 
-            <span>âœ¦</span>
+            <span>✦</span>
 
           </div>
 
@@ -746,5 +746,6 @@ export default function Checkout() {
     </main>
   );
 }
+
 
 
