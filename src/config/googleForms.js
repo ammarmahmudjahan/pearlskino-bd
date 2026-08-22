@@ -1,4 +1,4 @@
-﻿export const GOOGLE_FORMS = {
+export const GOOGLE_FORMS = {
   contact: {
     url: "https://docs.google.com/forms/d/e/1FAIpQLScuO37t0M5CprIQpmvPuefhTiOVMYoqHLrjpblcmXIvChj2hw/formResponse",
 
@@ -21,7 +21,6 @@
       products: "entry.939536380",
       quantity: "entry.1693561923",
       total: "entry.967821568",
-      costData: "entry.633573094",
       payment: "entry.1200901663",
       delivery: "entry.296096183",
       note: "entry.63587775",
