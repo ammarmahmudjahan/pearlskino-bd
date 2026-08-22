@@ -5,8 +5,8 @@
   "email": "",
   "deliveryCharge": 99,
   "freeDeliveryThreshold": 2500,
-  "codEnabled": true,
-  "pickupEnabled": true,
+  "codEnabled": false,
+  "pickupEnabled": false,
   "lowStockThreshold": 2,
   "autoRefreshSeconds": 30
 }
