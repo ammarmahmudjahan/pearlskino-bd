@@ -7,6 +7,7 @@
 } from "react";
 
 import { useProducts } from "../hooks/useProducts";
+import storeSettingsSource from "../config/storeSettings.json";
 
 const StoreContext = createContext(null);
 
@@ -16,8 +17,8 @@ const WISHLIST_KEY = "pearlskino-wishlist";
 export function StoreProvider({ children }) {
 
   /* =========================================================
-     ADMIN STORE SETTINGS
-  ========================================================= */
+   ADMIN STORE SETTINGS
+========================================================= */
 
   const DEFAULT_STORE_SETTINGS = {
     deliveryCharge: 80,
@@ -26,81 +27,23 @@ export function StoreProvider({ children }) {
     pickupEnabled: true,
   };
 
-  function getStoreSettings() {
-    try {
-      const saved = localStorage.getItem(
-        "pearlskino-admin-settings"
-      );
-
-      if (!saved) {
-        return DEFAULT_STORE_SETTINGS;
-      }
-
-      return {
-        ...DEFAULT_STORE_SETTINGS,
-        ...JSON.parse(saved),
-      };
-
-    } catch (error) {
-      console.warn(
-        "Unable to load PearlSkino store settings.",
-        error
-      );
-
-      return DEFAULT_STORE_SETTINGS;
-    }
-  }
 
   const [storeSettings, setStoreSettings] = useState(
-    getStoreSettings
+    DEFAULT_STORE_SETTINGS
   );
+
 
   useEffect(() => {
 
-    function refreshStoreSettings() {
-      setStoreSettings(getStoreSettings());
-    }
-
-    function handleStorageChange(event) {
-      if (
-        event.key ===
-        "pearlskino-admin-settings"
-      ) {
-        refreshStoreSettings();
-      }
-    }
-
-    function handleAdminSettingsChange() {
-      refreshStoreSettings();
-    }
-
-    window.addEventListener(
-      "storage",
-      handleStorageChange
-    );
-
-    window.addEventListener(
-      "pearlskino-settings-updated",
-      handleAdminSettingsChange
-    );
-
-    refreshStoreSettings();
-
-    return () => {
-      window.removeEventListener(
-        "storage",
-        handleStorageChange
-      );
-
-      window.removeEventListener(
-        "pearlskino-settings-updated",
-        handleAdminSettingsChange
-      );
-    };
+    setStoreSettings({
+      ...DEFAULT_STORE_SETTINGS,
+      ...storeSettingsSource,
+    });
 
   }, []);
 
-  /* =========================
+
+/* =========================
      PRODUCTS
   ========================== */
 
@@ -470,6 +413,8 @@ export function useStore() {
 
   return context;
 }
+
+
 
 
 

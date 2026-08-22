@@ -1,0 +1,12 @@
+{
+  "storeName": "PearlSkino BD",
+  "tagline": "Beauty, fragrance & self-care",
+  "phone": "",
+  "email": "",
+  "deliveryCharge": 99,
+  "freeDeliveryThreshold": 2500,
+  "codEnabled": true,
+  "pickupEnabled": true,
+  "lowStockThreshold": 2,
+  "autoRefreshSeconds": 30
+}

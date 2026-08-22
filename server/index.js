@@ -1,4 +1,4 @@
-import express from "express";
+﻿import express from "express";
 import cors from "cors";
 import fs from "fs";
 import path from "path";
@@ -45,6 +45,195 @@ app.use(
 );
 
 
+
+/* =========================================================
+   STORE SETTINGS
+========================================================= */
+
+const storeSettingsFile = path.join(
+  projectRoot,
+  "src",
+  "config",
+  "storeSettings.json"
+);
+
+
+/* =========================================================
+   GET STORE SETTINGS
+========================================================= */
+
+app.get(
+  "/api/store-settings",
+  async (req, res) => {
+
+    try {
+
+      const file =
+        await fs.promises.readFile(
+          storeSettingsFile,
+          "utf8"
+        );
+
+      const settings =
+        JSON.parse(file);
+
+      res.json({
+        success: true,
+        settings,
+      });
+
+    } catch (error) {
+
+      console.error(
+        "GET STORE SETTINGS ERROR:",
+        error
+      );
+
+      res.status(500).json({
+        success: false,
+        error:
+          error?.message ||
+          "Could not read store settings.",
+      });
+
+    }
+
+  }
+);
+
+
+/* =========================================================
+   SAVE STORE SETTINGS
+========================================================= */
+
+app.put(
+  "/api/store-settings",
+  async (req, res) => {
+
+    try {
+
+      const settings =
+        req.body;
+
+      if (
+        !settings ||
+        typeof settings !== "object" ||
+        Array.isArray(settings)
+      ) {
+
+        return res.status(400).json({
+          success: false,
+          error:
+            "Invalid store settings.",
+        });
+
+      }
+
+      const cleanSettings = {
+
+        storeName:
+          String(
+            settings.storeName ||
+            "PearlSkino BD"
+          ),
+
+        tagline:
+          String(
+            settings.tagline ||
+            "Beauty, fragrance & self-care"
+          ),
+
+        phone:
+          String(
+            settings.phone ||
+            ""
+          ),
+
+        email:
+          String(
+            settings.email ||
+            ""
+          ),
+
+        deliveryCharge:
+          Number(
+            settings.deliveryCharge || 0
+          ),
+
+        freeDeliveryThreshold:
+          Number(
+            settings.freeDeliveryThreshold || 0
+          ),
+
+        codEnabled:
+          Boolean(
+            settings.codEnabled
+          ),
+
+        pickupEnabled:
+          Boolean(
+            settings.pickupEnabled
+          ),
+
+        lowStockThreshold:
+          Number(
+            settings.lowStockThreshold || 0
+          ),
+
+        autoRefreshSeconds:
+          Number(
+            settings.autoRefreshSeconds || 30
+          ),
+
+      };
+
+      await fs.promises.writeFile(
+        storeSettingsFile,
+        JSON.stringify(
+          cleanSettings,
+          null,
+          2
+        ) + "\n",
+        "utf8"
+      );
+
+      console.log(
+        "Store settings saved to source file."
+      );
+
+      res.json({
+
+        success: true,
+
+        message:
+          "Store settings saved successfully.",
+
+        settings:
+          cleanSettings,
+
+      });
+
+    } catch (error) {
+
+      console.error(
+        "SAVE STORE SETTINGS ERROR:",
+        error
+      );
+
+      res.status(500).json({
+
+        success: false,
+
+        error:
+          error?.message ||
+          "Could not save store settings.",
+
+      });
+
+    }
+
+  }
+);
 /* =========================================================
    GET PRODUCTS
 ========================================================= */
@@ -487,3 +676,4 @@ app.listen(
 
   }
 );
+

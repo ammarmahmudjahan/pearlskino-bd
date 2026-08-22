@@ -754,42 +754,71 @@ function SettingsPage() {
   const [
     settings,
     setSettings,
-  ] = useState(() => {
+  ] = useState(
+    DEFAULT_SETTINGS
+  );
 
-    try {
-
-      const saved =
-        localStorage.getItem(
-          "pearlskino-admin-settings"
-        );
-
-      if (!saved) {
-        return DEFAULT_SETTINGS;
-      }
-
-      return {
-        ...DEFAULT_SETTINGS,
-        ...JSON.parse(saved),
-      };
-
-    } catch (error) {
-
-      console.warn(
-        "Unable to load saved settings.",
-        error
-      );
-
-      return DEFAULT_SETTINGS;
-
-    }
-
-  });
+  const [
+    loadingSettings,
+    setLoadingSettings,
+  ] = useState(true);
 
 
   const [
     saved,
     setSaved,
   ] = useState(false);
+
+
+  useEffect(() => {
+
+    async function loadSettings() {
+
+      try {
+
+        const response = await fetch(
+          "http://localhost:3001/api/store-settings"
+        );
+
+        const data =
+          await response.json();
+
+        if (!response.ok || !data.success) {
+          throw new Error(
+            data.error ||
+            "Unable to load store settings."
+          );
+        }
+
+        setSettings(
+          {
+            ...DEFAULT_SETTINGS,
+            ...data.settings,
+          }
+        );
+
+      } catch (error) {
+
+        console.error(
+          "LOAD SETTINGS ERROR:",
+          error
+        );
+
+        window.alert(
+          "Unable to load store settings from the local server."
+        );
+
+      } finally {
+
+        setLoadingSettings(false);
+
+      }
+
+    }
+
+    loadSettings();
+
+  }, []);
 
 
   function handleChange(e) {
@@ -828,34 +857,67 @@ function SettingsPage() {
   }
 
 
-  function saveSettings(e) {
+  async function saveSettings(e) {
 
     e.preventDefault();
 
+    setSaved(false);
 
-    localStorage.setItem(
-      "pearlskino-admin-settings",
-      JSON.stringify(settings)
-    );
+    try {
 
-    window.dispatchEvent(
-      new CustomEvent(
-        "pearlskino-settings-updated"
-      )
-    );
+      const response = await fetch(
+        "http://localhost:3001/api/store-settings",
+        {
+          method: "PUT",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify(settings),
+        }
+      );
 
+      const data = await response.json();
 
-    setSaved(true);
+      if (!response.ok || !data.success) {
+        throw new Error(
+          data.error ||
+          "Unable to save store settings."
+        );
+      }
 
+      setSettings(
+        data.settings
+      );
 
-    setTimeout(() => {
-      setSaved(false);
-    }, 2500);
+      setSaved(true);
+
+      window.dispatchEvent(
+        new CustomEvent(
+          "pearlskino-settings-updated"
+        )
+      );
+
+      setTimeout(() => {
+        setSaved(false);
+      }, 2500);
+
+    } catch (error) {
+
+      console.error(
+        "SAVE SETTINGS ERROR:",
+        error
+      );
+
+      window.alert(
+        error?.message ||
+        "Unable to save store settings."
+      );
+
+    }
 
   }
 
-
-  function resetSettings() {
+  async function resetSettings() {
 
     const confirmed =
       window.confirm(
@@ -868,17 +930,64 @@ function SettingsPage() {
     }
 
 
-    setSettings(
-      DEFAULT_SETTINGS
-    );
+    try {
+
+      setSettings(
+        DEFAULT_SETTINGS
+      );
 
 
-    localStorage.removeItem(
-      "pearlskino-admin-settings"
-    );
+      const response =
+        await fetch(
+          "http://localhost:3001/api/store-settings",
+          {
+            method: "PUT",
+            headers: {
+              "Content-Type":
+                "application/json",
+            },
+            body:
+              JSON.stringify(
+                DEFAULT_SETTINGS
+              ),
+          }
+        );
 
 
-    setSaved(false);
+      const data =
+        await response.json();
+
+
+      if (!response.ok || !data.success) {
+        throw new Error(
+          data?.error ||
+          "Unable to reset store settings."
+        );
+      }
+
+
+      setSaved(true);
+
+
+      setTimeout(() => {
+        setSaved(false);
+      }, 2500);
+
+
+    } catch (error) {
+
+      console.error(
+        "RESET SETTINGS ERROR:",
+        error
+      );
+
+
+      window.alert(
+        error?.message ||
+        "Unable to reset store settings."
+      );
+
+    }
 
   }
 
@@ -1786,6 +1895,10 @@ export default function Admin() {
     </div>
   );
 }
+
+
+
+
 
 
 
