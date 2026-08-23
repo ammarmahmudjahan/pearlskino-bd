@@ -1,12 +1,18 @@
-﻿import { useEffect, useMemo, useState } from "react";
+import React, {
+  useEffect,
+  useMemo,
+  useState,
+} from "react";
+
+import ProductManager from "./ProductManager";
 import { useProducts } from "../hooks/useProducts";
 import "./Admin.css";
-import ProductManager from "./ProductManager";
+
 
 /* =========================================================
    PEARLSKINO BD
-   GOOGLE APPS SCRIPT API
-========================================================= */
+   ADMIN DASHBOARD
+   ========================================================= */
 
 const ORDERS_API =
   "https://script.google.com/macros/s/AKfycbzgl2Fr8e17tQXDLvrylxYvFc0XkMhtsTsFOvJxdBwt8c2imYAUHrdx3ovk7rJOD4Eq/exec";
@@ -45,12 +51,24 @@ const DEFAULT_SETTINGS = {
 
 
 /* =========================================================
-   GET API DATA
+   AUTH STORAGE
+========================================================= */
+
+const ADMIN_AUTH_KEY =
+  "pearlskino_admin_authenticated";
+
+
+/* =========================================================
+   API — GET
 ========================================================= */
 
 async function getApi(action) {
   const response = await fetch(
-    `${ORDERS_API}?action=${encodeURIComponent(action)}`
+    `${ORDERS_API}?action=${encodeURIComponent(action)}`,
+    {
+      method: "GET",
+      cache: "no-store",
+    }
   );
 
   if (!response.ok) {
@@ -59,7 +77,8 @@ async function getApi(action) {
     );
   }
 
-  const data = await response.json();
+  const data =
+    await response.json();
 
   if (!data.success) {
     throw new Error(
@@ -73,7 +92,7 @@ async function getApi(action) {
 
 
 /* =========================================================
-   POST API DATA
+   API — POST
 ========================================================= */
 
 async function postApi(payload) {
@@ -112,7 +131,75 @@ async function postApi(payload) {
 
 
 /* =========================================================
-   ORDERS API
+   AUTH — LOGIN
+========================================================= */
+
+async function loginAdmin(password) {
+  return postApi({
+    action: "login",
+    password,
+  });
+}
+
+
+/* =========================================================
+   AUTH — LOGOUT
+========================================================= */
+
+async function logoutAdmin() {
+  try {
+    await postApi({
+      action: "logout",
+    });
+  } catch (error) {
+    console.warn(
+      "Logout API warning:",
+      error
+    );
+  }
+
+  localStorage.removeItem(
+    ADMIN_AUTH_KEY
+  );
+}
+
+
+/* =========================================================
+   AUTH — CHANGE PASSWORD
+========================================================= */
+
+async function changeAdminPassword(
+  currentPassword,
+  newPassword
+) {
+  return postApi({
+    action: "changePassword",
+    currentPassword,
+    newPassword,
+  });
+}
+
+
+/* =========================================================
+   AUTH — CHECK SESSION
+========================================================= */
+
+async function checkAdminSession() {
+  try {
+    const data =
+      await getApi("auth");
+
+    return (
+      data.authenticated === true
+    );
+  } catch (error) {
+    return false;
+  }
+}
+
+
+/* =========================================================
+   ORDERS
 ========================================================= */
 
 async function fetchOrders() {
@@ -124,7 +211,7 @@ async function fetchOrders() {
 
 
 /* =========================================================
-   CUSTOMERS API
+   CUSTOMERS
 ========================================================= */
 
 async function fetchCustomers() {
@@ -136,7 +223,7 @@ async function fetchCustomers() {
 
 
 /* =========================================================
-   SETTINGS API
+   SETTINGS
 ========================================================= */
 
 async function fetchSettings() {
@@ -203,6 +290,365 @@ function StatusBadge({
 
 
 /* =========================================================
+   LOGIN SCREEN
+========================================================= */
+
+function AdminLogin({
+  onLogin,
+}) {
+  const [
+    password,
+    setPassword,
+  ] = useState("");
+
+  const [
+    loading,
+    setLoading,
+  ] = useState(false);
+
+  const [
+    error,
+    setError,
+  ] = useState("");
+
+  async function handleSubmit(e) {
+    e.preventDefault();
+
+    if (!password.trim()) {
+      setError(
+        "Please enter your admin password."
+      );
+      return;
+    }
+
+    try {
+      setLoading(true);
+      setError("");
+
+      await loginAdmin(
+        password
+      );
+
+      localStorage.setItem(
+        ADMIN_AUTH_KEY,
+        "true"
+      );
+
+      setPassword("");
+
+      onLogin();
+
+    } catch (error) {
+      console.error(
+        "ADMIN LOGIN ERROR:",
+        error
+      );
+
+      setError(
+        error.message ||
+          "Incorrect admin password."
+      );
+
+    } finally {
+      setLoading(false);
+    }
+  }
+
+  return (
+    <div className="admin-login-page">
+
+      <div className="admin-login-card">
+
+        <div className="admin-login-brand">
+          PearlSkino <span>BD</span>
+        </div>
+
+        <p className="admin-eyebrow">
+          PRIVATE ADMIN AREA
+        </p>
+
+        <h1>
+          Admin Login
+        </h1>
+
+        <p className="admin-login-description">
+          Enter your admin password to
+          access the store dashboard.
+        </p>
+
+        {error && (
+          <div className="admin-error">
+            {error}
+          </div>
+        )}
+
+        <form
+          onSubmit={handleSubmit}
+          className="admin-login-form"
+        >
+
+          <label>
+            Admin Password
+
+            <input
+              type="password"
+              value={password}
+              onChange={(e) => {
+                setPassword(
+                  e.target.value
+                );
+                setError("");
+              }}
+              placeholder="Enter password"
+              autoFocus
+              autoComplete="current-password"
+            />
+          </label>
+
+          <button
+            type="submit"
+            disabled={loading}
+            className="admin-login-button"
+          >
+            {loading
+              ? "Signing in..."
+              : "Sign In"}
+          </button>
+
+        </form>
+
+        <a
+          href="/"
+          className="admin-login-store-link"
+        >
+          ? Back to Store
+        </a>
+
+      </div>
+
+    </div>
+  );
+}
+
+
+/* =========================================================
+   CHANGE PASSWORD
+========================================================= */
+
+function ChangePasswordPage() {
+  const [
+    currentPassword,
+    setCurrentPassword,
+  ] = useState("");
+
+  const [
+    newPassword,
+    setNewPassword,
+  ] = useState("");
+
+  const [
+    confirmPassword,
+    setConfirmPassword,
+  ] = useState("");
+
+  const [
+    saving,
+    setSaving,
+  ] = useState(false);
+
+  const [
+    message,
+    setMessage,
+  ] = useState("");
+
+  const [
+    error,
+    setError,
+  ] = useState("");
+
+  async function handleSubmit(e) {
+    e.preventDefault();
+
+    setMessage("");
+    setError("");
+
+    if (!currentPassword) {
+      setError(
+        "Enter your current password."
+      );
+      return;
+    }
+
+    if (
+      newPassword.length < 6
+    ) {
+      setError(
+        "New password must be at least 6 characters."
+      );
+      return;
+    }
+
+    if (
+      newPassword !==
+      confirmPassword
+    ) {
+      setError(
+        "New passwords do not match."
+      );
+      return;
+    }
+
+    try {
+      setSaving(true);
+
+      await changeAdminPassword(
+        currentPassword,
+        newPassword
+      );
+
+      setCurrentPassword("");
+      setNewPassword("");
+      setConfirmPassword("");
+
+      setMessage(
+        "Admin password changed successfully."
+      );
+
+    } catch (error) {
+      console.error(
+        "CHANGE PASSWORD ERROR:",
+        error
+      );
+
+      setError(
+        error.message ||
+          "Unable to change password."
+      );
+
+    } finally {
+      setSaving(false);
+    }
+  }
+
+  return (
+    <section className="admin-page-section">
+
+      <div className="admin-section-header">
+
+        <div>
+          <p className="admin-eyebrow">
+            SECURITY
+          </p>
+
+          <h2>
+            Change Password
+          </h2>
+
+          <p className="admin-page-description">
+            Change the password used to
+            access your PearlSkino BD
+            admin dashboard.
+          </p>
+        </div>
+
+      </div>
+
+      {error && (
+        <div className="admin-error">
+          {error}
+        </div>
+      )}
+
+      {message && (
+        <div className="admin-success">
+          ? {message}
+        </div>
+      )}
+
+      <form
+        className="settings-form"
+        onSubmit={handleSubmit}
+      >
+
+        <div className="settings-card">
+
+          <div className="settings-grid">
+
+            <label>
+              Current Password
+
+              <input
+                type="password"
+                value={currentPassword}
+                onChange={(e) =>
+                  setCurrentPassword(
+                    e.target.value
+                  )
+                }
+                autoComplete="current-password"
+              />
+            </label>
+
+            <label>
+              New Password
+
+              <input
+                type="password"
+                value={newPassword}
+                onChange={(e) =>
+                  setNewPassword(
+                    e.target.value
+                  )
+                }
+                autoComplete="new-password"
+              />
+            </label>
+
+            <label>
+              Confirm New Password
+
+              <input
+                type="password"
+                value={confirmPassword}
+                onChange={(e) =>
+                  setConfirmPassword(
+                    e.target.value
+                  )
+                }
+                autoComplete="new-password"
+              />
+            </label>
+
+          </div>
+
+          <small className="settings-help">
+            Use at least 6 characters.
+          </small>
+
+        </div>
+
+        <div className="settings-actions">
+
+          <button
+            type="submit"
+            className="settings-save-button"
+            disabled={saving}
+          >
+            {saving
+              ? "Changing..."
+              : "Change Password"}
+          </button>
+
+        </div>
+
+      </form>
+
+    </section>
+  );
+}
+
+
+/* =========================================================
    ORDERS PAGE
 ========================================================= */
 
@@ -216,7 +662,6 @@ function OrdersPage({
     updatingOrder,
     setUpdatingOrder,
   ] = useState(null);
-
 
   async function handleStatusChange(
     orderId,
@@ -248,7 +693,6 @@ function OrdersPage({
     }
   }
 
-
   return (
     <section className="admin-page-section">
 
@@ -264,11 +708,10 @@ function OrdersPage({
           </h2>
 
           <p className="admin-page-description">
-            Manage customer orders and update
-            their delivery status.
+            Manage customer orders and
+            update their delivery status.
           </p>
         </div>
-
 
         <button
           type="button"
@@ -278,18 +721,16 @@ function OrdersPage({
         >
           {loading
             ? "Refreshing..."
-            : "↻ Refresh"}
+            : "? Refresh"}
         </button>
 
       </div>
-
 
       {error && (
         <div className="admin-error">
           {error}
         </div>
       )}
-
 
       {loading ? (
 
@@ -302,7 +743,7 @@ function OrdersPage({
         <div className="admin-empty">
 
           <div className="admin-empty-icon">
-            ✦
+            ?
           </div>
 
           <h3>
@@ -310,8 +751,8 @@ function OrdersPage({
           </h3>
 
           <p>
-            New customer orders will appear
-            here automatically.
+            New customer orders will
+            appear here automatically.
           </p>
 
         </div>
@@ -323,7 +764,6 @@ function OrdersPage({
           <div className="orders-table">
 
             <div className="orders-table-header">
-
               <span>Order</span>
               <span>Customer</span>
               <span>Products</span>
@@ -331,9 +771,7 @@ function OrdersPage({
               <span>Payment</span>
               <span>Delivery</span>
               <span>Status</span>
-
             </div>
-
 
             {orders.map((order) => (
 
@@ -348,20 +786,16 @@ function OrdersPage({
                 <div className="order-id-cell">
 
                   <strong>
-                    {order.orderId ||
-                      "—"}
+                    {order.orderId || "—"}
                   </strong>
 
                   <small>
-                    {order.timestamp ||
-                      ""}
+                    {order.timestamp || ""}
                   </small>
 
                 </div>
 
-
                 <div>
-
                   <strong>
                     {order.name ||
                       "Unknown"}
@@ -371,9 +805,7 @@ function OrdersPage({
                     {order.phone ||
                       "No phone"}
                   </small>
-
                 </div>
-
 
                 <div className="order-products-cell">
 
@@ -384,20 +816,17 @@ function OrdersPage({
 
                   {order.quantity && (
                     <small>
-                      Qty:{" "}
-                      {order.quantity}
+                      Qty: {order.quantity}
                     </small>
                   )}
 
                 </div>
 
-
                 <strong>
-                  ৳
+                  ?
                   {Number(
                     String(
-                      order.total ||
-                        "0"
+                      order.total || "0"
                     ).replace(
                       /[^\d.-]/g,
                       ""
@@ -405,18 +834,14 @@ function OrdersPage({
                   ).toLocaleString()}
                 </strong>
 
-
                 <span>
-                  {order.payment ||
-                    "—"}
+                  {order.payment || "—"}
                 </span>
-
 
                 <div>
 
                   <strong>
-                    {order.delivery ||
-                      "—"}
+                    {order.delivery || "—"}
                   </strong>
 
                   {order.area && (
@@ -427,20 +852,15 @@ function OrdersPage({
 
                 </div>
 
-
                 <div className="order-status-cell">
 
                   <StatusBadge
-                    status={
-                      order.status
-                    }
+                    status={order.status}
                   />
-
 
                   <select
                     value={
-                      order.status ||
-                      "New"
+                      order.status || "New"
                     }
                     disabled={
                       updatingOrder ===
@@ -509,11 +929,10 @@ function CustomersPage({
           </h2>
 
           <p className="admin-page-description">
-            Customer information collected from
-            your orders.
+            Customer information collected
+            from your orders.
           </p>
         </div>
-
 
         <button
           type="button"
@@ -523,18 +942,16 @@ function CustomersPage({
         >
           {loading
             ? "Refreshing..."
-            : "↻ Refresh"}
+            : "? Refresh"}
         </button>
 
       </div>
-
 
       {error && (
         <div className="admin-error">
           {error}
         </div>
       )}
-
 
       {loading ? (
 
@@ -547,7 +964,7 @@ function CustomersPage({
         <div className="admin-empty">
 
           <div className="admin-empty-icon">
-            ✦
+            ?
           </div>
 
           <h3>
@@ -555,8 +972,8 @@ function CustomersPage({
           </h3>
 
           <p>
-            Customers will appear here after
-            receiving orders.
+            Customers will appear here
+            after receiving orders.
           </p>
 
         </div>
@@ -568,29 +985,23 @@ function CustomersPage({
           <div className="customers-table">
 
             <div className="customers-table-header">
-
               <span>Customer</span>
               <span>Contact</span>
               <span>Location</span>
               <span>Orders</span>
               <span>Total Spent</span>
               <span>Last Order</span>
-
             </div>
-
 
             {customers.map(
               (customer) => (
 
                 <div
                   className="customer-row"
-                  key={
-                    customer.id
-                  }
+                  key={customer.id}
                 >
 
                   <div>
-
                     <strong>
                       {customer.name ||
                         "Unknown"}
@@ -599,12 +1010,9 @@ function CustomersPage({
                     <small>
                       {customer.id}
                     </small>
-
                   </div>
 
-
                   <div>
-
                     <strong>
                       {customer.phone ||
                         "—"}
@@ -614,12 +1022,9 @@ function CustomersPage({
                       {customer.email ||
                         "—"}
                     </small>
-
                   </div>
 
-
                   <div>
-
                     <strong>
                       {customer.area ||
                         "—"}
@@ -629,24 +1034,19 @@ function CustomersPage({
                       {customer.address ||
                         ""}
                     </small>
-
                   </div>
 
-
                   <strong>
-                    {customer.orders ||
-                      0}
+                    {customer.orders || 0}
                   </strong>
 
-
                   <strong>
-                    ৳
+                    ?
                     {Number(
                       customer.totalSpent ||
                         0
                     ).toLocaleString()}
                   </strong>
-
 
                   <span>
                     {customer.lastOrder ||
@@ -681,40 +1081,31 @@ function Dashboard({
   const totalProducts =
     products.length;
 
-
   const activeProducts =
     products.filter(
       (product) =>
-        product.status !==
-        "inactive"
+        product.status !== "inactive"
     ).length;
-
 
   const lowStock =
     products.filter(
       (product) =>
-        Number(
-          product.stock || 0
-        ) <=
+        Number(product.stock || 0) <=
         DEFAULT_SETTINGS.lowStockThreshold
     ).length;
-
 
   const newOrders =
     orders.filter(
       (order) =>
-        (order.status ||
-          "New") ===
+        (order.status || "New") ===
         "New"
     ).length;
-
 
   const revenue =
     orders
       .filter(
         (order) =>
-          (order.status ||
-            "") !==
+          (order.status || "") !==
           "Cancelled"
       )
       .reduce(
@@ -722,8 +1113,7 @@ function Dashboard({
           sum +
           Number(
             String(
-              order.total ||
-                "0"
+              order.total || "0"
             ).replace(
               /[^\d.-]/g,
               ""
@@ -732,102 +1122,67 @@ function Dashboard({
         0
       );
 
-
   return (
     <>
-
       <section className="admin-stats">
 
         <div className="admin-stat">
-
-          <span>
-            Total Products
-          </span>
-
+          <span>Total Products</span>
           <strong>
             {productsLoading
               ? "…"
               : totalProducts}
           </strong>
-
         </div>
 
-
         <div className="admin-stat">
-
-          <span>
-            Active Products
-          </span>
-
+          <span>Active Products</span>
           <strong>
             {productsLoading
               ? "…"
               : activeProducts}
           </strong>
-
         </div>
 
-
         <div className="admin-stat">
-
-          <span>
-            Low Stock
-          </span>
-
+          <span>Low Stock</span>
           <strong>
             {productsLoading
               ? "…"
               : lowStock}
           </strong>
-
         </div>
 
-
         <div className="admin-stat">
-
-          <span>
-            Orders
-          </span>
-
+          <span>Orders</span>
           <strong>
             {orders.length}
           </strong>
-
         </div>
 
       </section>
 
-
       <section className="admin-dashboard-extra">
 
         <div className="admin-stat">
-
-          <span>
-            New Orders
-          </span>
-
+          <span>New Orders</span>
           <strong>
             {newOrders}
           </strong>
-
         </div>
 
-
         <div className="admin-stat">
-
           <span>
             Non-Cancelled Revenue
           </span>
 
           <strong>
-            ৳
+            ?
             {revenue.toLocaleString()}
           </strong>
-
         </div>
 
       </section>
-
     </>
   );
 }
@@ -838,7 +1193,6 @@ function Dashboard({
 ========================================================= */
 
 function SettingsPage() {
-
   const [
     settings,
     setSettings,
@@ -846,61 +1200,44 @@ function SettingsPage() {
     DEFAULT_SETTINGS
   );
 
-
   const [
     loadingSettings,
     setLoadingSettings,
   ] = useState(true);
-
 
   const [
     savingSettings,
     setSavingSettings,
   ] = useState(false);
 
-
   const [
     saved,
     setSaved,
   ] = useState(false);
-
 
   const [
     settingsError,
     setSettingsError,
   ] = useState("");
 
-
-  /* =======================================================
-     LOAD SETTINGS
-  ======================================================= */
-
   async function loadSettings() {
-
     try {
-
       setLoadingSettings(true);
       setSettingsError("");
-
 
       const data =
         await fetchSettings();
 
-
-      setSettings(
-        {
-          ...DEFAULT_SETTINGS,
-          ...data,
-        }
-      );
+      setSettings({
+        ...DEFAULT_SETTINGS,
+        ...data,
+      });
 
     } catch (error) {
-
       console.error(
         "LOAD SETTINGS ERROR:",
         error
       );
-
 
       setSettingsError(
         error.message ||
@@ -908,27 +1245,15 @@ function SettingsPage() {
       );
 
     } finally {
-
       setLoadingSettings(false);
-
     }
-
   }
 
-
   useEffect(() => {
-
     loadSettings();
-
   }, []);
 
-
-  /* =======================================================
-     HANDLE SETTINGS CHANGE
-  ======================================================= */
-
   function handleChange(e) {
-
     const {
       name,
       value,
@@ -936,13 +1261,10 @@ function SettingsPage() {
       checked,
     } = e.target;
 
-
     setSaved(false);
-
 
     setSettings(
       (current) => ({
-
         ...current,
 
         [name]:
@@ -958,45 +1280,29 @@ function SettingsPage() {
               ? 0
               : Number(value)
             : value,
-
       })
     );
-
   }
 
-
-  /* =======================================================
-     SAVE SETTINGS
-  ======================================================= */
-
   async function saveSettings(e) {
-
     e.preventDefault();
 
-
     try {
-
       setSavingSettings(true);
       setSaved(false);
       setSettingsError("");
-
 
       const data =
         await saveStoreSettings(
           settings
         );
 
-
-      setSettings(
-        {
-          ...DEFAULT_SETTINGS,
-          ...(data.settings || {}),
-        }
-      );
-
+      setSettings({
+        ...DEFAULT_SETTINGS,
+        ...(data.settings || {}),
+      });
 
       setSaved(true);
-
 
       window.dispatchEvent(
         new CustomEvent(
@@ -1004,20 +1310,15 @@ function SettingsPage() {
         )
       );
 
-
       setTimeout(() => {
-
         setSaved(false);
-
       }, 2500);
 
     } catch (error) {
-
       console.error(
         "SAVE SETTINGS ERROR:",
         error
       );
-
 
       setSettingsError(
         error.message ||
@@ -1025,54 +1326,36 @@ function SettingsPage() {
       );
 
     } finally {
-
       setSavingSettings(false);
-
     }
-
   }
 
-
-  /* =======================================================
-     RESET SETTINGS
-  ======================================================= */
-
   async function resetSettings() {
-
     const confirmed =
       window.confirm(
         "Reset all admin settings to their defaults?"
       );
 
-
     if (!confirmed) {
       return;
     }
 
-
     try {
-
       setSavingSettings(true);
       setSaved(false);
       setSettingsError("");
-
 
       const data =
         await saveStoreSettings(
           DEFAULT_SETTINGS
         );
 
-
-      setSettings(
-        {
-          ...DEFAULT_SETTINGS,
-          ...(data.settings || {}),
-        }
-      );
-
+      setSettings({
+        ...DEFAULT_SETTINGS,
+        ...(data.settings || {}),
+      });
 
       setSaved(true);
-
 
       window.dispatchEvent(
         new CustomEvent(
@@ -1080,37 +1363,27 @@ function SettingsPage() {
         )
       );
 
-
       setTimeout(() => {
-
         setSaved(false);
-
       }, 2500);
 
     } catch (error) {
-
       console.error(
         "RESET SETTINGS ERROR:",
         error
       );
 
-
       setSettingsError(
         error.message ||
-          "Unable to reset store settings."
+          "Unable to reset settings."
       );
 
     } finally {
-
       setSavingSettings(false);
-
     }
-
   }
 
-
   return (
-
     <section className="admin-page-section settings-page">
 
       <div className="admin-section-header">
@@ -1126,14 +1399,13 @@ function SettingsPage() {
           </h2>
 
           <p className="admin-page-description">
-            Configure your PearlSkino BD store and
-            admin dashboard preferences.
+            Configure your PearlSkino BD
+            store and admin dashboard.
           </p>
 
         </div>
 
       </div>
-
 
       {loadingSettings && (
         <div className="admin-loading">
@@ -1141,22 +1413,17 @@ function SettingsPage() {
         </div>
       )}
 
-
       {settingsError && (
         <div className="admin-error">
           {settingsError}
         </div>
       )}
 
-
       {!loadingSettings && (
-
         <form
           className="settings-form"
           onSubmit={saveSettings}
         >
-
-          {/* STORE */}
 
           <div className="settings-card">
 
@@ -1173,19 +1440,17 @@ function SettingsPage() {
                 </h3>
 
                 <p>
-                  Basic information used throughout
-                  your store.
+                  Basic information used
+                  throughout your store.
                 </p>
 
               </div>
 
             </div>
 
-
             <div className="settings-grid">
 
               <label>
-
                 Store Name
 
                 <input
@@ -1197,12 +1462,9 @@ function SettingsPage() {
                     handleChange
                   }
                 />
-
               </label>
 
-
               <label>
-
                 Tagline
 
                 <input
@@ -1214,12 +1476,9 @@ function SettingsPage() {
                     handleChange
                   }
                 />
-
               </label>
 
-
               <label>
-
                 Contact Phone
 
                 <input
@@ -1232,12 +1491,9 @@ function SettingsPage() {
                   }
                   placeholder="01XXXXXXXXX"
                 />
-
               </label>
 
-
               <label>
-
                 Contact Email
 
                 <input
@@ -1251,15 +1507,12 @@ function SettingsPage() {
                   }
                   placeholder="hello@example.com"
                 />
-
               </label>
 
             </div>
 
           </div>
 
-
-          {/* DELIVERY */}
 
           <div className="settings-card">
 
@@ -1276,26 +1529,22 @@ function SettingsPage() {
                 </h3>
 
                 <p>
-                  Configure delivery and payment
-                  options for your store.
+                  Configure delivery and
+                  payment options.
                 </p>
 
               </div>
 
             </div>
 
-
             <div className="settings-grid">
 
               <label>
-
                 Delivery Charge
 
                 <div className="settings-input-prefix">
 
-                  <span>
-                    ৳
-                  </span>
+                  <span>?</span>
 
                   <input
                     type="number"
@@ -1313,16 +1562,12 @@ function SettingsPage() {
 
               </label>
 
-
               <label>
-
                 Free Delivery Above
 
                 <div className="settings-input-prefix">
 
-                  <span>
-                    ৳
-                  </span>
+                  <span>?</span>
 
                   <input
                     type="number"
@@ -1341,7 +1586,6 @@ function SettingsPage() {
               </label>
 
             </div>
-
 
             <div className="settings-toggles">
 
@@ -1365,14 +1609,13 @@ function SettingsPage() {
                   </strong>
 
                   <small>
-                    Allow customers to place COD
-                    orders.
+                    Allow customers to
+                    place COD orders.
                   </small>
 
                 </span>
 
               </label>
-
 
               <label className="settings-toggle">
 
@@ -1394,8 +1637,8 @@ function SettingsPage() {
                   </strong>
 
                   <small>
-                    Allow customers to collect
-                    orders directly.
+                    Allow customers to
+                    collect orders directly.
                   </small>
 
                 </span>
@@ -1406,8 +1649,6 @@ function SettingsPage() {
 
           </div>
 
-
-          {/* DASHBOARD */}
 
           <div className="settings-card">
 
@@ -1424,19 +1665,17 @@ function SettingsPage() {
                 </h3>
 
                 <p>
-                  Control how the admin dashboard
-                  handles inventory and updates.
+                  Control inventory and
+                  dashboard behaviour.
                 </p>
 
               </div>
 
             </div>
 
-
             <div className="settings-grid">
 
               <label>
-
                 Low Stock Threshold
 
                 <input
@@ -1452,15 +1691,13 @@ function SettingsPage() {
                 />
 
                 <small className="settings-help">
-                  Products at or below this number
-                  appear as low stock.
+                  Products at or below this
+                  number appear as low stock.
                 </small>
 
               </label>
 
-
               <label>
-
                 Auto Refresh Interval
 
                 <div className="settings-input-suffix">
@@ -1485,8 +1722,8 @@ function SettingsPage() {
                 </div>
 
                 <small className="settings-help">
-                  Orders and customers are refreshed
-                  automatically at this interval.
+                  Orders and customers refresh
+                  automatically.
                 </small>
 
               </label>
@@ -1495,8 +1732,6 @@ function SettingsPage() {
 
           </div>
 
-
-          {/* ACTIONS */}
 
           <div className="settings-actions">
 
@@ -1513,15 +1748,13 @@ function SettingsPage() {
               Reset Defaults
             </button>
 
-
             <div className="settings-save-group">
 
               {saved && (
                 <span className="settings-saved">
-                  ✓ Settings saved
+                  ? Settings saved
                 </span>
               )}
-
 
               <button
                 type="submit"
@@ -1540,11 +1773,9 @@ function SettingsPage() {
           </div>
 
         </form>
-
       )}
 
     </section>
-
   );
 }
 
@@ -1556,54 +1787,93 @@ function SettingsPage() {
 export default function Admin() {
 
   const [
+    authenticated,
+    setAuthenticated,
+  ] = useState(false);
+
+  const [
+    checkingAuth,
+    setCheckingAuth,
+  ] = useState(true);
+
+  const [
     activePage,
     setActivePage,
   ] = useState(
     "dashboard"
   );
 
-
   const [
     orders,
     setOrders,
   ] = useState([]);
-
 
   const [
     customers,
     setCustomers,
   ] = useState([]);
 
-
   const [
     ordersLoading,
     setOrdersLoading,
   ] = useState(false);
-
 
   const [
     customersLoading,
     setCustomersLoading,
   ] = useState(false);
 
-
   const [
     ordersError,
     setOrdersError,
   ] = useState("");
-
 
   const [
     customersError,
     setCustomersError,
   ] = useState("");
 
-
   const [
     products,
     ,
     productsLoading,
   ] = useProducts();
+
+
+  /* =======================================================
+     AUTH CHECK
+  ======================================================= */
+
+  useEffect(() => {
+
+    async function verifySession() {
+
+      try {
+
+        const loggedIn =
+          await checkAdminSession();
+
+        setAuthenticated(
+          loggedIn
+        );
+
+        if (!loggedIn) {
+          localStorage.removeItem(
+            ADMIN_AUTH_KEY
+          );
+        }
+
+      } finally {
+
+        setCheckingAuth(false);
+
+      }
+
+    }
+
+    verifySession();
+
+  }, []);
 
 
   /* =======================================================
@@ -1617,10 +1887,8 @@ export default function Admin() {
       setOrdersLoading(true);
       setOrdersError("");
 
-
       const data =
         await fetchOrders();
-
 
       setOrders(data);
 
@@ -1631,6 +1899,15 @@ export default function Admin() {
         error
       );
 
+      if (
+        error.message ===
+        "Authentication required."
+      ) {
+        setAuthenticated(false);
+        localStorage.removeItem(
+          ADMIN_AUTH_KEY
+        );
+      }
 
       setOrdersError(
         error.message ||
@@ -1657,10 +1934,8 @@ export default function Admin() {
       setCustomersLoading(true);
       setCustomersError("");
 
-
       const data =
         await fetchCustomers();
-
 
       setCustomers(data);
 
@@ -1671,6 +1946,15 @@ export default function Admin() {
         error
       );
 
+      if (
+        error.message ===
+        "Authentication required."
+      ) {
+        setAuthenticated(false);
+        localStorage.removeItem(
+          ADMIN_AUTH_KEY
+        );
+      }
 
       setCustomersError(
         error.message ||
@@ -1687,14 +1971,30 @@ export default function Admin() {
 
 
   /* =======================================================
-     INITIAL LOAD + AUTOMATIC REFRESH
+     LOAD DATA AFTER LOGIN
   ======================================================= */
 
   useEffect(() => {
 
+    if (!authenticated) {
+      return;
+    }
+
     refreshOrders();
     refreshCustomers();
 
+  }, [authenticated]);
+
+
+  /* =======================================================
+     AUTOMATIC REFRESH
+  ======================================================= */
+
+  useEffect(() => {
+
+    if (!authenticated) {
+      return;
+    }
 
     const refreshInterval =
       setInterval(() => {
@@ -1702,18 +2002,15 @@ export default function Admin() {
         refreshOrders();
         refreshCustomers();
 
-      }, 30 * 1000);
-
+      }, DEFAULT_SETTINGS.autoRefreshSeconds * 1000);
 
     return () => {
-
       clearInterval(
         refreshInterval
       );
-
     };
 
-  }, []);
+  }, [authenticated]);
 
 
   /* =======================================================
@@ -1739,6 +2036,9 @@ export default function Admin() {
         case "settings":
           return "Settings";
 
+        case "security":
+          return "Security";
+
         default:
           return "Dashboard";
 
@@ -1748,27 +2048,72 @@ export default function Admin() {
 
 
   /* =======================================================
-     NAVIGATION
+     LOGOUT
   ======================================================= */
 
-  function navigate(page) {
+  async function handleLogout() {
 
-    setActivePage(page);
+    await logoutAdmin();
+
+    setAuthenticated(false);
+    setOrders([]);
+    setCustomers([]);
+    setActivePage("dashboard");
 
   }
 
 
   /* =======================================================
-     RENDER
+     AUTH LOADING
+  ======================================================= */
+
+  if (checkingAuth) {
+
+    return (
+      <div className="admin-login-page">
+
+        <div className="admin-login-card">
+
+          <div className="admin-login-brand">
+            PearlSkino <span>BD</span>
+          </div>
+
+          <div className="admin-loading">
+            Checking admin access...
+          </div>
+
+        </div>
+
+      </div>
+    );
+
+  }
+
+
+  /* =======================================================
+     LOGIN
+  ======================================================= */
+
+  if (!authenticated) {
+
+    return (
+      <AdminLogin
+        onLogin={() =>
+          setAuthenticated(true)
+        }
+      />
+    );
+
+  }
+
+
+  /* =======================================================
+     ADMIN DASHBOARD
   ======================================================= */
 
   return (
 
     <div className="admin">
-
-      {/* ===================================================
-          SIDEBAR
-      =================================================== */}
 
       <aside className="admin-sidebar">
 
@@ -1788,19 +2133,15 @@ export default function Admin() {
           <a
             href="#dashboard"
             className={
-              activePage ===
-              "dashboard"
+              activePage === "dashboard"
                 ? "active"
                 : ""
             }
             onClick={(e) => {
-
               e.preventDefault();
-
-              navigate(
+              setActivePage(
                 "dashboard"
               );
-
             }}
           >
             Dashboard
@@ -1810,19 +2151,15 @@ export default function Admin() {
           <a
             href="#products"
             className={
-              activePage ===
-              "products"
+              activePage === "products"
                 ? "active"
                 : ""
             }
             onClick={(e) => {
-
               e.preventDefault();
-
-              navigate(
+              setActivePage(
                 "products"
               );
-
             }}
           >
             Products
@@ -1832,19 +2169,15 @@ export default function Admin() {
           <a
             href="#orders"
             className={
-              activePage ===
-              "orders"
+              activePage === "orders"
                 ? "active"
                 : ""
             }
             onClick={(e) => {
-
               e.preventDefault();
-
-              navigate(
+              setActivePage(
                 "orders"
               );
-
             }}
           >
             Orders
@@ -1861,19 +2194,15 @@ export default function Admin() {
           <a
             href="#customers"
             className={
-              activePage ===
-              "customers"
+              activePage === "customers"
                 ? "active"
                 : ""
             }
             onClick={(e) => {
-
               e.preventDefault();
-
-              navigate(
+              setActivePage(
                 "customers"
               );
-
             }}
           >
             Customers
@@ -1883,22 +2212,36 @@ export default function Admin() {
           <a
             href="#settings"
             className={
-              activePage ===
-              "settings"
+              activePage === "settings"
                 ? "active"
                 : ""
             }
             onClick={(e) => {
-
               e.preventDefault();
-
-              navigate(
+              setActivePage(
                 "settings"
               );
-
             }}
           >
             Settings
+          </a>
+
+
+          <a
+            href="#security"
+            className={
+              activePage === "security"
+                ? "active"
+                : ""
+            }
+            onClick={(e) => {
+              e.preventDefault();
+              setActivePage(
+                "security"
+              );
+            }}
+          >
+            Security
           </a>
 
         </nav>
@@ -1910,18 +2253,20 @@ export default function Admin() {
             View Store
           </a>
 
+          <button
+            type="button"
+            onClick={handleLogout}
+            className="admin-logout-button"
+          >
+            Logout
+          </button>
+
         </div>
 
       </aside>
 
 
-      {/* ===================================================
-          MAIN
-      =================================================== */}
-
       <main className="admin-main">
-
-        {/* TOP BAR */}
 
         <header className="admin-topbar">
 
@@ -1938,37 +2283,41 @@ export default function Admin() {
           </div>
 
 
-          <a
-            href="/"
-            className="admin-view-store"
-          >
-            View Store
-          </a>
+          <div className="admin-topbar-actions">
+
+            <a
+              href="/"
+              className="admin-view-store"
+            >
+              View Store
+            </a>
+
+            <button
+              type="button"
+              className="admin-logout-button"
+              onClick={
+                handleLogout
+              }
+            >
+              Logout
+            </button>
+
+          </div>
 
         </header>
 
 
-        {/* =================================================
-            DASHBOARD
-        ================================================= */}
-
-        {activePage ===
-          "dashboard" && (
+        {activePage === "dashboard" && (
 
           <>
 
             <Dashboard
-              products={
-                products
-              }
+              products={products}
               productsLoading={
                 productsLoading
               }
-              orders={
-                orders
-              }
+              orders={orders}
             />
-
 
             <section className="admin-products">
 
@@ -1988,7 +2337,6 @@ export default function Admin() {
 
               </div>
 
-
               <ProductManager />
 
             </section>
@@ -1998,12 +2346,7 @@ export default function Admin() {
         )}
 
 
-        {/* =================================================
-            PRODUCTS
-        ================================================= */}
-
-        {activePage ===
-          "products" && (
+        {activePage === "products" && (
 
           <section className="admin-products">
 
@@ -2023,7 +2366,6 @@ export default function Admin() {
 
             </div>
 
-
             <ProductManager />
 
           </section>
@@ -2031,23 +2373,12 @@ export default function Admin() {
         )}
 
 
-        {/* =================================================
-            ORDERS
-        ================================================= */}
-
-        {activePage ===
-          "orders" && (
+        {activePage === "orders" && (
 
           <OrdersPage
-            orders={
-              orders
-            }
-            loading={
-              ordersLoading
-            }
-            error={
-              ordersError
-            }
+            orders={orders}
+            loading={ordersLoading}
+            error={ordersError}
             refreshOrders={
               refreshOrders
             }
@@ -2056,23 +2387,14 @@ export default function Admin() {
         )}
 
 
-        {/* =================================================
-            CUSTOMERS
-        ================================================= */}
-
-        {activePage ===
-          "customers" && (
+        {activePage === "customers" && (
 
           <CustomersPage
-            customers={
-              customers
-            }
+            customers={customers}
             loading={
               customersLoading
             }
-            error={
-              customersError
-            }
+            error={customersError}
             refreshCustomers={
               refreshCustomers
             }
@@ -2081,14 +2403,16 @@ export default function Admin() {
         )}
 
 
-        {/* =================================================
-            SETTINGS
-        ================================================= */}
-
-        {activePage ===
-          "settings" && (
+        {activePage === "settings" && (
 
           <SettingsPage />
+
+        )}
+
+
+        {activePage === "security" && (
+
+          <ChangePasswordPage />
 
         )}
 
