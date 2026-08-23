@@ -7,51 +7,116 @@
 } from "react";
 
 import { useProducts } from "../hooks/useProducts";
-import storeSettingsSource from "../config/storeSettings.json";
 
 const StoreContext = createContext(null);
 
 const CART_KEY = "pearlskino-cart";
 const WISHLIST_KEY = "pearlskino-wishlist";
 
-export function StoreProvider({ children }) {
+const SETTINGS_API =
+  "https://script.google.com/macros/s/AKfycbzgl2Fr8e17tQXDLvrylxYvFc0XkMhtsTsFOvJxdBwt8c2imYAUHrdx3ovk7rJOD4Eq/exec";
 
-  /* =========================================================
-   ADMIN STORE SETTINGS
-========================================================= */
+const DEFAULT_STORE_SETTINGS = {
+  storeName: "PearlSkino BD",
+  tagline: "Beauty, fragrance & self-care",
+  phone: "",
+  email: "",
+  deliveryCharge: 80,
+  freeDeliveryThreshold: 2500,
+  codEnabled: true,
+  pickupEnabled: true,
+  lowStockThreshold: 2,
+  autoRefreshSeconds: 30,
+};
 
-  const DEFAULT_STORE_SETTINGS = {
-    deliveryCharge: 80,
-    freeDeliveryThreshold: 2500,
-    codEnabled: true,
-    pickupEnabled: true,
+const SETTINGS_REFRESH_MS = 30000;
+
+async function fetchStoreSettings() {
+  const response = await fetch(`${SETTINGS_API}?action=settings`);
+
+  if (!response.ok) {
+    throw new Error("Unable to load store settings.");
+  }
+
+  const data = await response.json();
+
+  if (!data.success) {
+    throw new Error(data.error || "Unable to load store settings.");
+  }
+
+  return {
+    ...DEFAULT_STORE_SETTINGS,
+    ...(data.settings || {}),
   };
+}
 
+export function StoreProvider({ children }) {
+  const [storeSettings, setStoreSettings] =
+    useState(DEFAULT_STORE_SETTINGS);
 
-  const [storeSettings, setStoreSettings] = useState(
-    DEFAULT_STORE_SETTINGS
-  );
-
+  const [settingsLoading, setSettingsLoading] =
+    useState(true);
 
   useEffect(() => {
+    let mounted = true;
 
-    setStoreSettings({
-      ...DEFAULT_STORE_SETTINGS,
-      ...storeSettingsSource,
-    });
+    async function loadSettings() {
+      try {
+        const settings = await fetchStoreSettings();
 
+        if (mounted) {
+          setStoreSettings(settings);
+        }
+      } catch (error) {
+        console.error("STORE SETTINGS LOAD ERROR:", error);
+      } finally {
+        if (mounted) {
+          setSettingsLoading(false);
+        }
+      }
+    }
+
+    loadSettings();
+
+    const interval = window.setInterval(
+      loadSettings,
+      SETTINGS_REFRESH_MS
+    );
+
+    return () => {
+      mounted = false;
+      window.clearInterval(interval);
+    };
   }, []);
 
+  useEffect(() => {
+    function handleSettingsUpdated() {
+      fetchStoreSettings()
+        .then((settings) => {
+          setStoreSettings(settings);
+        })
+        .catch((error) => {
+          console.error(
+            "STORE SETTINGS REFRESH ERROR:",
+            error
+          );
+        });
+    }
 
-/* =========================
-     PRODUCTS
-  ========================== */
+    window.addEventListener(
+      "pearlskino-settings-updated",
+      handleSettingsUpdated
+    );
+
+    return () => {
+      window.removeEventListener(
+        "pearlskino-settings-updated",
+        handleSettingsUpdated
+      );
+    };
+  }, []);
 
   const [products] = useProducts();
-
-  /* =========================
-     CART
-  ========================== */
 
   const [cart, setCart] = useState(() => {
     try {
@@ -63,10 +128,6 @@ export function StoreProvider({ children }) {
     }
   });
 
-  /* =========================
-     WISHLIST
-  ========================== */
-
   const [wishlist, setWishlist] = useState(() => {
     try {
       return JSON.parse(
@@ -77,15 +138,7 @@ export function StoreProvider({ children }) {
     }
   });
 
-  /* =========================
-     CART NOTIFICATION
-  ========================== */
-
   const [cartNotice, setCartNotice] = useState(null);
-
-  /* =========================
-     SAVE CART
-  ========================== */
 
   useEffect(() => {
     localStorage.setItem(
@@ -94,20 +147,12 @@ export function StoreProvider({ children }) {
     );
   }, [cart]);
 
-  /* =========================
-     SAVE WISHLIST
-  ========================== */
-
   useEffect(() => {
     localStorage.setItem(
       WISHLIST_KEY,
       JSON.stringify(wishlist)
     );
   }, [wishlist]);
-
-  /* =========================
-     ADD TO CART
-  ========================== */
 
   function addToCart(id, quantity = 1) {
     const product = products.find(
@@ -117,9 +162,7 @@ export function StoreProvider({ children }) {
 
     if (!product) return;
 
-    const stock = Number(
-      product.stock || 0
-    );
+    const stock = Number(product.stock || 0);
 
     if (
       product.status === "inactive" ||
@@ -158,17 +201,10 @@ export function StoreProvider({ children }) {
         ...current,
         {
           ...product,
-          qty: Math.min(
-            quantity,
-            stock
-          ),
+          qty: Math.min(quantity, stock),
         },
       ];
     });
-
-    /* =========================
-       SHOW PREMIUM CART NOTICE
-    ========================== */
 
     setCartNotice({
       id: product.id,
@@ -191,10 +227,6 @@ export function StoreProvider({ children }) {
       }, 4500);
   }
 
-  /* =========================
-     CLOSE CART NOTICE
-  ========================== */
-
   function closeCartNotice() {
     window.clearTimeout(
       window.__pearlskinoCartNoticeTimer
@@ -203,27 +235,20 @@ export function StoreProvider({ children }) {
     setCartNotice(null);
   }
 
-  /* =========================
-     CHANGE QUANTITY
-  ========================== */
-
   function changeQty(id, delta) {
     setCart((current) =>
       current
         .map((item) => {
           if (
-            String(item.id) !==
-            String(id)
+            String(item.id) !== String(id)
           ) {
             return item;
           }
 
-          const product =
-            products.find(
-              (p) =>
-                String(p.id) ===
-                String(id)
-            );
+          const product = products.find(
+            (p) =>
+              String(p.id) === String(id)
+          );
 
           const stock = Number(
             product?.stock ??
@@ -251,52 +276,36 @@ export function StoreProvider({ children }) {
     );
   }
 
-  /* =========================
-     REMOVE
-  ========================== */
-
   function removeFromCart(id) {
     setCart((current) =>
       current.filter(
         (item) =>
-          String(item.id) !==
-          String(id)
+          String(item.id) !== String(id)
       )
     );
   }
-
-  /* =========================
-     CLEAR CART
-  ========================== */
 
   function clearCart() {
     setCart([]);
   }
 
-  /* =========================
-     WISHLIST
-  ========================== */
-
   function toggleWishlist(id) {
     setWishlist((current) => {
       const exists = current.some(
         (item) =>
-          String(item.id) ===
-          String(id)
+          String(item.id) === String(id)
       );
 
       if (exists) {
         return current.filter(
           (item) =>
-            String(item.id) !==
-            String(id)
+            String(item.id) !== String(id)
         );
       }
 
       const product = products.find(
         (item) =>
-          String(item.id) ===
-          String(id)
+          String(item.id) === String(id)
       );
 
       return product
@@ -308,29 +317,19 @@ export function StoreProvider({ children }) {
   function isWishlisted(id) {
     return wishlist.some(
       (item) =>
-        String(item.id) ===
-        String(id)
+        String(item.id) === String(id)
     );
   }
-
-  /* =========================
-     CART COUNT
-  ========================== */
 
   const count = useMemo(
     () =>
       cart.reduce(
         (total, item) =>
-          total +
-          Number(item.qty || 0),
+          total + Number(item.qty || 0),
         0
       ),
     [cart]
   );
-
-  /* =========================
-     SUBTOTAL
-  ========================== */
 
   const subtotal = useMemo(
     () =>
@@ -344,66 +343,51 @@ export function StoreProvider({ children }) {
     [cart]
   );
 
-  /* =========================
-     SHIPPING
-  ========================== */
-
   const shipping = subtotal
-    ? (
-        Number(storeSettings.freeDeliveryThreshold || 0) > 0 &&
-        subtotal >= Number(storeSettings.freeDeliveryThreshold)
-      )
+    ? Number(
+        storeSettings.freeDeliveryThreshold || 0
+      ) > 0 &&
+      subtotal >=
+        Number(
+          storeSettings.freeDeliveryThreshold
+        )
       ? 0
-      : Number(storeSettings.deliveryCharge || 0)
+      : Number(
+          storeSettings.deliveryCharge || 0
+        )
     : 0;
 
-  /* =========================
-     TOTAL
-  ========================== */
-
-  const total =
-    subtotal + shipping;
-
-  /* =========================
-     CONTEXT VALUE
-  ========================== */
+  const total = subtotal + shipping;
 
   const value = {
     products,
-
     cart,
     wishlist,
-
     count,
     subtotal,
     shipping,
     total,
-
     storeSettings,
+    settingsLoading,
     cartNotice,
     addToCart,
     closeCartNotice,
-
     changeQty,
     removeFromCart,
     clearCart,
-
     toggleWishlist,
     isWishlisted,
   };
 
   return (
-    <StoreContext.Provider
-      value={value}
-    >
+    <StoreContext.Provider value={value}>
       {children}
     </StoreContext.Provider>
   );
 }
 
 export function useStore() {
-  const context =
-    useContext(StoreContext);
+  const context = useContext(StoreContext);
 
   if (!context) {
     throw new Error(
@@ -413,12 +397,3 @@ export function useStore() {
 
   return context;
 }
-
-
-
-
-
-
-
-
-
