@@ -3,8 +3,18 @@ import { useProducts } from "../hooks/useProducts";
 import "./Admin.css";
 import ProductManager from "./ProductManager";
 
+/* =========================================================
+   PEARLSKINO BD
+   GOOGLE APPS SCRIPT API
+========================================================= */
+
 const ORDERS_API =
-  "https://script.google.com/macros/s/AKfycbyTPwWo0X7XV1MtETwYHn5kdX6I47xZUTTf0cA1eO-D5fLz2K1M70OBEc7Pa2ovqnAQ/exec";
+  "https://script.google.com/macros/s/AKfycbzgl2Fr8e17tQXDLvrylxYvFc0XkMhtsTsFOvJxdBwt8c2imYAUHrdx3ovk7rJOD4Eq/exec";
+
+
+/* =========================================================
+   STATUSES
+========================================================= */
 
 const STATUSES = [
   "New",
@@ -15,26 +25,99 @@ const STATUSES = [
   "Cancelled",
 ];
 
+
 /* =========================================================
-   ORDERS API
+   DEFAULT SETTINGS
 ========================================================= */
 
-async function fetchOrders() {
+const DEFAULT_SETTINGS = {
+  storeName: "PearlSkino BD",
+  tagline: "Beauty, fragrance & self-care",
+  phone: "",
+  email: "",
+  deliveryCharge: 0,
+  freeDeliveryThreshold: 0,
+  codEnabled: true,
+  pickupEnabled: true,
+  lowStockThreshold: 2,
+  autoRefreshSeconds: 30,
+};
+
+
+/* =========================================================
+   GET API DATA
+========================================================= */
+
+async function getApi(action) {
   const response = await fetch(
-    `${ORDERS_API}?action=orders`
+    `${ORDERS_API}?action=${encodeURIComponent(action)}`
   );
 
   if (!response.ok) {
-    throw new Error("Unable to load orders.");
+    throw new Error(
+      `Unable to load ${action}.`
+    );
   }
 
   const data = await response.json();
 
   if (!data.success) {
     throw new Error(
-      data.error || "Unable to load orders."
+      data.error ||
+        `Unable to load ${action}.`
     );
   }
+
+  return data;
+}
+
+
+/* =========================================================
+   POST API DATA
+========================================================= */
+
+async function postApi(payload) {
+  const response = await fetch(
+    ORDERS_API,
+    {
+      method: "POST",
+
+      headers: {
+        "Content-Type":
+          "text/plain;charset=utf-8",
+      },
+
+      body: JSON.stringify(payload),
+    }
+  );
+
+  if (!response.ok) {
+    throw new Error(
+      "Unable to communicate with the PearlSkino API."
+    );
+  }
+
+  const data =
+    await response.json();
+
+  if (!data.success) {
+    throw new Error(
+      data.error ||
+        "API request failed."
+    );
+  }
+
+  return data;
+}
+
+
+/* =========================================================
+   ORDERS API
+========================================================= */
+
+async function fetchOrders() {
+  const data =
+    await getApi("orders");
 
   return data.orders || [];
 }
@@ -45,62 +128,55 @@ async function fetchOrders() {
 ========================================================= */
 
 async function fetchCustomers() {
-  const response = await fetch(
-    `${ORDERS_API}?action=customers`
-  );
-
-  if (!response.ok) {
-    throw new Error("Unable to load customers.");
-  }
-
-  const data = await response.json();
-
-  if (!data.success) {
-    throw new Error(
-      data.error || "Unable to load customers."
-    );
-  }
+  const data =
+    await getApi("customers");
 
   return data.customers || [];
 }
 
 
 /* =========================================================
-   UPDATE STATUS
+   SETTINGS API
 ========================================================= */
 
-async function updateOrderStatus(orderId, status) {
-  const response = await fetch(
-    ORDERS_API,
-    {
-      method: "POST",
-      headers: {
-        "Content-Type": "text/plain;charset=utf-8",
-      },
-      body: JSON.stringify({
-        action: "updateStatus",
-        orderId,
-        status,
-      }),
-    }
-  );
+async function fetchSettings() {
+  const data =
+    await getApi("settings");
 
-  if (!response.ok) {
-    throw new Error(
-      "Unable to update order status."
-    );
-  }
+  return {
+    ...DEFAULT_SETTINGS,
+    ...(data.settings || {}),
+  };
+}
 
-  const data = await response.json();
 
-  if (!data.success) {
-    throw new Error(
-      data.error ||
-      "Unable to update order status."
-    );
-  }
+/* =========================================================
+   UPDATE ORDER STATUS
+========================================================= */
 
-  return data;
+async function updateOrderStatus(
+  orderId,
+  status
+) {
+  return postApi({
+    action: "updateStatus",
+    orderId,
+    status,
+  });
+}
+
+
+/* =========================================================
+   UPDATE SETTINGS
+========================================================= */
+
+async function saveStoreSettings(
+  settings
+) {
+  return postApi({
+    action: "updateSettings",
+    settings,
+  });
 }
 
 
@@ -108,7 +184,9 @@ async function updateOrderStatus(orderId, status) {
    STATUS BADGE
 ========================================================= */
 
-function StatusBadge({ status }) {
+function StatusBadge({
+  status,
+}) {
   const safeStatus =
     status || "New";
 
@@ -139,6 +217,7 @@ function OrdersPage({
     setUpdatingOrder,
   ] = useState(null);
 
+
   async function handleStatusChange(
     orderId,
     status
@@ -154,11 +233,14 @@ function OrdersPage({
       await refreshOrders();
 
     } catch (error) {
-      console.error(error);
+      console.error(
+        "STATUS UPDATE ERROR:",
+        error
+      );
 
-      alert(
+      window.alert(
         error.message ||
-        "Failed to update order status."
+          "Failed to update order status."
       );
 
     } finally {
@@ -186,6 +268,7 @@ function OrdersPage({
             their delivery status.
           </p>
         </div>
+
 
         <button
           type="button"
@@ -313,7 +396,8 @@ function OrdersPage({
                   ৳
                   {Number(
                     String(
-                      order.total || "0"
+                      order.total ||
+                        "0"
                     ).replace(
                       /[^\d.-]/g,
                       ""
@@ -351,6 +435,7 @@ function OrdersPage({
                       order.status
                     }
                   />
+
 
                   <select
                     value={
@@ -429,6 +514,7 @@ function CustomersPage({
           </p>
         </div>
 
+
         <button
           type="button"
           className="admin-refresh-button"
@@ -498,7 +584,9 @@ function CustomersPage({
 
                 <div
                   className="customer-row"
-                  key={customer.id}
+                  key={
+                    customer.id
+                  }
                 >
 
                   <div>
@@ -593,6 +681,7 @@ function Dashboard({
   const totalProducts =
     products.length;
 
+
   const activeProducts =
     products.filter(
       (product) =>
@@ -600,26 +689,32 @@ function Dashboard({
         "inactive"
     ).length;
 
+
   const lowStock =
     products.filter(
       (product) =>
         Number(
           product.stock || 0
-        ) <= 2
+        ) <=
+        DEFAULT_SETTINGS.lowStockThreshold
     ).length;
+
 
   const newOrders =
     orders.filter(
       (order) =>
-        (order.status || "New") ===
+        (order.status ||
+          "New") ===
         "New"
     ).length;
+
 
   const revenue =
     orders
       .filter(
         (order) =>
-          (order.status || "") !==
+          (order.status ||
+            "") !==
           "Cancelled"
       )
       .reduce(
@@ -627,7 +722,8 @@ function Dashboard({
           sum +
           Number(
             String(
-              order.total || "0"
+              order.total ||
+                "0"
             ).replace(
               /[^\d.-]/g,
               ""
@@ -649,7 +745,9 @@ function Dashboard({
           </span>
 
           <strong>
-            {productsLoading ? "…" : totalProducts}
+            {productsLoading
+              ? "…"
+              : totalProducts}
           </strong>
 
         </div>
@@ -662,7 +760,9 @@ function Dashboard({
           </span>
 
           <strong>
-            {productsLoading ? "…" : activeProducts}
+            {productsLoading
+              ? "…"
+              : activeProducts}
           </strong>
 
         </div>
@@ -675,7 +775,9 @@ function Dashboard({
           </span>
 
           <strong>
-            {productsLoading ? "…" : lowStock}
+            {productsLoading
+              ? "…"
+              : lowStock}
           </strong>
 
         </div>
@@ -735,20 +837,6 @@ function Dashboard({
    SETTINGS PAGE
 ========================================================= */
 
-const DEFAULT_SETTINGS = {
-  storeName: "PearlSkino BD",
-  tagline: "Beauty, fragrance & self-care",
-  phone: "",
-  email: "",
-  deliveryCharge: 0,
-  freeDeliveryThreshold: 0,
-  codEnabled: true,
-  pickupEnabled: true,
-  lowStockThreshold: 2,
-  autoRefreshSeconds: 30,
-};
-
-
 function SettingsPage() {
 
   const [
@@ -758,10 +846,17 @@ function SettingsPage() {
     DEFAULT_SETTINGS
   );
 
+
   const [
     loadingSettings,
     setLoadingSettings,
   ] = useState(true);
+
+
+  const [
+    savingSettings,
+    setSavingSettings,
+  ] = useState(false);
 
 
   const [
@@ -770,56 +865,67 @@ function SettingsPage() {
   ] = useState(false);
 
 
-  useEffect(() => {
+  const [
+    settingsError,
+    setSettingsError,
+  ] = useState("");
 
-    async function loadSettings() {
 
-      try {
+  /* =======================================================
+     LOAD SETTINGS
+  ======================================================= */
 
-        const response = await fetch(
-          "http://localhost:3001/api/store-settings"
-        );
+  async function loadSettings() {
 
-        const data =
-          await response.json();
+    try {
 
-        if (!response.ok || !data.success) {
-          throw new Error(
-            data.error ||
-            "Unable to load store settings."
-          );
+      setLoadingSettings(true);
+      setSettingsError("");
+
+
+      const data =
+        await fetchSettings();
+
+
+      setSettings(
+        {
+          ...DEFAULT_SETTINGS,
+          ...data,
         }
+      );
 
-        setSettings(
-          {
-            ...DEFAULT_SETTINGS,
-            ...data.settings,
-          }
-        );
+    } catch (error) {
 
-      } catch (error) {
+      console.error(
+        "LOAD SETTINGS ERROR:",
+        error
+      );
 
-        console.error(
-          "LOAD SETTINGS ERROR:",
-          error
-        );
 
-        window.alert(
-          "Unable to load store settings from the local server."
-        );
+      setSettingsError(
+        error.message ||
+          "Unable to load store settings."
+      );
 
-      } finally {
+    } finally {
 
-        setLoadingSettings(false);
-
-      }
+      setLoadingSettings(false);
 
     }
+
+  }
+
+
+  useEffect(() => {
 
     loadSettings();
 
   }, []);
 
+
+  /* =======================================================
+     HANDLE SETTINGS CHANGE
+  ======================================================= */
 
   function handleChange(e) {
 
@@ -836,6 +942,7 @@ function SettingsPage() {
 
     setSettings(
       (current) => ({
+
         ...current,
 
         [name]:
@@ -847,49 +954,49 @@ function SettingsPage() {
                 "lowStockThreshold",
                 "autoRefreshSeconds",
               ].includes(name)
-              ? value === ""
-                ? 0
-                : Number(value)
-              : value,
+            ? value === ""
+              ? 0
+              : Number(value)
+            : value,
+
       })
     );
 
   }
 
 
+  /* =======================================================
+     SAVE SETTINGS
+  ======================================================= */
+
   async function saveSettings(e) {
 
     e.preventDefault();
 
-    setSaved(false);
 
     try {
 
-      const response = await fetch(
-        "http://localhost:3001/api/store-settings",
+      setSavingSettings(true);
+      setSaved(false);
+      setSettingsError("");
+
+
+      const data =
+        await saveStoreSettings(
+          settings
+        );
+
+
+      setSettings(
         {
-          method: "PUT",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify(settings),
+          ...DEFAULT_SETTINGS,
+          ...(data.settings || {}),
         }
       );
 
-      const data = await response.json();
-
-      if (!response.ok || !data.success) {
-        throw new Error(
-          data.error ||
-          "Unable to save store settings."
-        );
-      }
-
-      setSettings(
-        data.settings
-      );
 
       setSaved(true);
+
 
       window.dispatchEvent(
         new CustomEvent(
@@ -897,8 +1004,11 @@ function SettingsPage() {
         )
       );
 
+
       setTimeout(() => {
+
         setSaved(false);
+
       }, 2500);
 
     } catch (error) {
@@ -908,14 +1018,24 @@ function SettingsPage() {
         error
       );
 
-      window.alert(
-        error?.message ||
-        "Unable to save store settings."
+
+      setSettingsError(
+        error.message ||
+          "Unable to save store settings."
       );
+
+    } finally {
+
+      setSavingSettings(false);
 
     }
 
   }
+
+
+  /* =======================================================
+     RESET SETTINGS
+  ======================================================= */
 
   async function resetSettings() {
 
@@ -932,47 +1052,40 @@ function SettingsPage() {
 
     try {
 
-      setSettings(
-        DEFAULT_SETTINGS
-      );
-
-
-      const response =
-        await fetch(
-          "http://localhost:3001/api/store-settings",
-          {
-            method: "PUT",
-            headers: {
-              "Content-Type":
-                "application/json",
-            },
-            body:
-              JSON.stringify(
-                DEFAULT_SETTINGS
-              ),
-          }
-        );
+      setSavingSettings(true);
+      setSaved(false);
+      setSettingsError("");
 
 
       const data =
-        await response.json();
-
-
-      if (!response.ok || !data.success) {
-        throw new Error(
-          data?.error ||
-          "Unable to reset store settings."
+        await saveStoreSettings(
+          DEFAULT_SETTINGS
         );
-      }
+
+
+      setSettings(
+        {
+          ...DEFAULT_SETTINGS,
+          ...(data.settings || {}),
+        }
+      );
 
 
       setSaved(true);
 
 
-      setTimeout(() => {
-        setSaved(false);
-      }, 2500);
+      window.dispatchEvent(
+        new CustomEvent(
+          "pearlskino-settings-updated"
+        )
+      );
 
+
+      setTimeout(() => {
+
+        setSaved(false);
+
+      }, 2500);
 
     } catch (error) {
 
@@ -982,10 +1095,14 @@ function SettingsPage() {
       );
 
 
-      window.alert(
-        error?.message ||
-        "Unable to reset store settings."
+      setSettingsError(
+        error.message ||
+          "Unable to reset store settings."
       );
+
+    } finally {
+
+      setSavingSettings(false);
 
     }
 
@@ -1018,358 +1135,413 @@ function SettingsPage() {
       </div>
 
 
-      <form
-        className="settings-form"
-        onSubmit={saveSettings}
-      >
-
-
-        {/* STORE */}
-
-        <div className="settings-card">
-
-          <div className="settings-card-header">
-
-            <div>
-
-              <p className="settings-card-eyebrow">
-                STORE
-              </p>
-
-              <h3>
-                Store Information
-              </h3>
-
-              <p>
-                Basic information used throughout
-                your store.
-              </p>
-
-            </div>
-
-          </div>
-
-
-          <div className="settings-grid">
-
-            <label>
-
-              Store Name
-
-              <input
-                name="storeName"
-                value={settings.storeName}
-                onChange={handleChange}
-              />
-
-            </label>
-
-
-            <label>
-
-              Tagline
-
-              <input
-                name="tagline"
-                value={settings.tagline}
-                onChange={handleChange}
-              />
-
-            </label>
-
-
-            <label>
-
-              Contact Phone
-
-              <input
-                name="phone"
-                value={settings.phone}
-                onChange={handleChange}
-                placeholder="01XXXXXXXXX"
-              />
-
-            </label>
-
-
-            <label>
-
-              Contact Email
-
-              <input
-                type="email"
-                name="email"
-                value={settings.email}
-                onChange={handleChange}
-                placeholder="hello@example.com"
-              />
-
-            </label>
-
-          </div>
-
+      {loadingSettings && (
+        <div className="admin-loading">
+          Loading store settings...
         </div>
+      )}
 
 
-        {/* DELIVERY */}
+      {settingsError && (
+        <div className="admin-error">
+          {settingsError}
+        </div>
+      )}
 
-        <div className="settings-card">
 
-          <div className="settings-card-header">
+      {!loadingSettings && (
 
-            <div>
+        <form
+          className="settings-form"
+          onSubmit={saveSettings}
+        >
 
-              <p className="settings-card-eyebrow">
-                DELIVERY
-              </p>
+          {/* STORE */}
 
-              <h3>
-                Delivery Settings
-              </h3>
+          <div className="settings-card">
 
-              <p>
-                Configure delivery and payment
-                options for your store.
-              </p>
+            <div className="settings-card-header">
+
+              <div>
+
+                <p className="settings-card-eyebrow">
+                  STORE
+                </p>
+
+                <h3>
+                  Store Information
+                </h3>
+
+                <p>
+                  Basic information used throughout
+                  your store.
+                </p>
+
+              </div>
+
+            </div>
+
+
+            <div className="settings-grid">
+
+              <label>
+
+                Store Name
+
+                <input
+                  name="storeName"
+                  value={
+                    settings.storeName
+                  }
+                  onChange={
+                    handleChange
+                  }
+                />
+
+              </label>
+
+
+              <label>
+
+                Tagline
+
+                <input
+                  name="tagline"
+                  value={
+                    settings.tagline
+                  }
+                  onChange={
+                    handleChange
+                  }
+                />
+
+              </label>
+
+
+              <label>
+
+                Contact Phone
+
+                <input
+                  name="phone"
+                  value={
+                    settings.phone
+                  }
+                  onChange={
+                    handleChange
+                  }
+                  placeholder="01XXXXXXXXX"
+                />
+
+              </label>
+
+
+              <label>
+
+                Contact Email
+
+                <input
+                  type="email"
+                  name="email"
+                  value={
+                    settings.email
+                  }
+                  onChange={
+                    handleChange
+                  }
+                  placeholder="hello@example.com"
+                />
+
+              </label>
 
             </div>
 
           </div>
 
 
-          <div className="settings-grid">
+          {/* DELIVERY */}
 
-            <label>
+          <div className="settings-card">
 
-              Delivery Charge
+            <div className="settings-card-header">
 
-              <div className="settings-input-prefix">
+              <div>
+
+                <p className="settings-card-eyebrow">
+                  DELIVERY
+                </p>
+
+                <h3>
+                  Delivery Settings
+                </h3>
+
+                <p>
+                  Configure delivery and payment
+                  options for your store.
+                </p>
+
+              </div>
+
+            </div>
+
+
+            <div className="settings-grid">
+
+              <label>
+
+                Delivery Charge
+
+                <div className="settings-input-prefix">
+
+                  <span>
+                    ৳
+                  </span>
+
+                  <input
+                    type="number"
+                    min="0"
+                    name="deliveryCharge"
+                    value={
+                      settings.deliveryCharge
+                    }
+                    onChange={
+                      handleChange
+                    }
+                  />
+
+                </div>
+
+              </label>
+
+
+              <label>
+
+                Free Delivery Above
+
+                <div className="settings-input-prefix">
+
+                  <span>
+                    ৳
+                  </span>
+
+                  <input
+                    type="number"
+                    min="0"
+                    name="freeDeliveryThreshold"
+                    value={
+                      settings.freeDeliveryThreshold
+                    }
+                    onChange={
+                      handleChange
+                    }
+                  />
+
+                </div>
+
+              </label>
+
+            </div>
+
+
+            <div className="settings-toggles">
+
+              <label className="settings-toggle">
+
+                <input
+                  type="checkbox"
+                  name="codEnabled"
+                  checked={
+                    settings.codEnabled
+                  }
+                  onChange={
+                    handleChange
+                  }
+                />
 
                 <span>
-                  ৳
+
+                  <strong>
+                    Cash on Delivery
+                  </strong>
+
+                  <small>
+                    Allow customers to place COD
+                    orders.
+                  </small>
+
                 </span>
+
+              </label>
+
+
+              <label className="settings-toggle">
+
+                <input
+                  type="checkbox"
+                  name="pickupEnabled"
+                  checked={
+                    settings.pickupEnabled
+                  }
+                  onChange={
+                    handleChange
+                  }
+                />
+
+                <span>
+
+                  <strong>
+                    Store Pickup
+                  </strong>
+
+                  <small>
+                    Allow customers to collect
+                    orders directly.
+                  </small>
+
+                </span>
+
+              </label>
+
+            </div>
+
+          </div>
+
+
+          {/* DASHBOARD */}
+
+          <div className="settings-card">
+
+            <div className="settings-card-header">
+
+              <div>
+
+                <p className="settings-card-eyebrow">
+                  DASHBOARD
+                </p>
+
+                <h3>
+                  Admin Preferences
+                </h3>
+
+                <p>
+                  Control how the admin dashboard
+                  handles inventory and updates.
+                </p>
+
+              </div>
+
+            </div>
+
+
+            <div className="settings-grid">
+
+              <label>
+
+                Low Stock Threshold
 
                 <input
                   type="number"
                   min="0"
-                  name="deliveryCharge"
+                  name="lowStockThreshold"
                   value={
-                    settings.deliveryCharge
+                    settings.lowStockThreshold
                   }
-                  onChange={handleChange}
+                  onChange={
+                    handleChange
+                  }
                 />
 
-              </div>
-
-            </label>
-
-
-            <label>
-
-              Free Delivery Above
-
-              <div className="settings-input-prefix">
-
-                <span>
-                  ৳
-                </span>
-
-                <input
-                  type="number"
-                  min="0"
-                  name="freeDeliveryThreshold"
-                  value={
-                    settings.freeDeliveryThreshold
-                  }
-                  onChange={handleChange}
-                />
-
-              </div>
-
-            </label>
-
-          </div>
-
-
-          <div className="settings-toggles">
-
-            <label className="settings-toggle">
-
-              <input
-                type="checkbox"
-                name="codEnabled"
-                checked={
-                  settings.codEnabled
-                }
-                onChange={handleChange}
-              />
-
-              <span>
-
-                <strong>
-                  Cash on Delivery
-                </strong>
-
-                <small>
-                  Allow customers to place COD
-                  orders.
+                <small className="settings-help">
+                  Products at or below this number
+                  appear as low stock.
                 </small>
 
-              </span>
-
-            </label>
+              </label>
 
 
-            <label className="settings-toggle">
+              <label>
 
-              <input
-                type="checkbox"
-                name="pickupEnabled"
-                checked={
-                  settings.pickupEnabled
-                }
-                onChange={handleChange}
-              />
+                Auto Refresh Interval
 
-              <span>
+                <div className="settings-input-suffix">
 
-                <strong>
-                  Store Pickup
-                </strong>
+                  <input
+                    type="number"
+                    min="5"
+                    max="300"
+                    name="autoRefreshSeconds"
+                    value={
+                      settings.autoRefreshSeconds
+                    }
+                    onChange={
+                      handleChange
+                    }
+                  />
 
-                <small>
-                  Allow customers to collect
-                  orders directly.
+                  <span>
+                    seconds
+                  </span>
+
+                </div>
+
+                <small className="settings-help">
+                  Orders and customers are refreshed
+                  automatically at this interval.
                 </small>
 
-              </span>
-
-            </label>
-
-          </div>
-
-        </div>
-
-
-        {/* DASHBOARD */}
-
-        <div className="settings-card">
-
-          <div className="settings-card-header">
-
-            <div>
-
-              <p className="settings-card-eyebrow">
-                DASHBOARD
-              </p>
-
-              <h3>
-                Admin Preferences
-              </h3>
-
-              <p>
-                Control how the admin dashboard
-                handles inventory and updates.
-              </p>
+              </label>
 
             </div>
 
           </div>
 
 
-          <div className="settings-grid">
+          {/* ACTIONS */}
 
-            <label>
-
-              Low Stock Threshold
-
-              <input
-                type="number"
-                min="0"
-                name="lowStockThreshold"
-                value={
-                  settings.lowStockThreshold
-                }
-                onChange={handleChange}
-              />
-
-              <small className="settings-help">
-                Products at or below this number
-                appear as low stock.
-              </small>
-
-            </label>
-
-
-            <label>
-
-              Auto Refresh Interval
-
-              <div className="settings-input-suffix">
-
-                <input
-                  type="number"
-                  min="5"
-                  max="300"
-                  name="autoRefreshSeconds"
-                  value={
-                    settings.autoRefreshSeconds
-                  }
-                  onChange={handleChange}
-                />
-
-                <span>
-                  seconds
-                </span>
-
-              </div>
-
-              <small className="settings-help">
-                Orders and customers are refreshed
-                automatically at this interval.
-              </small>
-
-            </label>
-
-          </div>
-
-        </div>
-
-
-        {/* ACTIONS */}
-
-        <div className="settings-actions">
-
-          <button
-            type="button"
-            className="settings-reset-button"
-            onClick={resetSettings}
-          >
-            Reset Defaults
-          </button>
-
-
-          <div className="settings-save-group">
-
-            {saved && (
-              <span className="settings-saved">
-                ✓ Settings saved
-              </span>
-            )}
-
+          <div className="settings-actions">
 
             <button
-              type="submit"
-              className="settings-save-button"
+              type="button"
+              className="settings-reset-button"
+              onClick={
+                resetSettings
+              }
+              disabled={
+                savingSettings
+              }
             >
-              Save Settings
+              Reset Defaults
             </button>
+
+
+            <div className="settings-save-group">
+
+              {saved && (
+                <span className="settings-saved">
+                  ✓ Settings saved
+                </span>
+              )}
+
+
+              <button
+                type="submit"
+                className="settings-save-button"
+                disabled={
+                  savingSettings
+                }
+              >
+                {savingSettings
+                  ? "Saving..."
+                  : "Save Settings"}
+              </button>
+
+            </div>
 
           </div>
 
-        </div>
+        </form>
 
-      </form>
+      )}
 
     </section>
 
@@ -1386,7 +1558,9 @@ export default function Admin() {
   const [
     activePage,
     setActivePage,
-  ] = useState("dashboard");
+  ] = useState(
+    "dashboard"
+  );
 
 
   const [
@@ -1443,21 +1617,24 @@ export default function Admin() {
       setOrdersLoading(true);
       setOrdersError("");
 
+
       const data =
         await fetchOrders();
+
 
       setOrders(data);
 
     } catch (error) {
 
       console.error(
-        "Orders loading failed:",
+        "ORDERS LOADING FAILED:",
         error
       );
 
+
       setOrdersError(
         error.message ||
-        "Unable to load orders."
+          "Unable to load orders."
       );
 
     } finally {
@@ -1465,6 +1642,7 @@ export default function Admin() {
       setOrdersLoading(false);
 
     }
+
   }
 
 
@@ -1479,21 +1657,24 @@ export default function Admin() {
       setCustomersLoading(true);
       setCustomersError("");
 
+
       const data =
         await fetchCustomers();
+
 
       setCustomers(data);
 
     } catch (error) {
 
       console.error(
-        "Customers loading failed:",
+        "CUSTOMERS LOADING FAILED:",
         error
       );
 
+
       setCustomersError(
         error.message ||
-        "Unable to load customers."
+          "Unable to load customers."
       );
 
     } finally {
@@ -1501,6 +1682,7 @@ export default function Admin() {
       setCustomersLoading(false);
 
     }
+
   }
 
 
@@ -1510,29 +1692,25 @@ export default function Admin() {
 
   useEffect(() => {
 
-    /*
-     * Load immediately when Admin opens.
-     */
     refreshOrders();
     refreshCustomers();
 
-    /*
-     * Automatically refresh orders and customers
-     * every 30 seconds while the Admin dashboard
-     * is open.
-     */
-    const refreshInterval = setInterval(() => {
 
-      refreshOrders();
-      refreshCustomers();
+    const refreshInterval =
+      setInterval(() => {
 
-    }, 30 * 1000);
+        refreshOrders();
+        refreshCustomers();
 
-    /*
-     * Clean up the interval when Admin unmounts.
-     */
+      }, 30 * 1000);
+
+
     return () => {
-      clearInterval(refreshInterval);
+
+      clearInterval(
+        refreshInterval
+      );
+
     };
 
   }, []);
@@ -1588,7 +1766,9 @@ export default function Admin() {
 
     <div className="admin">
 
-      {/* SIDEBAR */}
+      {/* ===================================================
+          SIDEBAR
+      =================================================== */}
 
       <aside className="admin-sidebar">
 
@@ -1735,7 +1915,9 @@ export default function Admin() {
       </aside>
 
 
-      {/* MAIN */}
+      {/* ===================================================
+          MAIN
+      =================================================== */}
 
       <main className="admin-main">
 
@@ -1766,7 +1948,9 @@ export default function Admin() {
         </header>
 
 
-        {/* DASHBOARD */}
+        {/* =================================================
+            DASHBOARD
+        ================================================= */}
 
         {activePage ===
           "dashboard" && (
@@ -1774,9 +1958,15 @@ export default function Admin() {
           <>
 
             <Dashboard
-              products={products}
-              productsLoading={productsLoading}
-              orders={orders}
+              products={
+                products
+              }
+              productsLoading={
+                productsLoading
+              }
+              orders={
+                orders
+              }
             />
 
 
@@ -1798,6 +1988,7 @@ export default function Admin() {
 
               </div>
 
+
               <ProductManager />
 
             </section>
@@ -1807,7 +1998,9 @@ export default function Admin() {
         )}
 
 
-        {/* PRODUCTS */}
+        {/* =================================================
+            PRODUCTS
+        ================================================= */}
 
         {activePage ===
           "products" && (
@@ -1830,6 +2023,7 @@ export default function Admin() {
 
             </div>
 
+
             <ProductManager />
 
           </section>
@@ -1837,13 +2031,17 @@ export default function Admin() {
         )}
 
 
-        {/* ORDERS */}
+        {/* =================================================
+            ORDERS
+        ================================================= */}
 
         {activePage ===
           "orders" && (
 
           <OrdersPage
-            orders={orders}
+            orders={
+              orders
+            }
             loading={
               ordersLoading
             }
@@ -1858,7 +2056,9 @@ export default function Admin() {
         )}
 
 
-        {/* CUSTOMERS */}
+        {/* =================================================
+            CUSTOMERS
+        ================================================= */}
 
         {activePage ===
           "customers" && (
@@ -1881,7 +2081,9 @@ export default function Admin() {
         )}
 
 
-                {/* SETTINGS */}
+        {/* =================================================
+            SETTINGS
+        ================================================= */}
 
         {activePage ===
           "settings" && (
@@ -1893,18 +2095,6 @@ export default function Admin() {
       </main>
 
     </div>
+
   );
 }
-
-
-
-
-
-
-
-
-
-
-
-
-
