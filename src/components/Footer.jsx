@@ -4,8 +4,8 @@ import { useStore } from "../context/StoreContext";
 export default function Footer() {
   const { storeSettings } = useStore();
 
-  const brand = storeSettings?.storeName || "PearlSkino BD";
-  const tagline = storeSettings?.tagline || "Pearly Glow";
+  const brand = storeSettings?.storeName || "";
+  const tagline = storeSettings?.tagline || "";
 
   return (
     <footer className="ps-footer">
@@ -50,3 +50,4 @@ export default function Footer() {
     </footer>
   );
 }
+

@@ -379,6 +379,35 @@ export function StoreProvider({ children }) {
     isWishlisted,
   };
 
+  if (settingsLoading) {
+    return (
+      <StoreContext.Provider value={value}>
+        <div
+          style={{
+            minHeight: "100vh",
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            background: "#fffaf7",
+            color: "#2b2528",
+          }}
+        >
+          <div style={{ textAlign: "center", padding: "24px" }}>
+            <strong
+              style={{
+                display: "block",
+                fontSize: "22px",
+                marginBottom: "8px",
+              }}
+            >
+              Loading store...
+            </strong>
+          </div>
+        </div>
+      </StoreContext.Provider>
+    );
+  }
+
   return (
     <StoreContext.Provider value={value}>
       {children}
@@ -397,5 +426,6 @@ export function useStore() {
 
   return context;
 }
+
 
 

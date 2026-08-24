@@ -4,8 +4,8 @@ import { useStore } from "../context/StoreContext";
 export default function Header() {
   const { storeSettings } = useStore();
 
-  const brand = storeSettings?.storeName || "PearlSkino BD";
-  const tagline = storeSettings?.tagline || "Pearly Glow";
+  const brand = storeSettings?.storeName || "";
+  const tagline = storeSettings?.tagline || "";
 
   return (
     <header className="ps-header">
@@ -50,3 +50,4 @@ export default function Header() {
     </header>
   );
 }
+
