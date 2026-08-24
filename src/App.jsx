@@ -1,4 +1,4 @@
-﻿import {
+import {
   BrowserRouter,
   Routes,
   Route,
@@ -8,6 +8,7 @@
 import { useEffect } from "react";
 
 import Header from "./components/Header";
+import Footer from "./components/Footer";
 import CartDrawer from "./components/CartDrawer";
 
 import Home from "./pages/Home";
@@ -108,6 +109,8 @@ function AppShell() {
       </Routes>
 
       {!isAdmin && <CartDrawer />}
+{!isAdmin && <Footer />}
+      
     </>
   );
 }
@@ -124,3 +127,5 @@ export default function App() {
     </BrowserRouter>
   );
 }
+
+

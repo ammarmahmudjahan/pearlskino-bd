@@ -1,62 +1,50 @@
-import React from "react";
+﻿import React from "react";
+import { useStore } from "../context/StoreContext";
 
 export default function Footer() {
+  const { storeSettings } = useStore();
+
+  const brand = storeSettings?.storeName || "PearlSkino BD";
+  const tagline = storeSettings?.tagline || "Pearly Glow";
+
   return (
-    <footer className="site-footer">
+    <footer className="ps-footer">
 
-      <div className="footer-brand">
-
+      <div className="ps-footer-brand">
         <a
           href="/"
-          className="footer-logo"
-          aria-label="PearlSkino BD"
+          className="ps-footer-brand-link"
+          aria-label={`${brand} home`}
         >
           <img
             src="/logo.png"
-            alt="PearlSkino BD"
+            alt={brand}
+            className="ps-footer-logo"
           />
+
+          <span className="ps-footer-brand-copy">
+            <strong>{brand}</strong>
+            <span>{tagline}</span>
+          </span>
         </a>
-
-        <p>
-          Discover authentic fragrances and skincare essentials,
-          beautifully curated for you.
-        </p>
-
       </div>
 
-
-      <div>
-
+      <div className="ps-footer-column">
         <h4>Quick Links</h4>
-
         <a href="/shop">Shop</a>
         <a href="/about">About</a>
         <a href="/contact">Contact</a>
         <a href="/faq">FAQ</a>
-
       </div>
 
-
-      <div>
-
+      <div className="ps-footer-column">
         <h4>Order</h4>
-
-        <p>
-          COD available in metropolitan areas.
-        </p>
-
-        <p>
-          Pickup available in selected areas.
-        </p>
-
+        <p>COD available in metropolitan areas.</p>
+        <p>Pickup available in selected areas.</p>
       </div>
 
-
-      <div className="footer-bottom">
-
-        © {new Date().getFullYear()} PearlSkino BD.
-        All rights reserved.
-
+      <div className="ps-footer-bottom">
+        © {new Date().getFullYear()} {brand}. All rights reserved.
       </div>
 
     </footer>

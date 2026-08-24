@@ -4,6 +4,7 @@ import { useStore } from "../context/StoreContext";
 
 export default function Cart() {
   const {
+    storeSettings,
     cart,
     count,
     subtotal,
@@ -13,25 +14,29 @@ export default function Cart() {
     removeFromCart,
   } = useStore();
 
+  const storeName = storeSettings?.storeName || "PearlSkino BD";
+  const tagline = storeSettings?.tagline || "Pearly Glow";
+
   if (!cart || cart.length === 0) {
     return (
       <main className="page cart-page-luxury">
         <section className="cart-empty-luxury">
 
-        <div className="cart-empty-logo">
-    <img
-      src="/logo.png"
-      alt="PearlSkino BD"
-    />
-  </div>
+          <div className="cart-empty-logo">
+            <img
+              src="/logo.png"
+              alt={storeName}
+            />
+          </div>
+
           <div className="cart-orbit">
             <span>✦</span>
             <span>✧</span>
-            <span>⋆</span>
+            <span>◇</span>
           </div>
 
           <p className="eyebrow">
-            PEARLSKINO BD · YOUR COLLECTION
+            {storeName.toUpperCase()} · YOUR COLLECTION
           </p>
 
           <h1>
@@ -40,9 +45,7 @@ export default function Cart() {
           </h1>
 
           <p className="cart-empty-text">
-            Your next little beauty ritual is waiting.
-            Explore our collection and discover something
-            that feels perfectly yours.
+            {tagline}
           </p>
 
           <Link
@@ -61,50 +64,19 @@ export default function Cart() {
   return (
     <main className="page cart-page-luxury">
 
-      {/* =========================
-          HERO
-      ========================== */}
-
       <section className="cart-luxury-hero">
-        <section className="cart-luxury-hero">
-
-  <div>
-
-    <div className="cart-hero-logo">
-      <img
-        src="/logo.png"
-        alt="PearlSkino BD"
-      />
-    </div>
-
-    <p className="eyebrow">
-      PEARLSKINO BD · YOUR COLLECTION
-    </p>
-
-    <h1>
-      A little beauty,
-      <em> all yours.</em>
-    </h1>
-
-    <p>
-      Thoughtfully selected pieces, gathered
-      together for your next beauty moment.
-    </p>
-
-  </div>
-
-  <div className="cart-hero-count">
-    <span>{count}</span>
-    <small>
-      {count === 1 ? "ITEM" : "ITEMS"}
-    </small>
-  </div>
-
-</section>
 
         <div>
+
+          <div className="cart-hero-logo">
+            <img
+              src="/logo.png"
+              alt={storeName}
+            />
+          </div>
+
           <p className="eyebrow">
-            PEARLSKINO BD · YOUR COLLECTION
+            {storeName.toUpperCase()} · YOUR COLLECTION
           </p>
 
           <h1>
@@ -116,6 +88,7 @@ export default function Cart() {
             Thoughtfully selected pieces, gathered
             together for your next beauty moment.
           </p>
+
         </div>
 
         <div className="cart-hero-count">
@@ -127,297 +100,169 @@ export default function Cart() {
 
       </section>
 
+      <section className="cart-items">
 
-      {/* =========================
-          MAIN CART
-      ========================== */}
+        {cart.map((item) => {
 
-      <section className="cart-luxury-layout">
+          const itemTotal =
+            Number(item.price || 0) *
+            Number(item.qty || 0);
 
-        {/* PRODUCTS */}
+          return (
+            <article
+              className="cart-item"
+              key={item.id}
+            >
 
-        <div className="cart-selection">
+              <div className="cart-item-image">
 
-          <div className="cart-section-heading">
-            <div>
-              <span>01</span>
-              <h2>Your selection</h2>
-            </div>
+                <img
+                  src={item.image || "/logo.png"}
+                  alt={item.name || storeName}
+                />
 
-            <p>
-              {cart.length} {cart.length === 1 ? "piece" : "pieces"}
-            </p>
-          </div>
+              </div>
 
+              <div className="cart-item-info">
 
-          <div className="cart-luxury-items">
+                <span className="cart-item-brand">
+                  {item.brand || storeName}
+                </span>
 
-            {cart.map((item) => {
+                <h2>
+                  {item.name}
+                </h2>
 
-              const image =
-                item.image ||
-                item.images?.[0] ||
-                "";
+                {item.size && (
+                  <small>
+                    {item.size}
+                  </small>
+                )}
 
-              const quantity =
-                Number(item.qty || 1);
+                <p>
+                  ৳{Number(item.price || 0).toLocaleString()}
+                </p>
 
-              const itemTotal =
-                Number(item.price || 0) *
-                quantity;
+              </div>
 
-              return (
+              <div className="cart-item-actions">
 
-                <article
-                  className="cart-luxury-item"
-                  key={item.id || item.name}
-                >
+                <div className="cart-quantity">
 
-                  {/* IMAGE */}
-
-                  <Link
-                    to={`/product/${item.id}`}
-                    className="cart-luxury-image"
+                  <button
+                    type="button"
+                    onClick={() =>
+                      changeQty(
+                        item.id,
+                        Math.max(
+                          1,
+                          Number(item.qty || 1) - 1
+                        )
+                      )
+                    }
+                    aria-label="Decrease quantity"
                   >
+                    −
+                  </button>
 
-                    {image ? (
-                      <img
-                        src={image}
-                        alt={item.name}
-                      />
-                    ) : (
-                      <span>✦</span>
-                    )}
+                  <span>
+                    {item.qty}
+                  </span>
 
-                  </Link>
+                  <button
+                    type="button"
+                    onClick={() =>
+                      changeQty(
+                        item.id,
+                        Number(item.qty || 0) + 1
+                      )
+                    }
+                    aria-label="Increase quantity"
+                  >
+                    +
+                  </button>
 
+                </div>
 
-                  {/* INFORMATION */}
+                <strong>
+                  ৳{itemTotal.toLocaleString()}
+                </strong>
 
-                  <div className="cart-luxury-info">
+                <button
+                  type="button"
+                  className="cart-remove"
+                  onClick={() => removeFromCart(item.id)}
+                >
+                  Remove
+                </button>
 
-                    <p className="cart-item-brand">
-                      {item.brand || "PEARLSKINO BD"}
-                    </p>
+              </div>
 
-                    <Link
-                      to={`/product/${item.id}`}
-                      className="cart-item-name"
-                    >
-                      {item.name}
-                    </Link>
+            </article>
+          );
+        })}
 
-                    <p className="cart-item-category">
-                      {item.category || "Beauty Essential"}
-                    </p>
+      </section>
 
+      <section className="cart-summary">
 
-                    {/* QUANTITY */}
-
-                    <div className="cart-item-controls">
-
-                      <div className="luxury-quantity">
-
-                        <button
-                          type="button"
-                          onClick={() =>
-                            changeQty(item.id, -1)
-                          }
-                        >
-                          −
-                        </button>
-
-                        <span>
-                          {quantity}
-                        </span>
-
-                        <button
-                          type="button"
-                          onClick={() =>
-                            changeQty(item.id, 1)
-                          }
-                        >
-                          +
-                        </button>
-
-                      </div>
-
-                      <button
-                        type="button"
-                        className="luxury-remove"
-                        onClick={() =>
-                          removeFromCart(item.id)
-                        }
-                      >
-                        Remove
-                      </button>
-
-                    </div>
-
-                  </div>
-
-
-                  {/* PRICE */}
-
-                  <div className="cart-luxury-price">
-
-                    <span>
-                      ৳{Number(
-                        item.price || 0
-                      ).toLocaleString()}
-                    </span>
-
-                    {quantity > 1 && (
-                      <small>
-                        ৳{itemTotal.toLocaleString()}
-                      </small>
-                    )}
-
-                  </div>
-
-                </article>
-              );
-            })}
-
-          </div>
-
-
-          {/* CONTINUE SHOPPING */}
-
-          <Link
-            to="/shop"
-            className="cart-continue"
-          >
-            <span>←</span>
-            Continue exploring
-          </Link>
-
+        <div className="cart-summary-row">
+          <span>Subtotal</span>
+          <strong>
+            ৳{Number(subtotal || 0).toLocaleString()}
+          </strong>
         </div>
 
+        <div className="cart-summary-row">
+          <span>Delivery</span>
+          <strong>
+            {Number(shipping || 0) === 0
+              ? "Free"
+              : `৳${Number(shipping).toLocaleString()}`}
+          </strong>
+        </div>
 
-        {/* =========================
-            SUMMARY
-        ========================== */}
+        <div className="cart-summary-total">
+          <span>Total</span>
+          <strong>
+            ৳{Number(total || 0).toLocaleString()}
+          </strong>
+        </div>
 
-        <aside className="cart-luxury-summary">
+        <Link
+          to="/checkout"
+          className="cart-luxury-button"
+        >
+          Proceed to Checkout
+          <span>→</span>
+        </Link>
 
-          <div className="summary-glow"></div>
+        <Link
+          to="/shop"
+          className="cart-continue-shopping"
+        >
+          Continue Shopping
+        </Link>
 
-          <p className="eyebrow">
-            YOUR ORDER
-          </p>
+      </section>
 
-          <h2>
-            Almost
-            <em> yours.</em>
-          </h2>
+      <section className="cart-final-note">
 
-          <p className="summary-intro">
-            Everything looks beautiful together.
-            Here's your order at a glance.
-          </p>
+        <div className="cart-final-pearl">
+          <span>✦</span>
+        </div>
 
+        <p>
+          Carefully packed · Beautifully delivered
+        </p>
 
-          <div className="summary-lines">
+        <strong>
+          {storeName}
+        </strong>
 
-            <div>
-              <span>
-                Collection
-              </span>
-
-              <strong>
-                {count} {count === 1 ? "item" : "items"}
-              </strong>
-            </div>
-
-            <div>
-              <span>
-                Subtotal
-              </span>
-
-              <strong>
-                ৳{Number(
-                  subtotal || 0
-                ).toLocaleString()}
-              </strong>
-            </div>
-
-            <div>
-              <span>
-                Delivery
-              </span>
-
-              <strong className={
-                shipping === 0
-                  ? "free-shipping"
-                  : ""
-              }>
-                {shipping === 0
-                  ? "Complimentary"
-                  : `৳${shipping}`}
-              </strong>
-            </div>
-
-          </div>
-
-
-          <div className="summary-total">
-
-            <span>
-              Total
-            </span>
-
-            <strong>
-              ৳{Number(
-                total || 0
-              ).toLocaleString()}
-            </strong>
-
-          </div>
-
-
-          {shipping === 0 ? (
-
-            <div className="free-shipping-note">
-              <span>✦</span>
-              Your order qualifies for complimentary delivery.
-            </div>
-
-          ) : (
-
-            <div className="shipping-note">
-              Add ৳{Math.max(
-                0,
-                2500 - subtotal
-              ).toLocaleString()} more
-              to unlock complimentary delivery.
-            </div>
-
-          )}
-
-
-          <Link
-            to="/checkout"
-            className="cart-checkout-button"
-          >
-            <span>Continue to Checkout</span>
-            <span>→</span>
-          </Link>
-
-
-          <div className="cart-trust">
-
-            <span>✦</span>
-
-            <p>
-              Carefully packed · Beautifully delivered
-            </p>
-
-            <span>✦</span>
-
-          </div>
-
-        </aside>
+        <span>
+          {tagline}
+        </span>
 
       </section>
 

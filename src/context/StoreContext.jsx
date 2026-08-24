@@ -1,4 +1,4 @@
-import {
+﻿import {
   createContext,
   useContext,
   useEffect,
@@ -18,14 +18,14 @@ const SETTINGS_API =
 
 const DEFAULT_STORE_SETTINGS = {
   storeName: "PearlSkino BD",
-  tagline: "Beauty, fragrance & self-care",
-  phone: "",
-  email: "",
-  deliveryCharge: 80,
-  freeDeliveryThreshold: 2500,
+  tagline: "Pearly Glow",
+  phone: "01577100162",
+  email: "ammageddonmadmax@gmail.com",
+  deliveryCharge: 99,
+  freeDeliveryThreshold: 0,
   codEnabled: true,
   pickupEnabled: true,
-  lowStockThreshold: 2,
+  lowStockThreshold: 3,
   autoRefreshSeconds: 30,
 };
 
@@ -397,3 +397,5 @@ export function useStore() {
 
   return context;
 }
+
+

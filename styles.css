@@ -443,3 +443,594 @@ main { display: block; min-height: 40vh; }
   .cart-remove { grid-column: 2; justify-self: end; }
   .benefit-grid { grid-template-columns: 1fr; }
 }
+
+/* =========================================================
+   HEADER BRANDING — STORE NAME + TAGLINE
+========================================================= */
+
+.site-header .logo {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  text-decoration: none;
+}
+
+.site-header .logo img {
+  display: block;
+  flex-shrink: 0;
+}
+
+.site-header .brand-text {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  line-height: 1.05;
+  white-space: nowrap;
+}
+
+.site-header .brand-text strong {
+  font-size: 1rem;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+}
+
+.site-header .brand-text small {
+  margin-top: 4px;
+  font-size: 0.7rem;
+  font-weight: 500;
+  opacity: 0.65;
+  letter-spacing: 0.08em;
+}
+
+/* Mobile */
+@media (max-width: 700px) {
+  .site-header .logo {
+    gap: 8px;
+  }
+
+  .site-header .brand-text strong {
+    font-size: 0.85rem;
+  }
+
+  .site-header .brand-text small {
+    font-size: 0.6rem;
+    margin-top: 3px;
+  }
+}
+
+
+/* =========================================================
+   PEARLSKINO HEADER BRAND — FINAL OVERRIDE
+========================================================= */
+
+.site-header .logo {
+  display: flex !important;
+  align-items: center !important;
+  gap: 10px !important;
+  text-decoration: none !important;
+}
+
+.site-header .logo .brand-text {
+  display: flex !important;
+  flex-direction: column !important;
+  align-items: flex-start !important;
+  justify-content: center !important;
+  gap: 3px !important;
+  margin: 0 !important;
+  padding: 0 !important;
+  line-height: 1 !important;
+  white-space: nowrap !important;
+}
+
+.site-header .logo .brand-text strong {
+  display: block !important;
+  margin: 0 !important;
+  padding: 0 !important;
+  font-size: 0.92rem !important;
+  line-height: 1.1 !important;
+  font-weight: 700 !important;
+  letter-spacing: 0.02em !important;
+}
+
+.site-header .logo .brand-text small {
+  display: block !important;
+  margin: 2px 0 0 !important;
+  padding: 0 !important;
+  font-size: 0.62rem !important;
+  line-height: 1 !important;
+  font-weight: 500 !important;
+  letter-spacing: 0.12em !important;
+  opacity: 0.58 !important;
+  text-transform: none !important;
+}
+
+/* Keep the actual logo image under control */
+.site-header .logo img {
+  display: block !important;
+  flex-shrink: 0 !important;
+}
+
+/* Mobile */
+@media (max-width: 700px) {
+
+  .site-header .logo {
+    gap: 7px !important;
+  }
+
+  .site-header .logo .brand-text strong {
+    font-size: 0.78rem !important;
+  }
+
+  .site-header .logo .brand-text small {
+    font-size: 0.52rem !important;
+    letter-spacing: 0.1em !important;
+  }
+}
+
+
+/* =========================================================
+   FOOTER — PREMIUM BRAND LOCKUP
+========================================================= */
+
+.site-footer .footer-brand {
+  display: flex !important;
+  align-items: center !important;
+  gap: 12px !important;
+}
+
+.site-footer .footer-logo {
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  flex-shrink: 0 !important;
+  text-decoration: none !important;
+  border: 0 !important;
+  outline: none !important;
+}
+
+.site-footer .footer-logo img {
+  display: block !important;
+  width: 46px !important;
+  height: 46px !important;
+  object-fit: contain !important;
+}
+
+.site-footer .footer-brand-copy {
+  display: flex !important;
+  flex-direction: column !important;
+  align-items: flex-start !important;
+  justify-content: center !important;
+  gap: 5px !important;
+  margin: 0 !important;
+  padding: 0 !important;
+}
+
+.site-footer .footer-brand-copy strong {
+  display: block !important;
+  margin: 0 !important;
+  padding: 0 !important;
+  font-size: 1rem !important;
+  line-height: 1 !important;
+  font-weight: 700 !important;
+  letter-spacing: 0.015em !important;
+  color: inherit !important;
+}
+
+.site-footer .footer-brand-copy span {
+  display: block !important;
+  margin: 0 !important;
+  padding: 0 !important;
+  font-size: 0.62rem !important;
+  line-height: 1 !important;
+  font-weight: 500 !important;
+  letter-spacing: 0.16em !important;
+  opacity: 0.55 !important;
+}
+
+/* Remove old footer branding rules */
+.site-footer .footer-brand-text {
+  display: none !important;
+}
+
+/* Mobile */
+@media (max-width: 700px) {
+
+  .site-footer .footer-brand {
+    gap: 9px !important;
+  }
+
+  .site-footer .footer-logo img {
+    width: 40px !important;
+    height: 40px !important;
+  }
+
+  .site-footer .footer-brand-copy strong {
+    font-size: 0.88rem !important;
+  }
+
+  .site-footer .footer-brand-copy span {
+    font-size: 0.52rem !important;
+    letter-spacing: 0.12em !important;
+  }
+}
+
+
+/* =========================================================
+   FOOTER BRAND � FINAL OVERRIDE
+========================================================= */
+
+.site-footer .footer-brand {
+  display: flex !important;
+  align-items: center !important;
+  gap: 12px !important;
+}
+
+.site-footer .footer-brand .footer-logo {
+  display: flex !important;
+  width: 48px !important;
+  height: 48px !important;
+  flex: 0 0 48px !important;
+  align-items: center !important;
+  justify-content: center !important;
+  margin: 0 !important;
+  padding: 0 !important;
+  text-decoration: none !important;
+}
+
+.site-footer .footer-brand .footer-logo img {
+  display: block !important;
+  width: 48px !important;
+  height: 48px !important;
+  object-fit: contain !important;
+  margin: 0 !important;
+}
+
+.site-footer .footer-brand-copy {
+  display: flex !important;
+  flex-direction: column !important;
+  align-items: flex-start !important;
+  justify-content: center !important;
+  gap: 5px !important;
+  margin: 0 !important;
+  padding: 0 !important;
+}
+
+.site-footer .footer-brand-copy strong {
+  display: block !important;
+  margin: 0 !important;
+  padding: 0 !important;
+  font-size: 1rem !important;
+  line-height: 1.1 !important;
+  font-weight: 700 !important;
+  letter-spacing: 0.02em !important;
+}
+
+.site-footer .footer-brand-copy span {
+  display: block !important;
+  margin: 0 !important;
+  padding: 0 !important;
+  font-size: 0.62rem !important;
+  line-height: 1 !important;
+  font-weight: 500 !important;
+  letter-spacing: 0.14em !important;
+  opacity: 0.55 !important;
+}
+
+/* Kill any old footer branding paragraph */
+.site-footer .footer-brand > p {
+  display: none !important;
+}
+
+/* Mobile */
+@media (max-width: 700px) {
+  .site-footer .footer-brand {
+    gap: 9px !important;
+  }
+
+  .site-footer .footer-brand .footer-logo,
+  .site-footer .footer-brand .footer-logo img {
+    width: 40px !important;
+    height: 40px !important;
+  }
+
+  .site-footer .footer-brand .footer-logo {
+    flex-basis: 40px !important;
+  }
+
+  .site-footer .footer-brand-copy strong {
+    font-size: 0.88rem !important;
+  }
+
+  .site-footer .footer-brand-copy span {
+    font-size: 0.52rem !important;
+    letter-spacing: 0.11em !important;
+  }
+}
+
+/* =========================================================
+   HEADER BRANDING — STORE NAME + TAGLINE
+========================================================= */
+
+.site-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 32px;
+}
+
+.site-header .logo {
+  display: inline-flex;
+  align-items: center;
+  gap: 12px;
+
+  text-decoration: none;
+  color: inherit;
+
+  flex-shrink: 0;
+}
+
+.site-header .logo-image {
+  width: 48px;
+  height: 48px;
+
+  object-fit: contain;
+  display: block;
+}
+
+.site-header .logo-copy {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+
+  min-width: 0;
+  line-height: 1;
+}
+
+.site-header .logo-name {
+  display: block;
+
+  font-size: 17px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  line-height: 1.15;
+
+  white-space: nowrap;
+}
+
+.site-header .logo-tagline {
+  display: block;
+
+  margin-top: 5px;
+
+  font-size: 9px;
+  font-weight: 500;
+  letter-spacing: 0.18em;
+  line-height: 1.2;
+
+  opacity: 0.55;
+
+  white-space: nowrap;
+  text-transform: uppercase;
+}
+
+.site-header .nav-links {
+  display: flex;
+  align-items: center;
+  gap: 24px;
+}
+
+.site-header .nav-links a {
+  text-decoration: none;
+}
+
+
+/* =========================================================
+   MOBILE
+========================================================= */
+
+@media (max-width: 700px) {
+
+  .site-header {
+    gap: 14px;
+  }
+
+  .site-header .logo {
+    gap: 8px;
+  }
+
+  .site-header .logo-image {
+    width: 40px;
+    height: 40px;
+  }
+
+  .site-header .logo-name {
+    font-size: 14px;
+  }
+
+  .site-header .logo-tagline {
+    margin-top: 4px;
+    font-size: 7px;
+    letter-spacing: 0.14em;
+  }
+
+  .site-header .nav-links {
+    gap: 10px;
+  }
+
+}
+/* =========================================================
+   FINAL HEADER BRAND FIX
+   Store name + tagline
+========================================================= */
+
+.site-header > .logo {
+  position: relative !important;
+
+  display: inline-flex !important;
+  flex-direction: row !important;
+  align-items: center !important;
+  justify-content: flex-start !important;
+
+  width: auto !important;
+  height: auto !important;
+
+  min-width: 0 !important;
+  max-width: none !important;
+
+  gap: 11px !important;
+
+  margin: 0 !important;
+  padding: 0 !important;
+
+  color: inherit !important;
+  text-decoration: none !important;
+}
+
+
+/* Logo image */
+
+.site-header > .logo > .logo-image {
+  display: block !important;
+
+  width: 44px !important;
+  height: 44px !important;
+
+  min-width: 44px !important;
+  max-width: 44px !important;
+
+  object-fit: contain !important;
+  object-position: center !important;
+
+  margin: 0 !important;
+  padding: 0 !important;
+}
+
+
+/* Text container */
+
+.site-header > .logo > .logo-copy {
+  display: flex !important;
+
+  flex-direction: column !important;
+  align-items: flex-start !important;
+  justify-content: center !important;
+
+  width: auto !important;
+  min-width: 0 !important;
+  max-width: 240px !important;
+
+  margin: 0 !important;
+  padding: 0 !important;
+
+  gap: 0 !important;
+
+  line-height: 1 !important;
+}
+
+
+/* Store name */
+
+.site-header > .logo > .logo-copy > .logo-name {
+  display: block !important;
+
+  width: auto !important;
+  margin: 0 !important;
+  padding: 0 !important;
+
+  font-family: inherit !important;
+
+  font-size: 16px !important;
+  font-weight: 700 !important;
+
+  line-height: 1.15 !important;
+  letter-spacing: 0.08em !important;
+
+  white-space: nowrap !important;
+
+  color: inherit !important;
+}
+
+
+/* Tagline */
+
+.site-header > .logo > .logo-copy > .logo-tagline {
+  display: block !important;
+
+  width: auto !important;
+
+  margin: 4px 0 0 !important;
+  padding: 0 !important;
+
+  font-family: inherit !important;
+
+  font-size: 8px !important;
+  font-weight: 500 !important;
+
+  line-height: 1.2 !important;
+  letter-spacing: 0.16em !important;
+
+  white-space: nowrap !important;
+
+  opacity: 0.55 !important;
+
+  color: inherit !important;
+
+  text-transform: uppercase !important;
+}
+
+
+/* Remove old sparkle attached to .logo */
+
+.site-header > .logo::after {
+  display: none !important;
+}
+
+
+/* Navigation */
+
+.site-header > .nav-links {
+  display: flex !important;
+
+  align-items: center !important;
+
+  gap: 24px !important;
+
+  min-width: 0 !important;
+}
+
+
+/* =========================================================
+   MOBILE
+========================================================= */
+
+@media (max-width: 700px) {
+
+  .site-header > .logo {
+    gap: 8px !important;
+  }
+
+  .site-header > .logo > .logo-image {
+    width: 38px !important;
+    height: 38px !important;
+
+    min-width: 38px !important;
+    max-width: 38px !important;
+  }
+
+  .site-header > .logo > .logo-copy > .logo-name {
+    font-size: 13px !important;
+    letter-spacing: 0.06em !important;
+  }
+
+  .site-header > .logo > .logo-copy > .logo-tagline {
+    margin-top: 3px !important;
+
+    font-size: 6.5px !important;
+    letter-spacing: 0.13em !important;
+  }
+
+  .site-header > .nav-links {
+    gap: 11px !important;
+  }
+
+}

@@ -4,24 +4,35 @@ import { useStore } from "../context/StoreContext";
 export default function Header() {
   const { storeSettings } = useStore();
 
+  const brand = storeSettings?.storeName || "PearlSkino BD";
+  const tagline = storeSettings?.tagline || "Pearly Glow";
+
   return (
-    <header className="site-header">
+    <header className="ps-header">
 
       <Link
         to="/"
-        className="logo"
-        aria-label={`${storeSettings.storeName} home`}
+        className="ps-header-brand"
+        aria-label={`${brand} home`}
       >
-
         <img
           src="/logo.png"
-          alt={storeSettings.storeName}
+          alt={brand}
+          className="ps-header-logo"
         />
 
+        <span className="ps-header-copy">
+          <strong className="ps-header-name">
+            {brand}
+          </strong>
+
+          <span className="ps-header-tagline">
+            {tagline}
+          </span>
+        </span>
       </Link>
 
-      <nav className="nav-links">
-
+      <nav className="ps-header-nav">
         <Link to="/">Home</Link>
         <Link to="/shop">Shop</Link>
         <Link to="/about">About</Link>
@@ -30,11 +41,10 @@ export default function Header() {
 
         <Link
           to="/cart"
-          className="cart-link"
+          className="ps-header-cart"
         >
           Cart
         </Link>
-
       </nav>
 
     </header>

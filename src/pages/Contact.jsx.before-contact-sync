@@ -1,4 +1,4 @@
-﻿
+
 import React, { useState } from "react";
 
 import { useStore } from "../context/StoreContext";
@@ -62,11 +62,11 @@ export default function Contact() {
         <div className="contact-orb contact-orb-two"></div>
 
         <span className="contact-sparkle contact-sparkle-one">
-          &#10022;
+          ✦
         </span>
 
         <span className="contact-sparkle contact-sparkle-two">
-          &#10023;
+          ✧
         </span>
 
 
@@ -136,7 +136,7 @@ export default function Contact() {
             <div className="contact-method">
 
               <div className="contact-method-icon">
-                &#10022;
+                ✦
               </div>
 
               <div>
@@ -151,7 +151,7 @@ export default function Contact() {
             <div className="contact-method">
 
               <div className="contact-method-icon">
-                &#9671;
+                ◇
               </div>
 
               <div>
@@ -166,7 +166,7 @@ export default function Contact() {
             <div className="contact-method">
 
               <div className="contact-method-icon">
-                &#9825;
+                ♡
               </div>
 
               <div>
@@ -177,40 +177,185 @@ export default function Contact() {
 
             </div>
 
+          </div>
 
-            {storeSettings.phone && (
-              <div className="contact-method">
+        </div>
 
-                <div className="contact-method-icon">
-                  &#9742;
-                </div>
 
-                <div>
-                  <span>PHONE</span>
-                  <strong>{storeSettings.phone}</strong>
-                  <small>Call or message us</small>
-                </div>
+        {/* RIGHT SIDE — FORM */}
+
+        <div className="contact-form-card">
+
+          <div className="contact-card-decoration">
+            <span>✦</span>
+            <span>✧</span>
+          </div>
+
+          {!submitted ? (
+
+            <form
+              className="contact-form"
+              onSubmit={handleSubmit}
+            >
+
+              <div className="contact-form-heading">
+
+                <p className="eyebrow">
+                  SEND A MESSAGE
+                </p>
+
+                <h3>
+                  How can we
+                  <em> help?</em>
+                </h3>
 
               </div>
-            )}
 
 
-            {storeSettings.email && (
-              <div className="contact-method">
+              <label>
+                <span>Your Name</span>
 
-                <div className="contact-method-icon">
-                  &#9993;
-                </div>
+                <input
+                  type="text"
+                  name="name"
+                  placeholder="Your name"
+                  required
+                  disabled={sending}
+                />
+              </label>
 
-                <div>
-                  <span>EMAIL</span>
-                  <strong>{storeSettings.email}</strong>
-                  <small>Send us an email</small>
-                </div>
 
+              <label>
+                <span>Phone Number</span>
+
+                <input
+                  type="tel"
+                  name="phone"
+                  placeholder="01XXXXXXXXX"
+                  required
+                  disabled={sending}
+                />
+              </label>
+
+
+              <label>
+                <span>Your Message</span>
+
+                <textarea
+                  name="message"
+                  rows="5"
+                  placeholder="Tell us what you're looking for..."
+                  required
+                  disabled={sending}
+                />
+              </label>
+
+
+              <button
+                type="submit"
+                className="contact-submit"
+                disabled={sending}
+              >
+                {sending
+                  ? "Sending..."
+                  : "Send Message"}
+
+                <span>
+                  {sending ? "…" : "→"}
+                </span>
+              </button>
+
+            </form>
+
+          ) : (
+
+            <div className="contact-success">
+
+              <div className="contact-success-pearl">
+                ✦
               </div>
-            )}
 
+              <p className="eyebrow">
+                MESSAGE RECEIVED
+              </p>
+
+              <h3>
+                Thank you.
+                <br />
+                <em>We'll be in touch.</em>
+              </h3>
+
+              <p>
+                Your message has been received.
+                We appreciate you reaching out to
+                PearlSkino BD.
+              </p>
+
+              <button
+                type="button"
+                className="contact-reset"
+                onClick={() => setSubmitted(false)}
+              >
+                Send Another Message
+              </button>
+
+            </div>
+
+          )}
+
+        </div>
+
+      </section>
+
+
+      {/* =====================================================
+          EXPERIENCE STRIP
+      ===================================================== */}
+
+      <section className="contact-experience">
+
+        <div className="contact-experience-heading">
+
+          <p className="eyebrow">
+            THE PEARLSKINO EXPERIENCE
+          </p>
+
+          <h2>
+            Thoughtful from
+            <br />
+            <em>start to finish.</em>
+          </h2>
+
+        </div>
+
+
+        <div className="contact-experience-grid">
+
+          <div>
+            <span>01</span>
+            <h3>Ask freely.</h3>
+            <p>
+              Not sure which fragrance suits you?
+              We're happy to help you explore.
+            </p>
+          </div>
+
+          <div>
+            <span>02</span>
+            <h3>Choose confidently.</h3>
+            <p>
+              We focus on carefully selected products
+              and a straightforward shopping experience.
+            </p>
+          </div>
+
+          <div>
+            <span>03</span>
+            <h3>Enjoy beautifully.</h3>
+            <p>
+              From discovery to delivery, every detail
+              should feel effortless.
+            </p>
           </div>
 
         </div>
@@ -225,9 +370,9 @@ export default function Contact() {
       <section className="contact-final">
 
         <div className="contact-final-pearl">
-          <span>&#10022;</span>
+          <span>✦</span>
         </div>
-          <span>&#10022;</span>
+
         <p className="eyebrow">
           READY TO DISCOVER?
         </p>
@@ -243,7 +388,7 @@ export default function Contact() {
           className="hero-button"
         >
           Explore Collection
-          <span>â†’</span>
+          <span>→</span>
         </a>
 
       </section>
@@ -251,15 +396,6 @@ export default function Contact() {
     </main>
   );
 }
-
-
-
-
-
-
-
-
-
 
 
 
