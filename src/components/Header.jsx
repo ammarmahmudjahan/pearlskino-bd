@@ -1,18 +1,24 @@
-import { Link } from "react-router-dom";
+﻿import { Link } from "react-router-dom";
+import { useStore } from "../context/StoreContext";
 
 export default function Header() {
+  const { storeSettings } = useStore();
+
   return (
     <header className="site-header">
 
-      <Link to="/" className="logo" aria-label="PearlSkino BD home">
+      <Link
+        to="/"
+        className="logo"
+        aria-label={`${storeSettings.storeName} home`}
+      >
 
         <img
           src="/logo.png"
-          alt="PearlSkino BD"
+          alt={storeSettings.storeName}
         />
 
       </Link>
-
 
       <nav className="nav-links">
 

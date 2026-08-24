@@ -57,144 +57,420 @@ const DEFAULT_SETTINGS = {
 const ADMIN_AUTH_KEY =
   "pearlskino_admin_authenticated";
 
+const ADMIN_TOKEN_KEY =
+  "pearlskino_admin_token";
+
+const ADMIN_EXPIRES_KEY =
+  "pearlskino_admin_expires_at";
+
 
 /* =========================================================
-   API — GET
+   AUTH STORAGE HELPERS
 ========================================================= */
 
-async function getApi(action) {
-  const response = await fetch(
-    `${ORDERS_API}?action=${encodeURIComponent(action)}`,
-    {
-      method: "GET",
-      cache: "no-store",
-    }
+function getStoredAdminToken() {
+
+  return (
+    localStorage.getItem(
+      ADMIN_TOKEN_KEY
+    ) || ""
   );
 
-  if (!response.ok) {
-    throw new Error(
-      `Unable to load ${action}.`
-    );
-  }
-
-  const data =
-    await response.json();
-
-  if (!data.success) {
-    throw new Error(
-      data.error ||
-        `Unable to load ${action}.`
-    );
-  }
-
-  return data;
 }
 
 
-/* =========================================================
-   API — POST
-========================================================= */
+function getStoredAdminExpiry() {
 
-async function postApi(payload) {
-  const response = await fetch(
-    ORDERS_API,
-    {
-      method: "POST",
-
-      headers: {
-        "Content-Type":
-          "text/plain;charset=utf-8",
-      },
-
-      body: JSON.stringify(payload),
-    }
+  return (
+    localStorage.getItem(
+      ADMIN_EXPIRES_KEY
+    ) || ""
   );
 
-  if (!response.ok) {
-    throw new Error(
-      "Unable to communicate with the PearlSkino API."
-    );
-  }
-
-  const data =
-    await response.json();
-
-  if (!data.success) {
-    throw new Error(
-      data.error ||
-        "API request failed."
-    );
-  }
-
-  return data;
 }
 
 
-/* =========================================================
-   AUTH — LOGIN
-========================================================= */
+function saveAdminSession(
+  token,
+  expiresAt
+) {
 
-async function loginAdmin(password) {
-  return postApi({
-    action: "login",
-    password,
-  });
+  if (!token) {
+
+    throw new Error(
+      "Login succeeded but no session token was returned."
+    );
+
+  }
+
+  localStorage.setItem(
+    ADMIN_AUTH_KEY,
+    "true"
+  );
+
+  localStorage.setItem(
+    ADMIN_TOKEN_KEY,
+    token
+  );
+
+  if (expiresAt) {
+
+    localStorage.setItem(
+      ADMIN_EXPIRES_KEY,
+      expiresAt
+    );
+
+  }
+
 }
 
 
-/* =========================================================
-   AUTH — LOGOUT
-========================================================= */
-
-async function logoutAdmin() {
-  try {
-    await postApi({
-      action: "logout",
-    });
-  } catch (error) {
-    console.warn(
-      "Logout API warning:",
-      error
-    );
-  }
+function clearAdminSession() {
 
   localStorage.removeItem(
     ADMIN_AUTH_KEY
   );
+
+  localStorage.removeItem(
+    ADMIN_TOKEN_KEY
+  );
+
+  localStorage.removeItem(
+    ADMIN_EXPIRES_KEY
+  );
+
 }
 
 
 /* =========================================================
-   AUTH — CHANGE PASSWORD
+   API ... GET
+========================================================= */
+
+async function getApi(
+  action,
+  token = ""
+) {
+
+  const params =
+    new URLSearchParams();
+
+  params.set(
+    "action",
+    action
+  );
+
+  if (token) {
+
+    params.set(
+      "token",
+      token
+    );
+
+  }
+
+  const response =
+    await fetch(
+      `${ORDERS_API}?${params.toString()}`,
+      {
+        method: "GET",
+        cache: "no-store",
+      }
+    );
+
+
+  if (!response.ok) {
+
+    throw new Error(
+      `Unable to load ${action}.`
+    );
+
+  }
+
+
+  const data =
+    await response.json();
+
+
+  if (!data.success) {
+
+    if (
+      data.authenticated ===
+      false
+    ) {
+
+      clearAdminSession();
+
+    }
+
+    throw new Error(
+      data.error ||
+        `Unable to load ${action}.`
+    );
+
+  }
+
+
+  return data;
+
+}
+
+
+/* =========================================================
+   API ... POST
+========================================================= */
+
+async function postApi(
+  payload,
+  authenticated = true
+) {
+
+  const requestPayload = {
+    ...payload,
+  };
+
+
+  if (authenticated) {
+
+    const token =
+      getStoredAdminToken();
+
+
+    if (!token) {
+
+      throw new Error(
+        "Admin session is missing. Please log in again."
+      );
+
+    }
+
+
+    requestPayload.token =
+      token;
+
+  }
+
+
+  const response =
+    await fetch(
+      ORDERS_API,
+      {
+        method: "POST",
+
+        headers: {
+          "Content-Type":
+            "text/plain;charset=utf-8",
+        },
+
+        body:
+          JSON.stringify(
+            requestPayload
+          ),
+      }
+    );
+
+
+  if (!response.ok) {
+
+    throw new Error(
+      "Unable to communicate with the PearlSkino API."
+    );
+
+  }
+
+
+  const data =
+    await response.json();
+
+
+  if (!data.success) {
+
+    if (
+      data.authenticated ===
+      false
+    ) {
+
+      clearAdminSession();
+
+    }
+
+    throw new Error(
+      data.error ||
+        "API request failed."
+    );
+
+  }
+
+
+  return data;
+
+}
+
+
+/* =========================================================
+   AUTH ... LOGIN
+========================================================= */
+
+async function loginAdmin(
+  password
+) {
+
+  const data =
+    await postApi(
+      {
+        action:
+          "login",
+
+        password,
+      },
+      false
+    );
+
+
+  saveAdminSession(
+    data.token,
+    data.expiresAt
+  );
+
+
+  return data;
+
+}
+
+
+/* =========================================================
+   AUTH ... LOGOUT
+========================================================= */
+
+async function logoutAdmin() {
+
+  try {
+
+    if (
+      getStoredAdminToken()
+    ) {
+
+      await postApi(
+        {
+          action:
+            "logout",
+        },
+        true
+      );
+
+    }
+
+  } catch (error) {
+
+    console.warn(
+      "Logout API warning:",
+      error
+    );
+
+  } finally {
+
+    clearAdminSession();
+
+  }
+
+}
+
+
+/* =========================================================
+   AUTH ... CHANGE PASSWORD
 ========================================================= */
 
 async function changeAdminPassword(
   currentPassword,
   newPassword
 ) {
-  return postApi({
-    action: "changePassword",
-    currentPassword,
-    newPassword,
-  });
+
+  return postApi(
+    {
+      action:
+        "changePassword",
+
+      currentPassword,
+
+      newPassword,
+    },
+    true
+  );
+
 }
 
 
 /* =========================================================
-   AUTH — CHECK SESSION
+   AUTH ... CHECK SESSION
 ========================================================= */
 
 async function checkAdminSession() {
-  try {
-    const data =
-      await getApi("auth");
 
-    return (
-      data.authenticated === true
-    );
-  } catch (error) {
+  const token =
+    getStoredAdminToken();
+
+
+  if (!token) {
+
     return false;
+
   }
+
+
+  const expiresAt =
+    getStoredAdminExpiry();
+
+
+  if (expiresAt) {
+
+    const expiry =
+      new Date(
+        expiresAt
+      ).getTime();
+
+
+    if (
+      Number.isFinite(
+        expiry
+      ) &&
+      Date.now() >= expiry
+    ) {
+
+      clearAdminSession();
+
+      return false;
+
+    }
+
+  }
+
+
+  try {
+
+    /*
+     * The Apps Script API currently has
+     * no separate authenticated "auth"
+     * GET action.
+     *
+     * Therefore orders is used as the
+     * protected session validation request.
+     */
+
+    await getApi(
+      "orders",
+      token
+    );
+
+
+    return true;
+
+  } catch (error) {
+
+    clearAdminSession();
+
+    return false;
+
+  }
+
 }
 
 
@@ -203,10 +479,32 @@ async function checkAdminSession() {
 ========================================================= */
 
 async function fetchOrders() {
-  const data =
-    await getApi("orders");
 
-  return data.orders || [];
+  const token =
+    getStoredAdminToken();
+
+
+  if (!token) {
+
+    throw new Error(
+      "Admin session is missing."
+    );
+
+  }
+
+
+  const data =
+    await getApi(
+      "orders",
+      token
+    );
+
+
+  return (
+    data.orders ||
+    []
+  );
+
 }
 
 
@@ -215,25 +513,59 @@ async function fetchOrders() {
 ========================================================= */
 
 async function fetchCustomers() {
+
+  const token =
+    getStoredAdminToken();
+
+  if (!token) {
+
+    throw new Error(
+      "Admin session is missing."
+    );
+
+  }
+
   const data =
-    await getApi("customers");
+    await getApi(
+      "customers",
+      token
+    );
 
-  return data.customers || [];
+  return (
+    data.customers ||
+    []
+  );
+
 }
-
 
 /* =========================================================
    SETTINGS
 ========================================================= */
 
 async function fetchSettings() {
+
+  const token =
+    getStoredAdminToken();
+
+  if (!token) {
+
+    throw new Error(
+      "Admin session is missing."
+    );
+
+  }
+
   const data =
-    await getApi("settings");
+    await getApi(
+      "settings",
+      token
+    );
 
   return {
     ...DEFAULT_SETTINGS,
     ...(data.settings || {}),
   };
+
 }
 
 
@@ -421,7 +753,7 @@ function AdminLogin({
           href="/"
           className="admin-login-store-link"
         >
-          ? Back to Store
+          Back to Store
         </a>
 
       </div>
@@ -721,7 +1053,7 @@ function OrdersPage({
         >
           {loading
             ? "Refreshing..."
-            : "? Refresh"}
+            : "Refresh"}
         </button>
 
       </div>
@@ -743,7 +1075,7 @@ function OrdersPage({
         <div className="admin-empty">
 
           <div className="admin-empty-icon">
-            ?
+            &#128203;
           </div>
 
           <h3>
@@ -786,7 +1118,7 @@ function OrdersPage({
                 <div className="order-id-cell">
 
                   <strong>
-                    {order.orderId || "—"}
+                    {order.orderId || "..."}
                   </strong>
 
                   <small>
@@ -811,7 +1143,7 @@ function OrdersPage({
 
                   <span>
                     {order.products ||
-                      "—"}
+                      "..."}
                   </span>
 
                   {order.quantity && (
@@ -823,7 +1155,7 @@ function OrdersPage({
                 </div>
 
                 <strong>
-                  ?
+                  &#2547;
                   {Number(
                     String(
                       order.total || "0"
@@ -835,13 +1167,13 @@ function OrdersPage({
                 </strong>
 
                 <span>
-                  {order.payment || "—"}
+                  {order.payment || "..."}
                 </span>
 
                 <div>
 
                   <strong>
-                    {order.delivery || "—"}
+                    {order.delivery || "..."}
                   </strong>
 
                   {order.area && (
@@ -942,7 +1274,7 @@ function CustomersPage({
         >
           {loading
             ? "Refreshing..."
-            : "? Refresh"}
+            : "Refresh"}
         </button>
 
       </div>
@@ -964,7 +1296,7 @@ function CustomersPage({
         <div className="admin-empty">
 
           <div className="admin-empty-icon">
-            ?
+            &#128203;
           </div>
 
           <h3>
@@ -1015,19 +1347,19 @@ function CustomersPage({
                   <div>
                     <strong>
                       {customer.phone ||
-                        "—"}
+                        "..."}
                     </strong>
 
                     <small>
                       {customer.email ||
-                        "—"}
+                        "..."}
                     </small>
                   </div>
 
                   <div>
                     <strong>
                       {customer.area ||
-                        "—"}
+                        "..."}
                     </strong>
 
                     <small>
@@ -1041,7 +1373,7 @@ function CustomersPage({
                   </strong>
 
                   <strong>
-                    ?
+                    &#2547;
                     {Number(
                       customer.totalSpent ||
                         0
@@ -1050,7 +1382,7 @@ function CustomersPage({
 
                   <span>
                     {customer.lastOrder ||
-                      "—"}
+                      "..."}
                   </span>
 
                 </div>
@@ -1130,7 +1462,7 @@ function Dashboard({
           <span>Total Products</span>
           <strong>
             {productsLoading
-              ? "…"
+              ? "..."
               : totalProducts}
           </strong>
         </div>
@@ -1139,7 +1471,7 @@ function Dashboard({
           <span>Active Products</span>
           <strong>
             {productsLoading
-              ? "…"
+              ? "..."
               : activeProducts}
           </strong>
         </div>
@@ -1148,7 +1480,7 @@ function Dashboard({
           <span>Low Stock</span>
           <strong>
             {productsLoading
-              ? "…"
+              ? "..."
               : lowStock}
           </strong>
         </div>
@@ -1177,7 +1509,7 @@ function Dashboard({
           </span>
 
           <strong>
-            ?
+            &#2547;
             {revenue.toLocaleString()}
           </strong>
         </div>
@@ -1292,14 +1624,24 @@ function SettingsPage() {
       setSaved(false);
       setSettingsError("");
 
-      const data =
-        await saveStoreSettings(
-          settings
-        );
+      /*
+       * First save the current form values.
+       * postApi() automatically attaches the
+       * authenticated admin token.
+       */
+      await saveStoreSettings(settings);
+
+      /*
+       * Read the settings back from the backend.
+       * This guarantees the UI reflects what is
+       * actually stored in Google Sheets.
+       */
+      const savedData =
+        await fetchSettings();
 
       setSettings({
         ...DEFAULT_SETTINGS,
-        ...(data.settings || {}),
+        ...savedData,
       });
 
       setSaved(true);
@@ -1315,6 +1657,7 @@ function SettingsPage() {
       }, 2500);
 
     } catch (error) {
+
       console.error(
         "SAVE SETTINGS ERROR:",
         error
@@ -1326,7 +1669,9 @@ function SettingsPage() {
       );
 
     } finally {
+
       setSavingSettings(false);
+
     }
   }
 
@@ -1544,7 +1889,7 @@ function SettingsPage() {
 
                 <div className="settings-input-prefix">
 
-                  <span>?</span>
+                  <span>{String.fromCharCode(2547)}</span>
 
                   <input
                     type="number"
@@ -1567,7 +1912,7 @@ function SettingsPage() {
 
                 <div className="settings-input-prefix">
 
-                  <span>?</span>
+                  <span>{String.fromCharCode(2547)}</span>
 
                   <input
                     type="number"
@@ -1752,7 +2097,7 @@ function SettingsPage() {
 
               {saved && (
                 <span className="settings-saved">
-                  ? Settings saved
+                  Settings saved
                 </span>
               )}
 
@@ -1880,7 +2225,7 @@ export default function Admin() {
      LOAD ORDERS
   ======================================================= */
 
-  async function refreshOrders() {
+  async function refreshOrders(isBackgroundRefresh = false) {
 
     try {
 
@@ -1903,10 +2248,7 @@ export default function Admin() {
         error.message ===
         "Authentication required."
       ) {
-        setAuthenticated(false);
-        localStorage.removeItem(
-          ADMIN_AUTH_KEY
-        );
+        throw error;
       }
 
       setOrdersError(
@@ -1927,7 +2269,7 @@ export default function Admin() {
      LOAD CUSTOMERS
   ======================================================= */
 
-  async function refreshCustomers() {
+  async function refreshCustomers(isBackgroundRefresh = false) {
 
     try {
 
@@ -1950,10 +2292,7 @@ export default function Admin() {
         error.message ===
         "Authentication required."
       ) {
-        setAuthenticated(false);
-        localStorage.removeItem(
-          ADMIN_AUTH_KEY
-        );
+        throw error;
       }
 
       setCustomersError(
@@ -1980,8 +2319,21 @@ export default function Admin() {
       return;
     }
 
-    refreshOrders();
-    refreshCustomers();
+    const runAutoRefresh = async () => {
+      try {
+        await Promise.all([
+          refreshOrders(),
+          refreshCustomers(),
+        ]);
+      } catch (error) {
+        console.warn(
+          "Automatic admin refresh failed:",
+          error
+        );
+      }
+    };
+
+    runAutoRefresh();
 
   }, [authenticated]);
 
@@ -1997,17 +2349,29 @@ export default function Admin() {
     }
 
     const refreshInterval =
-      setInterval(() => {
+      setInterval(async () => {
 
-        refreshOrders();
-        refreshCustomers();
+        try {
+          await Promise.allSettled([
+            refreshOrders(),
+            refreshCustomers(),
+          ]);
+        } catch (error) {
+          console.warn(
+            "Automatic admin data refresh warning:",
+            error
+          );
+        }
 
-      }, DEFAULT_SETTINGS.autoRefreshSeconds * 1000);
+      }, Math.max(
+        5000,
+        Number(
+          DEFAULT_SETTINGS.autoRefreshSeconds || 30
+        ) * 1000
+      ));
 
     return () => {
-      clearInterval(
-        refreshInterval
-      );
+      clearInterval(refreshInterval);
     };
 
   }, [authenticated]);
@@ -2422,3 +2786,8 @@ export default function Admin() {
 
   );
 }
+
+
+
+
+

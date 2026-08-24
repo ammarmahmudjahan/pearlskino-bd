@@ -1,4 +1,4 @@
-﻿import {
+import {
   createContext,
   useContext,
   useEffect,
@@ -32,7 +32,7 @@ const DEFAULT_STORE_SETTINGS = {
 const SETTINGS_REFRESH_MS = 30000;
 
 async function fetchStoreSettings() {
-  const response = await fetch(`${SETTINGS_API}?action=settings`);
+  const response = await fetch(`${SETTINGS_API}?action=storeSettings`);
 
   if (!response.ok) {
     throw new Error("Unable to load store settings.");
