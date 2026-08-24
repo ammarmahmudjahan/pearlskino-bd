@@ -1012,3 +1012,532 @@
   }
 
 }
+
+/* =========================================================
+   PEARLSKINO BD — ADMIN LOGIN PORTAL
+========================================================= */
+
+.admin-login-page {
+  min-height: 100vh;
+  min-height: 100dvh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 32px 20px;
+  position: relative;
+  overflow: hidden;
+
+  background:
+    radial-gradient(
+      circle at 20% 20%,
+      rgba(213, 193, 255, 0.42),
+      transparent 32%
+    ),
+    radial-gradient(
+      circle at 80% 80%,
+      rgba(242, 190, 214, 0.34),
+      transparent 34%
+    ),
+    linear-gradient(
+      135deg,
+      #fffdf9 0%,
+      #f9f3ed 48%,
+      #f4edf7 100%
+    );
+
+  color: #252027;
+}
+
+
+/* Soft ambient glow */
+
+.admin-login-page::before,
+.admin-login-page::after {
+  content: "";
+  position: absolute;
+  border-radius: 50%;
+  pointer-events: none;
+  filter: blur(2px);
+}
+
+.admin-login-page::before {
+  width: 420px;
+  height: 420px;
+  top: -180px;
+  left: -140px;
+
+  background:
+    radial-gradient(
+      circle,
+      rgba(216, 196, 255, 0.32),
+      transparent 68%
+    );
+
+  animation: adminLoginGlow 8s ease-in-out infinite alternate;
+}
+
+.admin-login-page::after {
+  width: 380px;
+  height: 380px;
+  right: -140px;
+  bottom: -170px;
+
+  background:
+    radial-gradient(
+      circle,
+      rgba(238, 190, 215, 0.3),
+      transparent 68%
+    );
+
+  animation: adminLoginGlow 10s ease-in-out infinite alternate-reverse;
+}
+
+
+/* Login card */
+
+.admin-login-card {
+  width: min(100%, 430px);
+  position: relative;
+  z-index: 2;
+
+  padding: 42px 38px 36px;
+
+  border: 1px solid rgba(255, 255, 255, 0.8);
+  border-radius: 28px;
+
+  background:
+    linear-gradient(
+      145deg,
+      rgba(255, 255, 255, 0.88),
+      rgba(255, 250, 252, 0.72)
+    );
+
+  backdrop-filter: blur(24px);
+  -webkit-backdrop-filter: blur(24px);
+
+  box-shadow:
+    0 30px 80px rgba(66, 46, 68, 0.12),
+    0 8px 30px rgba(126, 93, 130, 0.08),
+    inset 0 1px 0 rgba(255, 255, 255, 0.95);
+
+  animation: adminLoginCardIn 0.65s ease both;
+}
+
+
+/* Pearl highlight */
+
+.admin-login-card::before {
+  content: "";
+  position: absolute;
+  inset: 1px;
+  border-radius: 27px;
+  pointer-events: none;
+
+  background:
+    linear-gradient(
+      135deg,
+      rgba(255, 255, 255, 0.72),
+      transparent 35%,
+      transparent 65%,
+      rgba(224, 205, 232, 0.18)
+    );
+}
+
+
+/* Brand */
+
+.admin-login-brand {
+  position: relative;
+
+  margin-bottom: 12px;
+
+  font-family:
+    Georgia,
+    "Times New Roman",
+    serif;
+
+  font-size: 28px;
+  font-weight: 600;
+  letter-spacing: -0.6px;
+
+  color: #29222b;
+}
+
+.admin-login-brand span {
+  color: #a98bb8;
+  font-weight: 500;
+}
+
+
+/* Eyebrow */
+
+.admin-login-card .admin-eyebrow {
+  position: relative;
+
+  margin: 0 0 10px;
+
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.18em;
+
+  color: #a082ad;
+}
+
+
+/* Heading */
+
+.admin-login-card h1 {
+  position: relative;
+
+  margin: 0;
+
+  font-family:
+    Georgia,
+    "Times New Roman",
+    serif;
+
+  font-size: clamp(32px, 6vw, 42px);
+  line-height: 1.05;
+  font-weight: 500;
+  letter-spacing: -1.2px;
+
+  color: #211c23;
+}
+
+
+/* Description */
+
+.admin-login-description {
+  position: relative;
+
+  margin: 14px 0 26px;
+
+  max-width: 330px;
+
+  color: #746b76;
+  font-size: 14px;
+  line-height: 1.7;
+}
+
+
+/* Error */
+
+.admin-login-card .admin-error {
+  position: relative;
+
+  margin-bottom: 18px;
+  padding: 12px 14px;
+
+  border: 1px solid rgba(190, 94, 120, 0.2);
+  border-radius: 12px;
+
+  background: rgba(255, 235, 242, 0.72);
+
+  color: #a54d68;
+  font-size: 13px;
+  line-height: 1.5;
+}
+
+
+/* Form */
+
+.admin-login-form {
+  position: relative;
+
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+}
+
+
+/* Label */
+
+.admin-login-form label {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+
+  color: #403842;
+
+  font-size: 12px;
+  font-weight: 650;
+  letter-spacing: 0.02em;
+}
+
+
+/* Input */
+
+.admin-login-form input {
+  width: 100%;
+  min-height: 52px;
+
+  box-sizing: border-box;
+
+  padding: 0 16px;
+
+  border: 1px solid rgba(154, 132, 160, 0.22);
+  border-radius: 14px;
+
+  outline: none;
+
+  background:
+    rgba(255, 255, 255, 0.72);
+
+  color: #29232b;
+
+  font-size: 15px;
+
+  box-shadow:
+    inset 0 1px 2px rgba(54, 37, 58, 0.03);
+
+  transition:
+    border-color 0.22s ease,
+    box-shadow 0.22s ease,
+    background 0.22s ease,
+    transform 0.22s ease;
+}
+
+
+.admin-login-form input::placeholder {
+  color: #aaa1ab;
+}
+
+
+.admin-login-form input:hover {
+  background: rgba(255, 255, 255, 0.9);
+}
+
+
+.admin-login-form input:focus {
+  border-color: rgba(164, 133, 185, 0.72);
+
+  background: #ffffff;
+
+  box-shadow:
+    0 0 0 4px rgba(184, 151, 207, 0.12),
+    0 8px 24px rgba(115, 84, 124, 0.08);
+
+  transform: translateY(-1px);
+}
+
+
+/* Sign in button */
+
+.admin-login-button {
+  width: 100%;
+  min-height: 54px;
+
+  margin-top: 4px;
+
+  border: 0;
+  border-radius: 15px;
+
+  cursor: pointer;
+
+  background:
+    linear-gradient(
+      135deg,
+      #9d82ad,
+      #b993ae 52%,
+      #9b89ad
+    );
+
+  color: #ffffff;
+
+  font-size: 14px;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+
+  box-shadow:
+    0 12px 28px rgba(125, 91, 132, 0.2);
+
+  transition:
+    transform 0.22s ease,
+    box-shadow 0.22s ease,
+    filter 0.22s ease;
+}
+
+
+.admin-login-button:hover:not(:disabled) {
+  transform: translateY(-2px);
+
+  box-shadow:
+    0 16px 34px rgba(125, 91, 132, 0.26);
+
+  filter: brightness(1.04);
+}
+
+
+.admin-login-button:active:not(:disabled) {
+  transform: translateY(0);
+}
+
+
+.admin-login-button:disabled {
+  cursor: wait;
+  opacity: 0.65;
+}
+
+
+/* Back to store */
+
+.admin-login-store-link {
+  position: relative;
+
+  display: block;
+
+  margin-top: 22px;
+
+  text-align: center;
+
+  color: #8b718f;
+
+  font-size: 13px;
+  font-weight: 600;
+
+  text-decoration: none;
+
+  transition:
+    color 0.2s ease,
+    transform 0.2s ease;
+}
+
+
+.admin-login-store-link:hover {
+  color: #684d6d;
+  transform: translateY(-1px);
+}
+
+
+/* =========================================================
+   LOGIN ANIMATIONS
+========================================================= */
+
+@keyframes adminLoginCardIn {
+  from {
+    opacity: 0;
+    transform: translateY(18px) scale(0.98);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+
+@keyframes adminLoginGlow {
+  from {
+    transform: translate3d(0, 0, 0) scale(1);
+  }
+
+  to {
+    transform: translate3d(20px, 16px, 0) scale(1.08);
+  }
+}
+
+
+/* =========================================================
+   MOBILE
+========================================================= */
+
+@media (max-width: 520px) {
+
+  .admin-login-page {
+    padding: 20px 14px;
+  }
+
+  .admin-login-card {
+    padding: 34px 24px 28px;
+    border-radius: 23px;
+  }
+
+  .admin-login-card::before {
+    border-radius: 22px;
+  }
+
+  .admin-login-brand {
+    font-size: 25px;
+  }
+
+  .admin-login-card h1 {
+    font-size: 34px;
+  }
+
+  .admin-login-description {
+    font-size: 13px;
+    margin-bottom: 22px;
+  }
+
+  .admin-login-form input {
+    min-height: 50px;
+  }
+
+  .admin-login-button {
+    min-height: 52px;
+  }
+
+}
+
+/* =========================================================
+   ADMIN LOGOUT BUTTON — PREMIUM STYLE
+========================================================= */
+
+.admin-logout-button {
+  appearance: none;
+  border: 1px solid rgba(180, 130, 160, 0.28);
+  background: rgba(255, 255, 255, 0.72);
+  color: #5f4658;
+
+  min-height: 40px;
+  padding: 0 18px;
+
+  border-radius: 999px;
+
+  font: inherit;
+  font-size: 0.84rem;
+  font-weight: 650;
+  letter-spacing: 0.01em;
+
+  cursor: pointer;
+
+  box-shadow:
+    0 4px 14px rgba(120, 82, 110, 0.08);
+
+  transition:
+    background 180ms ease,
+    color 180ms ease,
+    border-color 180ms ease,
+    box-shadow 180ms ease,
+    transform 180ms ease;
+}
+
+.admin-logout-button:hover {
+  background: rgba(255, 255, 255, 0.96);
+  color: #9b527d;
+  border-color: rgba(180, 100, 145, 0.42);
+
+  box-shadow:
+    0 7px 20px rgba(150, 90, 130, 0.14);
+
+  transform: translateY(-1px);
+}
+
+.admin-logout-button:active {
+  transform: translateY(0);
+  box-shadow:
+    0 3px 10px rgba(120, 82, 110, 0.1);
+}
+
+.admin-logout-button:focus-visible {
+  outline: 2px solid rgba(170, 110, 155, 0.45);
+  outline-offset: 3px;
+}
+
+@media (max-width: 700px) {
+  .admin-logout-button {
+    min-height: 38px;
+    padding-inline: 15px;
+    font-size: 0.8rem;
+  }
+}
