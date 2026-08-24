@@ -1,8 +1,11 @@
 
 import { Link } from "react-router-dom";
 import { useProducts } from "../hooks/useProducts";
+import { useStore } from "../context/StoreContext";
 
 export default function Shop() {
+  const { storeSettings } = useStore();
+  const brand = storeSettings?.storeName || "PearlSkino BD";
   const [products] = useProducts();
 
   /* =========================
@@ -28,12 +31,12 @@ export default function Shop() {
           <div className="page-brand-logo">
             <img
               src="/logo.png"
-              alt="PearlSkino BD"
+              alt={brand}
             />
           </div>
 
           <p className="eyebrow">
-            THE PEARLSKINO BD SHOP
+            {brand.toUpperCase()} SHOP
           </p>
 
           <h1>
@@ -97,12 +100,12 @@ export default function Shop() {
         <div className="page-brand-logo">
           <img
             src="/logo.png"
-            alt="PearlSkino BD"
+            alt={brand}
           />
         </div>
 
         <p className="eyebrow">
-          THE PEARLSKINO BD SHOP
+          {brand.toUpperCase()} SHOP
         </p>
 
         <h1>
@@ -213,7 +216,7 @@ export default function Shop() {
 
                   <p className="product-brand">
                     {product.brand ||
-                      "PEARLSKINO BD"}
+                      brand.toUpperCase()}
                   </p>
 
 

@@ -1,4 +1,4 @@
-﻿
+
 import React, { useState } from "react";
 import { Link } from "react-router-dom";
 
@@ -151,7 +151,7 @@ export default function Checkout() {
           </div>
 
           <p className="eyebrow">
-            PEARLSKINO BD  -  ORDER CONFIRMED
+            {brand.toUpperCase()} - ORDER CONFIRMED
           </p>
 
           <h1>
@@ -171,7 +171,7 @@ export default function Checkout() {
           </h2>
 
           <p className="checkout-success-copy">
-            Thank you for choosing PearlSkino BD.
+            Thank you for choosing {brand}.
             We've received your order details and
             will contact you shortly to confirm
             everything before delivery.
@@ -212,7 +212,7 @@ export default function Checkout() {
           </div>
 
           <p className="eyebrow">
-            PEARLSKINO BD  -  YOUR BAG
+            {brand.toUpperCase()} - YOUR BAG
           </p>
 
           <h1>
@@ -264,7 +264,7 @@ export default function Checkout() {
         <div className="checkout-hero-content">
 
           <p className="eyebrow">
-            PEARLSKINO BD  -  CHECKOUT
+            {brand.toUpperCase()} - CHECKOUT
           </p>
 
           <h1>
@@ -620,7 +620,7 @@ export default function Checkout() {
 
                     <p>
                       {item.brand ||
-                        "PEARLSKINO BD"}
+                        brand.toUpperCase()}
                     </p>
 
                     <h3>
@@ -756,7 +756,7 @@ export default function Checkout() {
         </Link>
 
         <p>
-          PearlSkino BD  -  Beauty, thoughtfully selected.
+          {brand} - Beauty, thoughtfully selected.
         </p>
 
       </section>

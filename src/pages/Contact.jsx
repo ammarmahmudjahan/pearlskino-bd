@@ -1,4 +1,4 @@
-﻿
+
 import React, { useState } from "react";
 
 import { useStore } from "../context/StoreContext";
@@ -83,7 +83,7 @@ export default function Contact() {
 
 
           <p className="eyebrow">
-            PEARLSKINO BD CONNECT
+            {storeSettings.storeName.toUpperCase()} CONNECT
           </p>
 
 
@@ -127,7 +127,7 @@ export default function Contact() {
           <p className="contact-intro">
             Whether you're looking for your next signature
             scent, checking an order, or simply curious
-            about PearlSkino BD, feel free to reach out.
+            about {storeSettings.storeName}, feel free to reach out.
           </p>
 
 
@@ -242,8 +242,7 @@ export default function Contact() {
           href="/shop"
           className="hero-button"
         >
-          Explore Collection
-          <span>â†’</span>
+          Explore Collection<span>&#8594;</span>
         </a>
 
       </section>

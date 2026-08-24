@@ -6,6 +6,8 @@ import { useProducts } from "../hooks/useProducts";
 import { useStore } from "../context/StoreContext";
 
 export default function Product() {
+  const { storeSettings } = useStore();
+  const brand = storeSettings?.storeName || "PearlSkino BD";
   const { id } = useParams();
 
   const [products] = useProducts();
@@ -42,12 +44,12 @@ export default function Product() {
           <div className="product-page-brand-logo">
             <img
               src="/logo.png"
-              alt="PearlSkino BD"
+              alt={brand}
             />
           </div>
 
           <p className="eyebrow">
-            PEARLSKINO BD
+            {brand.toUpperCase()}
           </p>
 
           <h1>
@@ -246,7 +248,7 @@ export default function Product() {
           <div className="product-page-brand-logo">
             <img
               src="/logo.png"
-              alt="PearlSkino BD"
+              alt={brand}
             />
           </div>
 
@@ -255,7 +257,7 @@ export default function Product() {
 
           <p className="product-detail-brand">
             {product.brand ||
-              "PEARLSKINO BD"}
+              "{brand.toUpperCase()}"}
           </p>
 
 

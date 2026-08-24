@@ -1,8 +1,11 @@
 
 import React from "react";
 import { Link } from "react-router-dom";
+import { useStore } from "../context/StoreContext";
 
 export default function About() {
+  const { storeSettings } = useStore();
+  const brand = storeSettings?.storeName || "PearlSkino BD";
   return (
     <main className="about-page">
 
@@ -30,13 +33,13 @@ export default function About() {
           <div className="about-hero-logo">
             <img
               src="/logo.png"
-              alt="PearlSkino BD"
+              alt={brand}
             />
           </div>
 
 
           <p className="eyebrow">
-            THE PEARLSKINO BD STORY
+            {brand.toUpperCase()} STORY
           </p>
 
 
@@ -48,7 +51,7 @@ export default function About() {
 
 
           <p className="about-hero-text">
-            PearlSkino BD is a curated beauty and fragrance
+            {brand} is a curated beauty and fragrance
             destination created for people who believe that
             the little details make all the difference.
           </p>
@@ -87,7 +90,7 @@ export default function About() {
           <div className="about-intro-copy">
 
             <p>
-              PearlSkino BD began with a simple idea:
+              {brand} began with a simple idea:
               discovering something beautiful should never
               feel ordinary.
             </p>
@@ -155,7 +158,7 @@ export default function About() {
             <p>
               We believe beauty begins with trust.
               Authentic products and honest presentation
-              are at the heart of PearlSkino.
+              are at the heart of {brand}.
             </p>
 
           </article>
@@ -222,7 +225,7 @@ export default function About() {
         </div>
 
         <p className="eyebrow">
-          THE PEARLSKINO PROMISE
+          {brand.toUpperCase()} PROMISE
         </p>
 
         <h2>
@@ -233,7 +236,7 @@ export default function About() {
 
         <p>
           From the first impression to the final detail,
-          we want your PearlSkino experience to feel
+          we want your {brand} experience to feel
           effortless, elegant and distinctly yours.
         </p>
 

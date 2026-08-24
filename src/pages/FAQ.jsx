@@ -5,7 +5,7 @@ const faqs = [
     category: "ORDERS",
     question: "How can I place an order?",
     answer:
-      "Choose your favorite product, add it to your cart, and continue through checkout. If you prefer personal assistance, you can also contact PearlSkino BD directly.",
+      "Choose your favorite product, add it to your cart, and continue through checkout. If you prefer personal assistance, you can also contact {brand} directly.",
   },
   {
     category: "AUTHENTICITY",
@@ -130,10 +130,10 @@ export default function FAQ() {
             <div className="faq-hero-logo">
   <img
     src="/logo.png"
-    alt="PearlSkino BD"
+    alt={brand}
   />
 </div>
-          PEARLSKINO HELP CENTER
+          {brand.toUpperCase()} HELP CENTER
         </span>
 
         <h1
@@ -496,7 +496,7 @@ export default function FAQ() {
             }}
           >
             Didn't find what you were looking for?
-            Reach out to PearlSkino BD and we'll be
+            Reach out to {brand} and we'll be
             happy to help.
           </p>
 
@@ -523,7 +523,7 @@ export default function FAQ() {
                 "0 10px 25px rgba(100,80,100,.08)",
             }}
           >
-            Contact PearlSkino
+            Contact {brand}
             <span>↗</span>
           </a>
         </div>

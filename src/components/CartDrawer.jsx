@@ -9,11 +9,13 @@ export default function CartDrawer() {
     subtotal,
     shipping,
     total,
+    storeSettings,
     changeQty,
     removeFromCart,
   } = useStore();
 
-  if (!cart || cart.length === 0) {
+    const brand = storeSettings?.storeName || "PearlSkino BD";
+if (!cart || cart.length === 0) {
     return (
       <aside className="cart-drawer">
 
@@ -29,7 +31,7 @@ export default function CartDrawer() {
         <div className="cart-drawer-header">
           <div>
             <p className="eyebrow">
-              PEARLSKINO BD
+              {brand.toUpperCase()}
             </p>
 
             <h2>
@@ -93,7 +95,7 @@ export default function CartDrawer() {
         <div>
 
           <p className="eyebrow">
-            PEARLSKINO BD
+            {brand.toUpperCase()}
           </p>
 
           <h2>
@@ -153,7 +155,7 @@ export default function CartDrawer() {
 
                 <small>
                   {item.brand ||
-                    "PEARLSKINO BD"}
+                    "{brand.toUpperCase()}"}
                 </small>
 
                 <strong>

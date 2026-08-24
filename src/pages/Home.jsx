@@ -1,8 +1,11 @@
 
 import { Link } from "react-router-dom";
 import { useProducts } from "../hooks/useProducts";
+import { useStore } from "../context/StoreContext";
 
 export default function Home() {
+  const { storeSettings } = useStore();
+  const brand = storeSettings?.storeName || "PearlSkino BD";
   const [products, , loading] = useProducts();
 
   const featuredProducts = products
@@ -58,13 +61,13 @@ export default function Home() {
           <div className="home-hero-logo">
             <img
               src="/logo.png"
-              alt="PearlSkino BD"
+              alt={brand}
             />
           </div>
 
 
           <p className="eyebrow">
-            CURATED BEAUTY • PEARLSKINO BD
+            CURATED BEAUTY • {brand.toUpperCase()}
           </p>
 
 
@@ -181,7 +184,7 @@ export default function Home() {
                   <div className="home-product-info">
 
                     <span>
-                      {product.brand || "PearlSkino BD"}
+                      {product.brand || brand}
                     </span>
 
                     <h3>
