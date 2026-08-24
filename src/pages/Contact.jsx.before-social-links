@@ -133,67 +133,7 @@ export default function Contact() {
 
           <div className="contact-methods">
 
-                      <div className="contact-social-actions">
-
-            {storeSettings.messengerUrl && (
-              <a
-                href={storeSettings.messengerUrl}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="contact-social-button messenger-button"
-              >
-                <span className="contact-social-icon">
-                  💬
-                </span>
-
-                <span className="contact-social-copy">
-                  <strong>
-                    Message us on Messenger
-                  </strong>
-
-                  <small>
-                    Fastest way to reach us
-                  </small>
-                </span>
-
-                <span className="contact-social-arrow">
-                  →
-                </span>
-              </a>
-            )}
-
-            {storeSettings.whatsapp && (
-              <a
-                href={`https://wa.me/${String(
-                  storeSettings.whatsapp
-                ).replace(/\D/g, "")}`}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="contact-social-button whatsapp-button"
-              >
-                <span className="contact-social-icon">
-                  ◉
-                </span>
-
-                <span className="contact-social-copy">
-                  <strong>
-                    Chat with us on WhatsApp
-                  </strong>
-
-                  <small>
-                    Quick support & orders
-                  </small>
-                </span>
-
-                <span className="contact-social-arrow">
-                  →
-                </span>
-              </a>
-            )}
-
-          </div>
-
-<div className="contact-method">
+            <div className="contact-method">
 
               <div className="contact-method-icon">
                 &#10022;
@@ -310,7 +250,6 @@ export default function Contact() {
     </main>
   );
 }
-
 
 
 

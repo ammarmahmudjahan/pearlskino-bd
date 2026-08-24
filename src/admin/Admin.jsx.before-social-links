@@ -1853,49 +1853,6 @@ function SettingsPage() {
                   placeholder="hello@example.com"
                 />
               </label>
-              <label>
-                Messenger URL
-
-                <input
-                  type="url"
-                  name="messengerUrl"
-                  value={
-                    settings.messengerUrl || ""
-                  }
-                  onChange={
-                    handleChange
-                  }
-                  placeholder="https://m.me/yourpage"
-                />
-
-                <small className="settings-help">
-                  Enter your Facebook Messenger page URL.
-                </small>
-
-              </label>
-
-
-              <label>
-                WhatsApp Number
-
-                <input
-                  type="text"
-                  name="whatsapp"
-                  value={
-                    settings.whatsapp || ""
-                  }
-                  onChange={
-                    handleChange
-                  }
-                  placeholder="8801577100162"
-                />
-
-                <small className="settings-help">
-                  Use international format without + or spaces.
-                </small>
-
-              </label>
-
 
             </div>
 
@@ -2829,7 +2786,6 @@ export default function Admin() {
 
   );
 }
-
 
 
 

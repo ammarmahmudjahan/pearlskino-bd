@@ -155,18 +155,6 @@ app.put(
             ""
           ),
 
-        messengerUrl:
-          String(
-            settings.messengerUrl ||
-            ""
-          ),
-
-        whatsapp:
-          String(
-            settings.whatsapp ||
-            ""
-          ),
-
         deliveryCharge:
           Number(
             settings.deliveryCharge || 0
@@ -688,6 +676,5 @@ app.listen(
 
   }
 );
-
 
 
