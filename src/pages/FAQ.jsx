@@ -1,4 +1,5 @@
-import React, { useState } from "react";
+﻿import React, { useState } from "react";
+import { useStore } from "../context/StoreContext";
 
 const faqs = [
   {
@@ -51,9 +52,20 @@ const faqs = [
   },
 ];
 
-const categories = ["ALL", "ORDERS", "DELIVERY", "PRODUCTS", "AUTHENTICITY"];
+const categories = [
+  "ALL",
+  "ORDERS",
+  "DELIVERY",
+  "PRODUCTS",
+  "AUTHENTICITY",
+  "PICKUP",
+];
 
 export default function FAQ() {
+  const { storeSettings } = useStore();
+
+  const brand = storeSettings?.storeName || "PearlSkino BD";
+
   const [openIndex, setOpenIndex] = useState(null);
   const [activeCategory, setActiveCategory] = useState("ALL");
 
@@ -63,7 +75,7 @@ export default function FAQ() {
       : faqs.filter((faq) => faq.category === activeCategory);
 
   const toggleFaq = (index) => {
-    setOpenIndex(openIndex === index ? null : index);
+    setOpenIndex((current) => (current === index ? null : index));
   };
 
   return (
@@ -74,10 +86,6 @@ export default function FAQ() {
         overflow: "hidden",
       }}
     >
-      {/* =====================================================
-          HERO
-      ===================================================== */}
-
       <section
         className="page-hero"
         style={{
@@ -85,8 +93,6 @@ export default function FAQ() {
           paddingBottom: "55px",
         }}
       >
-        {/* Decorative pearls */}
-
         <div
           aria-hidden="true"
           style={{
@@ -120,21 +126,19 @@ export default function FAQ() {
           }}
         />
 
-        <span
+        <div
           className="eyebrow"
           style={{
             position: "relative",
             zIndex: 1,
           }}
         >
-            <div className="faq-hero-logo">
-  <img
-    src="/logo.png"
-    alt={brand}
-  />
-</div>
+          <div className="faq-hero-logo">
+            <img src="/logo.png" alt={brand} />
+          </div>
+
           {brand.toUpperCase()} HELP CENTER
-        </span>
+        </div>
 
         <h1
           style={{
@@ -160,10 +164,6 @@ export default function FAQ() {
           authenticity and finding the right product for you.
         </p>
       </section>
-
-      {/* =====================================================
-          CATEGORY FILTER
-      ===================================================== */}
 
       <section
         style={{
@@ -202,8 +202,7 @@ export default function FAQ() {
                 boxShadow: active
                   ? "0 8px 25px rgba(130,105,145,.12)"
                   : "none",
-                transition:
-                  "all .25s ease",
+                transition: "all .25s ease",
               }}
             >
               {category}
@@ -211,10 +210,6 @@ export default function FAQ() {
           );
         })}
       </section>
-
-      {/* =====================================================
-          FAQ CONTENT
-      ===================================================== */}
 
       <section
         className="faq-list"
@@ -251,12 +246,9 @@ export default function FAQ() {
                   boxShadow: isOpen
                     ? "0 18px 45px rgba(110,85,120,.10)"
                     : "0 5px 22px rgba(100,80,100,.035)",
-                  transition:
-                    "all .3s ease",
+                  transition: "all .3s ease",
                 }}
               >
-                {/* Soft decorative glow */}
-
                 {isOpen && (
                   <div
                     aria-hidden="true"
@@ -283,8 +275,7 @@ export default function FAQ() {
                     zIndex: 1,
                     width: "100%",
                     display: "grid",
-                    gridTemplateColumns:
-                      "55px 1fr 42px",
+                    gridTemplateColumns: "55px 1fr 42px",
                     alignItems: "center",
                     gap: "14px",
                     padding: "22px 24px",
@@ -295,8 +286,6 @@ export default function FAQ() {
                     cursor: "pointer",
                   }}
                 >
-                  {/* Number */}
-
                   <span
                     style={{
                       width: "38px",
@@ -315,8 +304,6 @@ export default function FAQ() {
                   >
                     {String(index + 1).padStart(2, "0")}
                   </span>
-
-                  {/* Question */}
 
                   <span>
                     <small
@@ -344,8 +331,6 @@ export default function FAQ() {
                     </strong>
                   </span>
 
-                  {/* Plus */}
-
                   <span
                     aria-hidden="true"
                     style={{
@@ -355,51 +340,36 @@ export default function FAQ() {
                       alignItems: "center",
                       justifyContent: "center",
                       borderRadius: "50%",
-                      border:
-                        "1px solid rgba(120,100,120,.12)",
-                      background:
-                        "rgba(255,255,255,.45)",
+                      border: "1px solid rgba(120,100,120,.12)",
+                      background: "rgba(255,255,255,.45)",
                       fontSize: "22px",
                       fontWeight: 300,
-                      transform: isOpen
-                        ? "rotate(45deg)"
-                        : "rotate(0deg)",
-                      transition:
-                        "transform .3s ease",
+                      transform: isOpen ? "rotate(45deg)" : "rotate(0deg)",
+                      transition: "transform .3s ease",
                     }}
                   >
                     +
                   </span>
                 </button>
 
-                {/* Answer */}
-
                 <div
                   style={{
                     display: "grid",
-                    gridTemplateRows: isOpen
-                      ? "1fr"
-                      : "0fr",
-                    transition:
-                      "grid-template-rows .35s ease",
+                    gridTemplateRows: isOpen ? "1fr" : "0fr",
+                    transition: "grid-template-rows .35s ease",
                   }}
                 >
-                  <div
-                    style={{
-                      overflow: "hidden",
-                    }}
-                  >
+                  <div style={{ overflow: "hidden" }}>
                     <p
                       style={{
-                        margin: "0",
-                        padding:
-                          "0 80px 25px 93px",
+                        margin: 0,
+                        padding: "0 80px 25px 93px",
                         fontSize: "14px",
                         lineHeight: 1.8,
                         opacity: 0.68,
                       }}
                     >
-                      {faq.answer}
+                      {faq.answer.replaceAll("{brand}", brand)}
                     </p>
                   </div>
                 </div>
@@ -408,10 +378,6 @@ export default function FAQ() {
           })}
         </div>
       </section>
-
-      {/* =====================================================
-          BOTTOM CTA
-      ===================================================== */}
 
       <section
         style={{
@@ -429,14 +395,10 @@ export default function FAQ() {
             textAlign: "center",
             background:
               "linear-gradient(135deg, rgba(239,224,240,.72), rgba(249,227,234,.72), rgba(228,237,224,.60))",
-            border:
-              "1px solid rgba(255,255,255,.75)",
-            boxShadow:
-              "0 20px 60px rgba(110,85,120,.10)",
+            border: "1px solid rgba(255,255,255,.75)",
+            boxShadow: "0 20px 60px rgba(110,85,120,.10)",
           }}
         >
-          {/* Decorative sparkle */}
-
           <span
             aria-hidden="true"
             style={{
@@ -495,9 +457,8 @@ export default function FAQ() {
               opacity: 0.65,
             }}
           >
-            Didn't find what you were looking for?
-            Reach out to {brand} and we'll be
-            happy to help.
+            Didn't find what you were looking for? Reach out to {brand} and
+            we'll be happy to help.
           </p>
 
           <a
@@ -517,14 +478,12 @@ export default function FAQ() {
               fontSize: "12px",
               fontWeight: 600,
               letterSpacing: ".04em",
-              border:
-                "1px solid rgba(255,255,255,.8)",
-              boxShadow:
-                "0 10px 25px rgba(100,80,100,.08)",
+              border: "1px solid rgba(255,255,255,.8)",
+              boxShadow: "0 10px 25px rgba(100,80,100,.08)",
             }}
           >
             Contact {brand}
-            <span>↗</span>
+            <span aria-hidden="true">↗</span>
           </a>
         </div>
       </section>
