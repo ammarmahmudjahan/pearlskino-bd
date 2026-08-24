@@ -22,8 +22,7 @@ const DEFAULT_STORE_SETTINGS = {
   phone: "01577100162",
   email: "ammageddonmadmax@gmail.com",
   messengerUrl: "",
-  whatsappNumber: "",
-  whatsappEnabled: true,
+  whatsapp: "",
   deliveryCharge: 99,
   freeDeliveryThreshold: 0,
   codEnabled: true,
@@ -47,23 +46,9 @@ async function fetchStoreSettings() {
     throw new Error(data.error || "Unable to load store settings.");
   }
 
-  const apiSettings = data.settings || {};
-
   return {
     ...DEFAULT_STORE_SETTINGS,
-    ...apiSettings,
-
-    messengerUrl:
-      apiSettings.messengerUrl || "",
-
-    whatsappNumber:
-      String(
-        apiSettings.whatsappNumber ||
-        apiSettings.whatsapp ||
-        ""
-      ).trim(),
-    whatsappEnabled:
-      apiSettings.whatsappEnabled !== false,
+    ...(data.settings || {}),
   };
 }
 
@@ -443,11 +428,6 @@ export function useStore() {
 
   return context;
 }
-
-
-
-
-
 
 
 

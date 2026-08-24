@@ -1,4 +1,6 @@
 ﻿import React, { useState } from "react";
+import { GOOGLE_FORMS } from "../config/googleForms";
+import { submitToGoogleForm } from "../utils/googleForms";
 import { useStore } from "../context/StoreContext";
 
 const faqs = [
@@ -67,12 +69,52 @@ export default function FAQ() {
   const brand = storeSettings?.storeName || "PearlSkino BD";
 
   const [openIndex, setOpenIndex] = useState(null);
+  const [submitted, setSubmitted] = useState(false);
+  const [sending, setSending] = useState(false);
   const [activeCategory, setActiveCategory] = useState("ALL");
 
   const filteredFaqs =
     activeCategory === "ALL"
       ? faqs
       : faqs.filter((faq) => faq.category === activeCategory);
+
+  async function handleSubmit(event) {
+    event.preventDefault();
+
+    if (sending) {
+      return;
+    }
+
+    setSending(true);
+
+    const form = event.currentTarget;
+    const formData = new FormData(form);
+
+    const result = await submitToGoogleForm(
+      GOOGLE_FORMS.contact.url,
+      {
+        [GOOGLE_FORMS.contact.fields.name]:
+          formData.get("name"),
+
+        [GOOGLE_FORMS.contact.fields.phone]:
+          formData.get("phone"),
+
+        [GOOGLE_FORMS.contact.fields.message]:
+          formData.get("message"),
+      }
+    );
+
+    setSending(false);
+
+    if (result.success) {
+      setSubmitted(true);
+      form.reset();
+    } else {
+      alert(
+        "We couldn't send your message. Please try again."
+      );
+    }
+  }
 
   const toggleFaq = (index) => {
     setOpenIndex((current) => (current === index ? null : index));
@@ -461,32 +503,120 @@ export default function FAQ() {
             we'll be happy to help.
           </p>
 
-          <a
-            href="https://m.me/pearlskinobd"
-            target="_blank"
-            rel="noreferrer"
-            style={{
-              display: "inline-flex",
-              alignItems: "center",
-              justifyContent: "center",
-              gap: "9px",
-              padding: "13px 23px",
-              borderRadius: "999px",
-              background: "rgba(255,255,255,.72)",
-              color: "inherit",
-              textDecoration: "none",
-              fontSize: "12px",
-              fontWeight: 600,
-              letterSpacing: ".04em",
-              border: "1px solid rgba(255,255,255,.8)",
-              boxShadow: "0 10px 25px rgba(100,80,100,.08)",
-            }}
-          >
-            Contact {brand}
-            <span aria-hidden="true">↗</span>
-          </a>
+          {!submitted ? (
+            <form
+              onSubmit={handleSubmit}
+              className="contact-form"
+              style={{
+                maxWidth: "620px",
+                margin: "30px auto 0",
+                textAlign: "left",
+              }}
+            >
+              <div
+                className="contact-form-grid"
+                style={{
+                  display: "grid",
+                  gridTemplateColumns:
+                    "repeat(2, minmax(0, 1fr))",
+                  gap: "14px",
+                }}
+              >
+                <div className="contact-field">
+                  <label htmlFor="faq-name">
+                    NAME
+                  </label>
+
+                  <input
+                    id="faq-name"
+                    name="name"
+                    type="text"
+                    placeholder="Your name"
+                    required
+                  />
+                </div>
+
+                <div className="contact-field">
+                  <label htmlFor="faq-phone">
+                    PHONE
+                  </label>
+
+                  <input
+                    id="faq-phone"
+                    name="phone"
+                    type="tel"
+                    placeholder="01XXXXXXXXX"
+                    required
+                  />
+                </div>
+              </div>
+
+              <div
+                className="contact-field"
+                style={{
+                  marginTop: "14px",
+                }}
+              >
+                <label htmlFor="faq-message">
+                  MESSAGE
+                </label>
+
+                <textarea
+                  id="faq-message"
+                  name="message"
+                  rows="5"
+                  placeholder="How can we help?"
+                  required
+                />
+              </div>
+
+              <button
+                type="submit"
+                disabled={sending}
+                className="contact-submit"
+                style={{
+                  width: "100%",
+                  marginTop: "16px",
+                }}
+              >
+                {sending
+                  ? "Sending..."
+                  : "Send Message"}
+                <span aria-hidden="true">
+                  →
+                </span>
+              </button>
+            </form>
+          ) : (
+            <div
+              className="contact-success"
+              style={{
+                maxWidth: "620px",
+                margin: "30px auto 0",
+              }}
+            >
+              <div
+                className="contact-success-icon"
+                aria-hidden="true"
+              >
+                ✦
+              </div>
+
+              <h3>
+                Message received.
+              </h3>
+
+              <p>
+                Thank you for contacting {brand}.
+                We'll get back to you as soon as
+                possible.
+              </p>
+            </div>
+          )}
         </div>
       </section>
     </main>
   );
 }
+
+

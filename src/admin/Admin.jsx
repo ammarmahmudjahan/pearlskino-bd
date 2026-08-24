@@ -41,6 +41,8 @@ const DEFAULT_SETTINGS = {
   tagline: "Beauty, fragrance & self-care",
   phone: "",
   email: "",
+  messengerUrl: "",
+  whatsappNumber: "",
   deliveryCharge: 0,
   freeDeliveryThreshold: 0,
   codEnabled: true,
@@ -1880,9 +1882,9 @@ function SettingsPage() {
 
                 <input
                   type="text"
-                  name="whatsapp"
+                  name="whatsappNumber"
                   value={
-                    settings.whatsapp || ""
+                    settings.whatsappNumber || ""
                   }
                   onChange={
                     handleChange
@@ -2829,6 +2831,9 @@ export default function Admin() {
 
   );
 }
+
+
+
 
 
 

@@ -135,37 +135,10 @@ export default function Contact() {
 
                       <div className="contact-social-actions">
 
-            {storeSettings.messengerUrl && (
-              <a
-                href={storeSettings.messengerUrl}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="contact-social-button messenger-button"
-              >
-                <span className="contact-social-icon">
-                  💬
-                </span>
-
-                <span className="contact-social-copy">
-                  <strong>
-                    Message us on Messenger
-                  </strong>
-
-                  <small>
-                    Fastest way to reach us
-                  </small>
-                </span>
-
-                <span className="contact-social-arrow">
-                  →
-                </span>
-              </a>
-            )}
-
-            {storeSettings.whatsapp && (
+            {storeSettings.whatsappEnabled && storeSettings.whatsappNumber && (
               <a
                 href={`https://wa.me/${String(
-                  storeSettings.whatsapp
+                  storeSettings.whatsappNumber
                 ).replace(/\D/g, "")}`}
                 target="_blank"
                 rel="noopener noreferrer"
@@ -193,7 +166,12 @@ export default function Contact() {
 
           </div>
 
-<div className="contact-method">
+<a
+              href={storeSettings.messengerUrl || "#"}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="contact-method contact-method-link"
+            >
 
               <div className="contact-method-icon">
                 &#10022;
@@ -205,7 +183,7 @@ export default function Contact() {
                 <small>Fastest way to reach us</small>
               </div>
 
-            </div>
+            </a>
 
 
             <div className="contact-method">
@@ -310,6 +288,9 @@ export default function Contact() {
     </main>
   );
 }
+
+
+
 
 
 
