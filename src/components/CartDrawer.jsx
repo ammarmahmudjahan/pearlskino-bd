@@ -1,8 +1,9 @@
-import React from "react";
-import { Link } from "react-router-dom";
+﻿import React from "react";
+import { Link , useNavigate} from "react-router-dom";
 import { useStore } from "../context/StoreContext";
 
 export default function CartDrawer() {
+  const navigate = useNavigate();
   const {
     cart,
     count,
@@ -59,12 +60,7 @@ if (!cart || cart.length === 0) {
             and add it to your collection.
           </p>
 
-          <Link
-            to="/shop"
-            className="cart-drawer-shop"
-          >
-            Explore Collection
-          </Link>
+          <button type="button" className="cart-drawer-shop" onClick={() => { navigate("/shop"); setTimeout(() => window.scrollTo({ top: 0, left: 0, behavior: "smooth" }), 50); }}>Explore Collection</button>
 
         </div>
 
@@ -82,7 +78,7 @@ if (!cart || cart.length === 0) {
         <span>✧</span>
         <span>⋆</span>
         <span>✦</span>
-        <span>·</span>
+        <span>Â·</span>
       </div>
 
       <div className="cart-drawer-glow"></div>
@@ -299,3 +295,7 @@ if (!cart || cart.length === 0) {
     </aside>
   );
 }
+
+
+
+
