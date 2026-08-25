@@ -30,13 +30,13 @@ export default function Cart() {
           </div>
 
           <div className="cart-orbit">
-            <span>✦</span>
-            <span>✧</span>
-            <span>◇</span>
+            <span>âœ¦</span>
+            <span>âœ§</span>
+            <span>â—‡</span>
           </div>
 
           <p className="eyebrow">
-            {storeName.toUpperCase()} · YOUR COLLECTION
+            {storeName.toUpperCase()} Â· YOUR COLLECTION
           </p>
 
           <h1>
@@ -53,7 +53,7 @@ export default function Cart() {
             className="cart-luxury-button"
           >
             Discover the Collection
-            <span>→</span>
+            <span>â†’</span>
           </Link>
 
         </section>
@@ -76,7 +76,7 @@ export default function Cart() {
           </div>
 
           <p className="eyebrow">
-            {storeName.toUpperCase()} · YOUR COLLECTION
+            {storeName.toUpperCase()} Â· YOUR COLLECTION
           </p>
 
           <h1>
@@ -140,7 +140,7 @@ export default function Cart() {
                 )}
 
                 <p>
-                  ৳{Number(item.price || 0).toLocaleString()}
+                  à§³{Number(item.price || 0).toLocaleString()}
                 </p>
 
               </div>
@@ -151,15 +151,11 @@ export default function Cart() {
 
                   <button
                     type="button"
-                    onClick={() =>
-                      changeQty(
-                        item.id,
-                        Math.max(
-                          1,
-                          Number(item.qty || 1) - 1
-                        )
-                      )
-                    }
+                    onClick={() => {
+                      if (Number(item.qty || 1) > 1) {
+                        changeQty(item.id, -1);
+                      }
+                    }}
                     aria-label="Decrease quantity"
                   >
                     −
@@ -171,12 +167,9 @@ export default function Cart() {
 
                   <button
                     type="button"
-                    onClick={() =>
-                      changeQty(
-                        item.id,
-                        Number(item.qty || 0) + 1
-                      )
-                    }
+                    onClick={() => {
+                      changeQty(item.id, 1);
+                    }}
                     aria-label="Increase quantity"
                   >
                     +
@@ -185,7 +178,7 @@ export default function Cart() {
                 </div>
 
                 <strong>
-                  ৳{itemTotal.toLocaleString()}
+                  à§³{itemTotal.toLocaleString()}
                 </strong>
 
                 <button
@@ -209,7 +202,7 @@ export default function Cart() {
         <div className="cart-summary-row">
           <span>Subtotal</span>
           <strong>
-            ৳{Number(subtotal || 0).toLocaleString()}
+            à§³{Number(subtotal || 0).toLocaleString()}
           </strong>
         </div>
 
@@ -218,14 +211,14 @@ export default function Cart() {
           <strong>
             {Number(shipping || 0) === 0
               ? "Free"
-              : `৳${Number(shipping).toLocaleString()}`}
+              : `à§³${Number(shipping).toLocaleString()}`}
           </strong>
         </div>
 
         <div className="cart-summary-total">
           <span>Total</span>
           <strong>
-            ৳{Number(total || 0).toLocaleString()}
+            à§³{Number(total || 0).toLocaleString()}
           </strong>
         </div>
 
@@ -234,7 +227,7 @@ export default function Cart() {
           className="cart-luxury-button"
         >
           Proceed to Checkout
-          <span>→</span>
+          <span>â†’</span>
         </Link>
 
         <Link
@@ -249,11 +242,11 @@ export default function Cart() {
       <section className="cart-final-note">
 
         <div className="cart-final-pearl">
-          <span>✦</span>
+          <span>âœ¦</span>
         </div>
 
         <p>
-          Carefully packed · Beautifully delivered
+          Carefully packed Â· Beautifully delivered
         </p>
 
         <strong>
