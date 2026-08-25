@@ -5,22 +5,21 @@ import {
   useLocation,
 } from "react-router-dom";
 
-import { useEffect } from "react";
+import { lazy, Suspense, useEffect } from "react";
 
 import Header from "./components/Header";
 import Footer from "./components/Footer";
 import CartDrawer from "./components/CartDrawer";
 
-import Home from "./pages/Home";
-import Shop from "./pages/Shop";
-import Product from "./pages/Product";
-import Cart from "./pages/Cart";
-import Checkout from "./pages/Checkout";
-import About from "./pages/About";
-import Contact from "./pages/Contact";
-import FAQ from "./pages/FAQ";
-
-import Admin from "./admin/Admin";
+const Home = lazy(() => import("./pages/Home"));
+const Shop = lazy(() => import("./pages/Shop"));
+const Product = lazy(() => import("./pages/Product"));
+const Cart = lazy(() => import("./pages/Cart"));
+const Checkout = lazy(() => import("./pages/Checkout"));
+const About = lazy(() => import("./pages/About"));
+const Contact = lazy(() => import("./pages/Contact"));
+const FAQ = lazy(() => import("./pages/FAQ"));
+const Admin = lazy(() => import("./admin/Admin"));
 
 
 /* =========================================================
@@ -59,58 +58,66 @@ function AppShell() {
 
       {!isAdmin && <Header />}
 
-      <Routes>
+      <Suspense
+        fallback={
+          <div className="page-loading">
+            Loading...
+          </div>
+        }
+      >
+        <Routes>
 
-        <Route
-          path="/"
-          element={<Home />}
-        />
+          <Route
+            path="/"
+            element={<Home />}
+          />
 
-        <Route
-          path="/shop"
-          element={<Shop />}
-        />
+          <Route
+            path="/shop"
+            element={<Shop />}
+          />
 
-        <Route
-          path="/product/:id"
-          element={<Product />}
-        />
+          <Route
+            path="/product/:id"
+            element={<Product />}
+          />
 
-        <Route
-          path="/cart"
-          element={<Cart />}
-        />
+          <Route
+            path="/cart"
+            element={<Cart />}
+          />
 
-        <Route
-          path="/checkout"
-          element={<Checkout />}
-        />
+          <Route
+            path="/checkout"
+            element={<Checkout />}
+          />
 
-        <Route
-          path="/about"
-          element={<About />}
-        />
+          <Route
+            path="/about"
+            element={<About />}
+          />
 
-        <Route
-          path="/contact"
-          element={<Contact />}
-        />
+          <Route
+            path="/contact"
+            element={<Contact />}
+          />
 
-        <Route
-          path="/faq"
-          element={<FAQ />}
-        />
+          <Route
+            path="/faq"
+            element={<FAQ />}
+          />
 
-        <Route
-          path="/admin"
-          element={<Admin />}
-        />
+          <Route
+            path="/admin"
+            element={<Admin />}
+          />
 
-      </Routes>
+        </Routes>
+      </Suspense>
 
       {!isAdmin && <CartDrawer />}
-{!isAdmin && <Footer />}
-      
+      {!isAdmin && <Footer />}
+
     </>
   );
 }
@@ -127,5 +134,3 @@ export default function App() {
     </BrowserRouter>
   );
 }
-
-
