@@ -4,81 +4,74 @@ import { PRODUCTS } from "../data/products";
 
 /*
 |--------------------------------------------------------------------------
-| LOCAL ADMIN SERVER
+| PEARLSKINO PRODUCT API
 |--------------------------------------------------------------------------
 |
-| This server exists only on your own computer.
-| It is NOT used by the Vercel production website.
+| This is the SAME Google Apps Script Web App already used
+| for Store Settings, Orders, and Customers.
+|
+| Products now live in a "Products" sheet in that same
+| Google Sheet, so there is no local server, no git push,
+| and no rebuild involved. The admin panel talks to this
+| URL directly, from any device, and the storefront reads
+| from it on every page load.
 |
 */
 
-const API_URL = "http://localhost:3001/api/products";
+const API_URL =
+  "https://script.google.com/macros/s/AKfycbzgl2Fr8e17tQXDLvrylxYvFc0XkMhtsTsFOvJxdBwt8c2imYAUHrdx3ovk7rJOD4Eq/exec";
 
 /*
 |--------------------------------------------------------------------------
-| ENVIRONMENT
+| ADMIN TOKEN
 |--------------------------------------------------------------------------
 |
-| import.meta.env.DEV
-|
-| true  = npm run dev on your computer
-| false = Vercel production build
+| Same localStorage key the admin login already uses
+| (see src/admin/Admin.jsx -> ADMIN_TOKEN_KEY).
 |
 */
 
-const IS_DEVELOPMENT = import.meta.env.DEV;
+const ADMIN_TOKEN_KEY = "pearlskino_admin_token";
+
+function getStoredAdminToken() {
+  try {
+    return localStorage.getItem(ADMIN_TOKEN_KEY) || "";
+  } catch (error) {
+    return "";
+  }
+}
 
 /*
 |--------------------------------------------------------------------------
 | LOAD PRODUCTS
 |--------------------------------------------------------------------------
 |
-| Production:
-|   Always use the PRODUCTS bundled into the Vercel build.
+| Always fetch the live catalog from the Apps Script API,
+| for both the storefront and the admin panel, in both
+| development and production.
 |
-| Development:
-|   Try the local admin server first.
-|   If unavailable, use PRODUCTS from products.js.
+| If the request fails (offline, API down, etc.) we fall
+| back to the bundled PRODUCTS in src/data/products.js so
+| the shop never renders completely empty.
 |
 */
 
 export function useProducts() {
   const [products, setProductsState] = useState(PRODUCTS);
-
-  const [loading, setLoading] = useState(
-    IS_DEVELOPMENT
-  );
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    /*
-    |--------------------------------------------------------------------------
-    | PRODUCTION
-    |--------------------------------------------------------------------------
-    |
-    | On Vercel there is no localhost:3001.
-    |
-    | The correct product data is already bundled into
-    | the Vite production build.
-    |
-    */
-
-    if (!IS_DEVELOPMENT) {
-      setProductsState(PRODUCTS);
-      setLoading(false);
-      return;
-    }
-
-    /*
-    |--------------------------------------------------------------------------
-    | DEVELOPMENT / LOCAL ADMIN
-    |--------------------------------------------------------------------------
-    */
-
     let cancelled = false;
 
     async function loadProducts() {
       try {
-        const response = await fetch(API_URL);
+        const response = await fetch(
+          `${API_URL}?action=products`,
+          {
+            method: "GET",
+            cache: "no-store",
+          }
+        );
 
         if (!response.ok) {
           throw new Error(
@@ -88,56 +81,30 @@ export function useProducts() {
 
         const data = await response.json();
 
-        if (
-          !data.success ||
-          typeof data.file !== "string"
-        ) {
+        if (!data.success || !Array.isArray(data.products)) {
           throw new Error(
-            "Invalid product server response"
-          );
-        }
-
-        /*
-        |--------------------------------------------------------------------------
-        | Extract PRODUCTS from products.js
-        |--------------------------------------------------------------------------
-        */
-
-        const match = data.file.match(
-          /export\s+const\s+PRODUCTS\s*=\s*(\[[\s\S]*?\])\s*;?\s*(?:export\s+const|$)/
-        );
-
-        if (!match) {
-          throw new Error(
-            "Could not find PRODUCTS array in products.js"
-          );
-        }
-
-        const parsedProducts = Function(
-          `"use strict"; return (${match[1]})`
-        )();
-
-        if (!Array.isArray(parsedProducts)) {
-          throw new Error(
-            "PRODUCTS is not an array."
+            "Invalid product API response"
           );
         }
 
         if (!cancelled) {
-          setProductsState(parsedProducts);
+          /*
+           * An empty catalog (brand new Products sheet
+           * that hasn't been seeded yet) falls back to
+           * the bundled list instead of showing nothing.
+           */
+          setProductsState(
+            data.products.length > 0
+              ? data.products
+              : PRODUCTS
+          );
         }
 
       } catch (error) {
         console.warn(
-          "Local product server unavailable. Using products.js.",
+          "Live product API unavailable. Using bundled products.js.",
           error
         );
-
-        /*
-        |--------------------------------------------------------------------------
-        | FALLBACK
-        |--------------------------------------------------------------------------
-        */
 
         if (!cancelled) {
           setProductsState(PRODUCTS);
@@ -160,12 +127,11 @@ export function useProducts() {
 
   /*
   |--------------------------------------------------------------------------
-  | UPDATE PRODUCTS
+  | LOCAL STATE UPDATE
   |--------------------------------------------------------------------------
   |
-  | Used by the local admin.
-  |
-  | We intentionally DO NOT use localStorage.
+  | Used by the admin panel for optimistic UI updates
+  | before/while publishProducts() persists the change.
   |
   */
 
@@ -180,11 +146,7 @@ export function useProducts() {
     });
   }
 
-  return [
-    products,
-    setProducts,
-    loading,
-  ];
+  return [products, setProducts, loading];
 }
 
 /*
@@ -192,16 +154,10 @@ export function useProducts() {
 | PUBLISH PRODUCTS
 |--------------------------------------------------------------------------
 |
-| The admin sends the complete product array to:
-|
-|   localhost:3001
-|
-| The local server writes it to:
-|
-|   src/data/products.js
-|
-| After that your Publish All Changes BAT commits
-| and pushes the changed file to GitHub.
+| The admin sends the COMPLETE product array to the Apps
+| Script API, which overwrites the "Products" sheet in one
+| shot. No local server, no git, no rebuild — the storefront
+| picks it up the next time it fetches ?action=products.
 |
 */
 
@@ -213,29 +169,26 @@ export async function publishProducts(products) {
     };
   }
 
-  /*
-  |--------------------------------------------------------------------------
-  | Publishing is only possible from the local admin.
-  |--------------------------------------------------------------------------
-  */
+  const token = getStoredAdminToken();
 
-  if (!IS_DEVELOPMENT) {
+  if (!token) {
     return {
       success: false,
-      error:
-        "Product publishing is only available in local development.",
+      error: "Admin session is missing. Please log in again.",
     };
   }
 
   try {
     const response = await fetch(API_URL, {
-      method: "PUT",
+      method: "POST",
 
       headers: {
-        "Content-Type": "application/json",
+        "Content-Type": "text/plain;charset=utf-8",
       },
 
       body: JSON.stringify({
+        action: "updateProducts",
+        token,
         products,
       }),
     });
@@ -249,9 +202,7 @@ export async function publishProducts(products) {
       );
     }
 
-    console.log(
-      "PearlSkino products published successfully."
-    );
+    console.log("PearlSkino products published successfully.");
 
     return {
       success: true,
@@ -259,16 +210,85 @@ export async function publishProducts(products) {
     };
 
   } catch (error) {
-    console.error(
-      "PearlSkino product publishing failed:",
-      error
-    );
+    console.error("PearlSkino product publishing failed:", error);
 
     return {
       success: false,
-      error:
-        error?.message ||
-        "Unknown publishing error.",
+      error: error?.message || "Unknown publishing error.",
+    };
+  }
+}
+
+/*
+|--------------------------------------------------------------------------
+| UPLOAD PRODUCT IMAGE
+|--------------------------------------------------------------------------
+|
+| Sends a base64 image (from "Upload from PC", which also
+| works for a phone's camera/gallery picker) to the Apps
+| Script API. The API stores it in a Google Drive folder
+| and returns a public, hotlinkable URL — which is what
+| gets saved as the product's `image` field.
+|
+| The plain "paste an image URL" option in ProductManager
+| still works exactly as before and does not call this.
+|
+*/
+
+export async function uploadProductImage(dataUrl, fileName, mimeType) {
+  if (!dataUrl) {
+    return {
+      success: false,
+      error: "No image data provided.",
+    };
+  }
+
+  const token = getStoredAdminToken();
+
+  if (!token) {
+    return {
+      success: false,
+      error: "Admin session is missing. Please log in again.",
+    };
+  }
+
+  try {
+    const response = await fetch(API_URL, {
+      method: "POST",
+
+      headers: {
+        "Content-Type": "text/plain;charset=utf-8",
+      },
+
+      body: JSON.stringify({
+        action: "uploadProductImage",
+        token,
+        image: dataUrl,
+        fileName,
+        mimeType,
+      }),
+    });
+
+    const data = await response.json();
+
+    if (!response.ok || !data.success) {
+      throw new Error(
+        data.error ||
+          `Image upload failed with status ${response.status}`
+      );
+    }
+
+    return {
+      success: true,
+      url: data.url,
+    };
+
+  } catch (error) {
+    console.error("PearlSkino image upload failed:", error);
+
+    return {
+      success: false,
+      error: error?.message || "Unknown upload error.",
     };
   }
 }
