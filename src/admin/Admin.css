@@ -1541,3 +1541,165 @@
     font-size: 0.8rem;
   }
 }
+
+
+
+/* =========================================================
+   ADMIN MOBILE MENU FIX ? VISIBILITY ONLY
+   ========================================================= */
+
+.admin-mobile-menu-button {
+  display: none !important;
+}
+
+.admin-mobile-overlay {
+  display: none !important;
+}
+
+@media screen and (max-width: 900px) {
+
+  .admin-mobile-menu-button {
+    display: flex !important;
+    position: fixed !important;
+    top: 16px !important;
+    left: 16px !important;
+    z-index: 99999 !important;
+
+    width: 44px !important;
+    height: 44px !important;
+    min-width: 44px !important;
+    min-height: 44px !important;
+
+    padding: 0 !important;
+    margin: 0 !important;
+
+    align-items: center !important;
+    justify-content: center !important;
+    flex-direction: column !important;
+    gap: 5px !important;
+
+    border: 0 !important;
+    border-radius: 12px !important;
+    cursor: pointer !important;
+
+    background: rgba(255, 255, 255, 0.95) !important;
+    color: #222 !important;
+    box-shadow: 0 6px 20px rgba(0, 0, 0, 0.15) !important;
+  }
+
+  .admin-mobile-menu-button span {
+    display: block !important;
+    width: 21px !important;
+    height: 2px !important;
+    min-height: 2px !important;
+
+    margin: 0 !important;
+    padding: 0 !important;
+
+    background: #222 !important;
+    border-radius: 2px !important;
+  }
+
+  .admin-mobile-overlay {
+    display: block !important;
+    position: fixed !important;
+    inset: 0 !important;
+    z-index: 99998 !important;
+
+    width: 100% !important;
+    height: 100% !important;
+
+    padding: 0 !important;
+    margin: 0 !important;
+
+    border: 0 !important;
+    background: rgba(0, 0, 0, 0.25) !important;
+  }
+
+  .admin-sidebar {
+    position: fixed !important;
+    top: 0 !important;
+    left: 0 !important;
+    bottom: 0 !important;
+
+    z-index: 99999 !important;
+
+    transform: translateX(-105%) !important;
+    transition: transform 0.25s ease !important;
+  }
+
+  .admin-sidebar.mobile-open {
+    transform: translateX(0) !important;
+  }
+
+  .admin-main {
+    width: 100% !important;
+    min-width: 0 !important;
+  }
+
+  .admin-topbar {
+    padding-left: 76px !important;
+  }
+
+  .admin-topbar-actions {
+    display: flex !important;
+    align-items: center !important;
+    justify-content: flex-end !important;
+    gap: 10px !important;
+    flex-wrap: wrap !important;
+    min-width: 0 !important;
+  }
+
+  .admin-topbar-actions .admin-view-store,
+  .admin-topbar-actions .admin-logout-button {
+    position: static !important;
+    flex: 0 1 auto !important;
+    white-space: nowrap !important;
+  }
+}
+
+/* =========================================================
+   ADMIN MOBILE SIDEBAR ? OPEN STATE FIX ONLY
+   ========================================================= */
+
+@media screen and (max-width: 900px) {
+
+  .admin-sidebar {
+    display: flex !important;
+    visibility: visible !important;
+    opacity: 1 !important;
+
+    position: fixed !important;
+    top: 0 !important;
+    left: 0 !important;
+    bottom: 0 !important;
+
+    width: min(300px, 82vw) !important;
+    max-width: 300px !important;
+    height: 100vh !important;
+
+    z-index: 100000 !important;
+
+    transform: translate3d(-110%, 0, 0) !important;
+    transition: transform 0.25s ease !important;
+
+    overflow-y: auto !important;
+    overflow-x: hidden !important;
+  }
+
+  .admin-sidebar.mobile-open {
+    display: flex !important;
+    visibility: visible !important;
+    opacity: 1 !important;
+
+    transform: translate3d(0, 0, 0) !important;
+  }
+
+  .admin-mobile-overlay {
+    z-index: 99999 !important;
+  }
+
+  .admin-mobile-menu-button {
+    z-index: 100001 !important;
+  }
+}

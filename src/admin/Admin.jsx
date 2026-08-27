@@ -2177,6 +2177,12 @@ function SettingsPage() {
 export default function Admin() {
 
   const [
+    mobileMenuOpen,
+    setMobileMenuOpen,
+  ] = useState(false);
+
+
+  const [
     authenticated,
     setAuthenticated,
   ] = useState(false);
@@ -2524,7 +2530,30 @@ export default function Admin() {
 
     <div className="admin">
 
-      <aside className="admin-sidebar">
+      <button
+        type="button"
+        className={"admin-mobile-menu-button " + (mobileMenuOpen ? "open" : "")}
+        aria-label="Toggle admin menu"
+        aria-expanded={mobileMenuOpen}
+        onClick={() => setMobileMenuOpen(current => !current)}
+      >
+        <span></span>
+        <span></span>
+        <span></span>
+      </button>
+
+      {mobileMenuOpen && (
+        <button
+          type="button"
+          className="admin-mobile-overlay"
+          aria-label="Close admin menu"
+          onClick={() => setMobileMenuOpen(false)}
+        />
+      )}
+
+      <aside
+        className={"admin-sidebar " + (mobileMenuOpen ? "mobile-open" : "")}
+      >
 
         <div className="admin-brand">
 
@@ -2551,6 +2580,7 @@ export default function Admin() {
               setActivePage(
                 "dashboard"
               );
+              setMobileMenuOpen(false);
             }}
           >
             Dashboard
@@ -2569,6 +2599,7 @@ export default function Admin() {
               setActivePage(
                 "products"
               );
+              setMobileMenuOpen(false);
             }}
           >
             Products
@@ -2587,6 +2618,7 @@ export default function Admin() {
               setActivePage(
                 "orders"
               );
+              setMobileMenuOpen(false);
             }}
           >
             Orders
@@ -2612,6 +2644,7 @@ export default function Admin() {
               setActivePage(
                 "customers"
               );
+              setMobileMenuOpen(false);
             }}
           >
             Customers
@@ -2630,6 +2663,7 @@ export default function Admin() {
               setActivePage(
                 "settings"
               );
+              setMobileMenuOpen(false);
             }}
           >
             Settings
@@ -2648,6 +2682,7 @@ export default function Admin() {
               setActivePage(
                 "security"
               );
+              setMobileMenuOpen(false);
             }}
           >
             Security
