@@ -10,7 +10,7 @@ export default function Product() {
   const brand = storeSettings?.storeName || "PearlSkino BD";
   const { id } = useParams();
 
-  const [products, , loading] = useProducts();
+  const [products] = useProducts();
 
   const {
     addToCart,
@@ -31,32 +31,9 @@ export default function Product() {
   );
 
 
-  useEffect(() => {
-    setQuantity(1);
-    setAdded(false);
-  }, [id]);
-
   /* =========================
      PRODUCT NOT FOUND
   ========================== */
-
-  if (loading) {
-    return (
-      <main className="product-page">
-        <section className="product-not-found">
-          <p className="eyebrow">
-            {brand.toUpperCase()}
-          </p>
-
-          <h1>Loading product...</h1>
-
-          <p>
-            Please wait while we load the product details.
-          </p>
-        </section>
-      </main>
-    );
-  }
 
   if (!product) {
     return (
@@ -132,6 +109,15 @@ export default function Product() {
   );
 
 
+  /* =========================
+     RESET QUANTITY WHEN
+     PRODUCT CHANGES
+  ========================== */
+
+  useEffect(() => {
+    setQuantity(1);
+    setAdded(false);
+  }, [id]);
 
 
   /* =========================
@@ -270,7 +256,8 @@ export default function Product() {
           {/* BRAND */}
 
           <p className="product-detail-brand">
-            {product.brand || brand.toUpperCase()}
+            {product.brand ||
+              "{brand.toUpperCase()}"}
           </p>
 
 
@@ -534,6 +521,3 @@ export default function Product() {
     </main>
   );
 }
-
-
-

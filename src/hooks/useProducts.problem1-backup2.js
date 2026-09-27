@@ -93,7 +93,11 @@ export function useProducts() {
            * that hasn't been seeded yet) falls back to
            * the bundled list instead of showing nothing.
            */
-          setProductsState(data.products);
+          setProductsState(
+            data.products.length > 0
+              ? data.products
+              : PRODUCTS
+          );
         }
 
       } catch (error) {
@@ -103,7 +107,7 @@ export function useProducts() {
         );
 
         if (!cancelled) {
-          setProductsState([]);
+          setProductsState(PRODUCTS);
         }
 
       } finally {
@@ -288,6 +292,4 @@ export async function uploadProductImage(dataUrl, fileName, mimeType) {
     };
   }
 }
-
-
 

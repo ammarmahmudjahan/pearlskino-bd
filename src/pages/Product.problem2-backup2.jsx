@@ -31,11 +31,6 @@ export default function Product() {
   );
 
 
-  useEffect(() => {
-    setQuantity(1);
-    setAdded(false);
-  }, [id]);
-
   /* =========================
      PRODUCT NOT FOUND
   ========================== */
@@ -132,6 +127,15 @@ export default function Product() {
   );
 
 
+  /* =========================
+     RESET QUANTITY WHEN
+     PRODUCT CHANGES
+  ========================== */
+
+  useEffect(() => {
+    setQuantity(1);
+    setAdded(false);
+  }, [id]);
 
 
   /* =========================
@@ -534,6 +538,5 @@ export default function Product() {
     </main>
   );
 }
-
 
 

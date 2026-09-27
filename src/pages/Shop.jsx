@@ -6,7 +6,7 @@ import { useStore } from "../context/StoreContext";
 export default function Shop() {
   const { storeSettings } = useStore();
   const brand = storeSettings?.storeName || "PearlSkino BD";
-  const [products] = useProducts();
+  const [products, , loading] = useProducts();
 
   /* =========================
      VISIBLE PRODUCTS
@@ -69,13 +69,6 @@ export default function Shop() {
             Products will appear here once they are
             added from the admin panel.
           </p>
-
-          <Link
-            to="/admin"
-            className="hero-button"
-          >
-            Open Product Manager
-          </Link>
 
         </section>
 
@@ -295,3 +288,5 @@ export default function Shop() {
     </main>
   );
 }
+
+

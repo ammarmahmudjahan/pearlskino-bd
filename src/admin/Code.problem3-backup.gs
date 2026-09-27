@@ -3741,10 +3741,12 @@ function getProductsSheet() {
     SpreadsheetApp
       .getActiveSpreadsheet();
 
+
   let sheet =
     spreadsheet.getSheetByName(
       CONFIG.PRODUCTS_SHEET_NAME
     );
+
 
   if (!sheet) {
 
@@ -3753,33 +3755,41 @@ function getProductsSheet() {
         CONFIG.PRODUCTS_SHEET_NAME
       );
 
-    sheet
-      .getRange(1, 1, 1, 17)
-      .setValues([[
-        "ID",
-        "Name",
-        "Brand",
-        "Category",
-        "Subtitle",
-        "Tags",
-        "Price",
-        "Old Price",
-        "Rating",
-        "Reviews",
-        "Stock",
-        "Status",
-        "Description",
-        "Image",
-        "Alt",
-        "Notes",
-        "Cost Price"
-      ]]);
 
     sheet
-      .getRange(1, 1, 1, 17)
-      .setFontWeight("bold");
+      .getRange("A1:B1")
+      .setValues([
+
+        [
+          "Key",
+          "Value",
+        ],
+
+      ]);
+
+
+    sheet
+      .getRange("A1:B1")
+      .setFontWeight(
+        "bold"
+      );
+
+
+    sheet
+      .getRange("A2")
+      .setValue(
+        "products"
+      );
+
+
+    sheet
+      .getRange("B2")
+      .setValue(
+        "[]"
+      );
 
   }
+
 
   return sheet;
 
@@ -3788,12 +3798,6 @@ function getProductsSheet() {
 
 /* =========================================================
    GET PRODUCTS
-
-   Reads the normal one-product-per-row format.
-
-   For backward compatibility, if the sheet still contains
-   the old Key | Value JSON format, it reads that format too.
-   The next successful updateProducts() call will migrate it.
 ========================================================= */
 
 function getProducts() {
@@ -3801,225 +3805,86 @@ function getProducts() {
   const sheet =
     getProductsSheet();
 
+
   const lastRow =
     sheet.getLastRow();
 
-  if (lastRow < 2) {
+
+  if (
+    lastRow < 2
+  ) {
+
     return [];
+
   }
 
 
-  /* -------------------------------------------------------
-     CHECK FOR NEW TABLE FORMAT
-  ------------------------------------------------------- */
-
-  const headers =
+  const values =
     sheet
-      .getRange(1, 1, 1, Math.max(17, sheet.getLastColumn()))
-      .getValues()[0]
-      .map(function(value) {
-        return String(value || "").trim();
-      });
+
+      .getRange(
+        2,
+        1,
+        lastRow - 1,
+        2
+      )
+
+      .getValues();
 
 
-  const isProductTable =
-    headers[0] === "ID" &&
-    headers[1] === "Name";
+  for (
+    let i = 0;
+    i < values.length;
+    i++
+  ) {
+
+    const key =
+      String(
+        values[i][0] || ""
+      ).trim();
 
 
-  /* -------------------------------------------------------
-     BACKWARD COMPATIBILITY WITH OLD JSON BLOB
-  ------------------------------------------------------- */
-
-  if (!isProductTable) {
-
-    const values =
-      sheet
-        .getRange(
-          2,
-          1,
-          lastRow - 1,
-          2
-        )
-        .getValues();
-
-    for (
-      let i = 0;
-      i < values.length;
-      i++
+    if (
+      key === "products"
     ) {
 
-      const key =
+      const raw =
         String(
-          values[i][0] || ""
-        ).trim();
+          values[i][1] || "[]"
+        );
 
-      if (key === "products") {
 
-        const raw =
-          String(
-            values[i][1] || "[]"
-          );
+      try {
 
-        try {
+        const parsed =
+          JSON.parse(raw);
 
-          const parsed =
-            JSON.parse(raw);
 
-          return Array.isArray(parsed)
-            ? parsed
-            : [];
+        return Array.isArray(
+          parsed
+        )
+          ? parsed
+          : [];
 
-        } catch (error) {
 
-          return [];
+      } catch (error) {
 
-        }
+        return [];
 
       }
 
     }
 
-    return [];
-
   }
 
 
-  /* -------------------------------------------------------
-     READ NORMAL PRODUCT TABLE
-  ------------------------------------------------------- */
-
-  const rows =
-    sheet
-      .getRange(
-        2,
-        1,
-        lastRow - 1,
-        17
-      )
-      .getValues();
-
-
-  return rows
-    .filter(function(row) {
-
-      return String(
-        row[0] || ""
-      ).trim() !== "";
-
-    })
-    .map(function(row) {
-
-      const tagsText =
-        String(
-          row[5] || ""
-        ).trim();
-
-      const oldPriceValue =
-        row[7] === "" ||
-        row[7] === null
-          ? null
-          : Number(row[7]);
-
-      const costPriceValue =
-        row[16] === "" ||
-        row[16] === null
-          ? 0
-          : Number(row[16]);
-
-      return {
-
-        id:
-          String(row[0] || "").trim(),
-
-        name:
-          String(row[1] || "").trim(),
-
-        brand:
-          String(row[2] || "").trim(),
-
-        category:
-          String(row[3] || "").trim(),
-
-        subtitle:
-          String(row[4] || "").trim(),
-
-        tags:
-          tagsText
-            ? tagsText
-                .split("|")
-                .map(function(tag) {
-                  return String(tag).trim();
-                })
-                .filter(Boolean)
-            : [],
-
-        price:
-          row[6] === "" ||
-          row[6] === null
-            ? 0
-            : Number(row[6]),
-
-        oldPrice:
-          oldPriceValue,
-
-        rating:
-          row[8] === "" ||
-          row[8] === null
-            ? 0
-            : Number(row[8]),
-
-        reviews:
-          row[9] === "" ||
-          row[9] === null
-            ? 0
-            : Number(row[9]),
-
-        stock:
-          row[10] === "" ||
-          row[10] === null
-            ? 0
-            : Number(row[10]),
-
-        status:
-          String(
-            row[11] || "active"
-          ).trim(),
-
-        description:
-          String(row[12] || ""),
-
-        image:
-          String(row[13] || "").trim(),
-
-        alt:
-          String(row[14] || "").trim(),
-
-        notes:
-          row[15] === "" ||
-          row[15] === null
-            ? null
-            : String(row[15]),
-
-        costPrice:
-          costPriceValue
-
-      };
-
-    });
+  return [];
 
 }
 
 
 /* =========================================================
    UPDATE PRODUCTS
-
-   Saves one product per spreadsheet row.
-
-   The React admin still sends the complete product array.
-   This function simply converts that array into a normal
-   spreadsheet table.
-
 ========================================================= */
 
 function updateProducts(products) {
@@ -4033,7 +3898,7 @@ function updateProducts(products) {
       success: false,
 
       error:
-        "Products must be an array."
+        "Products must be an array.",
 
     };
 
@@ -4053,176 +3918,75 @@ function updateProducts(products) {
       getProductsSheet();
 
 
-    const headers = [[
-      "ID",
-      "Name",
-      "Brand",
-      "Category",
-      "Subtitle",
-      "Tags",
-      "Price",
-      "Old Price",
-      "Rating",
-      "Reviews",
-      "Stock",
-      "Status",
-      "Description",
-      "Image",
-      "Alt",
-      "Notes",
-      "Cost Price"
-    ]];
+    const lastRow =
+      sheet.getLastRow();
 
 
-    /* -------------------------------------------------------
-       CLEAR OLD SHEET CONTENT
-    ------------------------------------------------------- */
-
-    sheet.clearContents();
+    let targetRow = 2;
 
 
-    /* -------------------------------------------------------
-       WRITE HEADERS
-    ------------------------------------------------------- */
+    if (
+      lastRow >= 2
+    ) {
 
-    sheet
-      .getRange(
-        1,
-        1,
-        1,
-        17
-      )
-      .setValues(headers);
+      const values =
+        sheet
 
+          .getRange(
+            2,
+            1,
+            lastRow - 1,
+            1
+          )
 
-    sheet
-      .getRange(
-        1,
-        1,
-        1,
-        17
-      )
-      .setFontWeight("bold");
+          .getValues();
 
 
-    /* -------------------------------------------------------
-       PREPARE PRODUCT ROWS
-    ------------------------------------------------------- */
+      for (
+        let i = 0;
+        i < values.length;
+        i++
+      ) {
 
-    if (products.length > 0) {
+        if (
+          String(
+            values[i][0] || ""
+          ).trim() ===
+          "products"
+        ) {
 
-      const rows =
-        products.map(function(product) {
+          targetRow =
+            i + 2;
 
-          const tags =
-            Array.isArray(product.tags)
-              ? product.tags
-                  .map(function(tag) {
-                    return String(tag).trim();
-                  })
-                  .filter(Boolean)
-                  .join(" | ")
-              : String(
-                  product.tags || ""
-                ).trim();
+          break;
 
+        }
 
-          return [
-
-            String(
-              product.id || ""
-            ),
-
-            String(
-              product.name || ""
-            ),
-
-            String(
-              product.brand || ""
-            ),
-
-            String(
-              product.category || ""
-            ),
-
-            String(
-              product.subtitle || ""
-            ),
-
-            tags,
-
-            product.price === "" ||
-            product.price === null ||
-            product.price === undefined
-              ? 0
-              : Number(product.price),
-
-            product.oldPrice === "" ||
-            product.oldPrice === null ||
-            product.oldPrice === undefined
-              ? ""
-              : Number(product.oldPrice),
-
-            product.rating === "" ||
-            product.rating === null ||
-            product.rating === undefined
-              ? 0
-              : Number(product.rating),
-
-            product.reviews === "" ||
-            product.reviews === null ||
-            product.reviews === undefined
-              ? 0
-              : Number(product.reviews),
-
-            product.stock === "" ||
-            product.stock === null ||
-            product.stock === undefined
-              ? 0
-              : Number(product.stock),
-
-            String(
-              product.status || "active"
-            ),
-
-            String(
-              product.description || ""
-            ),
-
-            String(
-              product.image || ""
-            ),
-
-            String(
-              product.alt || ""
-            ),
-
-            product.notes === null ||
-            product.notes === undefined
-              ? ""
-              : String(product.notes),
-
-            product.costPrice === "" ||
-            product.costPrice === null ||
-            product.costPrice === undefined
-              ? 0
-              : Number(product.costPrice)
-
-          ];
-
-        });
-
-
-      sheet
-        .getRange(
-          2,
-          1,
-          rows.length,
-          17
-        )
-        .setValues(rows);
+      }
 
     }
+
+
+    sheet
+      .getRange(
+        targetRow,
+        1
+      )
+      .setValue(
+        "products"
+      );
+
+
+    sheet
+      .getRange(
+        targetRow,
+        2
+      )
+      .setValue(
+        JSON.stringify(
+          products
+        )
+      );
 
 
     SpreadsheetApp.flush();
@@ -4239,7 +4003,7 @@ function updateProducts(products) {
         getProducts(),
 
       message:
-        "Products saved successfully."
+        "Products saved successfully.",
 
     };
 
@@ -4251,6 +4015,15 @@ function updateProducts(products) {
   }
 
 }
+
+
+/* =========================================================
+   UPLOAD PRODUCT IMAGE (to Google Drive)
+
+   Accepts a base64 data URL (e.g. "data:image/jpeg;base64,...")
+   or raw base64, decodes it, saves it into a Drive folder,
+   makes it viewable via link, and returns a hotlinkable URL.
+========================================================= */
 
 function uploadProductImage(
   base64Data,
@@ -4428,4 +4201,3 @@ function jsonResponse(data) {
     );
 
 }
-
