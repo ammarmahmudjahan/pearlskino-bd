@@ -1,4 +1,4 @@
-/* =========================================================
+﻿/* =========================================================
    PEARLSKINO BD
    GOOGLE APPS SCRIPT API
    STORE + ADMIN + WHATSAPP + MESSENGER
@@ -754,7 +754,7 @@ function requireAuth(e) {
 
 
 /* =========================================================
-   WEB APP — GET
+   WEB APP â€” GET
 ========================================================= */
 
 function doGet(e) {
@@ -774,7 +774,7 @@ function doGet(e) {
 
 
     /* =====================================================
-       PUBLIC — PING
+       PUBLIC â€” PING
     ===================================================== */
 
     if (
@@ -797,7 +797,7 @@ function doGet(e) {
 
 
     /* =====================================================
-       PUBLIC — STORE SETTINGS
+       PUBLIC â€” STORE SETTINGS
     ===================================================== */
 
     if (
@@ -821,7 +821,7 @@ function doGet(e) {
 
 
     /* =====================================================
-       PUBLIC — PRODUCTS
+       PUBLIC â€” PRODUCTS
 
        Anyone can read the product catalog.
        No admin token required, same as storeSettings.
@@ -844,7 +844,7 @@ function doGet(e) {
 
 
     /* =====================================================
-       ADMIN — AUTH
+       ADMIN â€” AUTH
     ===================================================== */
 
     if (
@@ -1009,7 +1009,7 @@ function doGet(e) {
 
 
 /* =========================================================
-   WEB APP — POST
+   WEB APP â€” POST
 ========================================================= */
 
 function doPost(e) {
@@ -3258,7 +3258,7 @@ function buildWhatsAppUrl(
      WhatsApp requires international number.
      
      01577100162
-           ↓
+           â†“
      8801577100162
   ------------------------------------------------------- */
 
@@ -3726,7 +3726,7 @@ function formatCell(value) {
 
    This avoids having to map every product field (tags
    array, nullable oldPrice, etc.) to its own spreadsheet
-   column — the admin panel already works with a single
+   column â€” the admin panel already works with a single
    JS array, so we just persist that array as-is.
 
    NOTE: a single Google Sheets cell holds up to ~50,000
@@ -4335,8 +4335,9 @@ function uploadProductImage(
      */
 
     const url =
-      "https://drive.google.com/uc?export=view&id=" +
-      fileId;
+      "https://lh3.googleusercontent.com/d/" +
+      fileId +
+      "=w2000";
 
 
     return {
@@ -4428,4 +4429,7 @@ function jsonResponse(data) {
     );
 
 }
+
+
+
 

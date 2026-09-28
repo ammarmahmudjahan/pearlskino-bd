@@ -67,12 +67,51 @@ async function fetchStoreSettings() {
   };
 }
 
+const STORE_SETTINGS_CACHE_KEY =
+  "pearlskino_store_settings_v1";
+
+function readCachedStoreSettings() {
+  try {
+    const raw = sessionStorage.getItem(
+      STORE_SETTINGS_CACHE_KEY
+    );
+
+    if (!raw) {
+      return DEFAULT_STORE_SETTINGS;
+    }
+
+    const cached = JSON.parse(raw);
+
+    if (!cached || typeof cached !== "object") {
+      return DEFAULT_STORE_SETTINGS;
+    }
+
+    return {
+      ...DEFAULT_STORE_SETTINGS,
+      ...cached,
+    };
+  } catch {
+    return DEFAULT_STORE_SETTINGS;
+  }
+}
+
+function writeCachedStoreSettings(settings) {
+  try {
+    sessionStorage.setItem(
+      STORE_SETTINGS_CACHE_KEY,
+      JSON.stringify(settings)
+    );
+  } catch {
+    // Ignore storage errors.
+  }
+}
+
 export function StoreProvider({ children }) {
   const [storeSettings, setStoreSettings] =
-    useState(DEFAULT_STORE_SETTINGS);
+    useState(readCachedStoreSettings);
 
   const [settingsLoading, setSettingsLoading] =
-    useState(true);
+    useState(false);
 
   useEffect(() => {
     let mounted = true;
@@ -83,6 +122,7 @@ export function StoreProvider({ children }) {
 
         if (mounted) {
           setStoreSettings(settings);
+          writeCachedStoreSettings(settings);
         }
       } catch (error) {
         console.error("STORE SETTINGS LOAD ERROR:", error);
@@ -396,34 +436,6 @@ export function StoreProvider({ children }) {
     isWishlisted,
   };
 
-  if (settingsLoading) {
-    return (
-      <StoreContext.Provider value={value}>
-        <div
-          style={{
-            minHeight: "100vh",
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "center",
-            background: "#fffaf7",
-            color: "#2b2528",
-          }}
-        >
-          <div style={{ textAlign: "center", padding: "24px" }}>
-            <strong
-              style={{
-                display: "block",
-                fontSize: "22px",
-                marginBottom: "8px",
-              }}
-            >
-              Loading store...
-            </strong>
-          </div>
-        </div>
-      </StoreContext.Provider>
-    );
-  }
 
   return (
     <StoreContext.Provider value={value}>
@@ -443,6 +455,8 @@ export function useStore() {
 
   return context;
 }
+
+
 
 
 

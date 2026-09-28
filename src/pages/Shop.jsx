@@ -22,7 +22,7 @@ export default function Shop() {
      EMPTY SHOP
   ========================== */
 
-  if (visibleProducts.length === 0) {
+  if (!loading && visibleProducts.length === 0) {
     return (
       <main className="shop-page">
 
@@ -66,8 +66,7 @@ export default function Shop() {
           </h2>
 
           <p>
-            Products will appear here once they are
-            added from the admin panel.
+            Our collection is being prepared. Please check back soon.
           </p>
 
         </section>

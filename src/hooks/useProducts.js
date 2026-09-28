@@ -1,7 +1,4 @@
 import { useEffect, useState } from "react";
-
-import { PRODUCTS } from "../data/products";
-
 /*
 |--------------------------------------------------------------------------
 | PEARLSKINO PRODUCT API
@@ -56,61 +53,75 @@ function getStoredAdminToken() {
 |
 */
 
+let productsCache = null;
+let productsPromise = null;
+
 export function useProducts() {
-  const [products, setProductsState] = useState([]);
-  const [loading, setLoading] = useState(true);
+  const [products, setProductsState] = useState(productsCache || []);
+  const [loading, setLoading] = useState(productsCache === null);
 
   useEffect(() => {
     let cancelled = false;
 
     async function loadProducts() {
       try {
-        const response = await fetch(
-          `${API_URL}?action=products`,
-          {
-            method: "GET",
-            cache: "no-store",
-          }
-        );
+        if (!productsPromise) {
+          productsPromise = fetch(
+            `${API_URL}?action=products`,
+            {
+              method: "GET",
+            }
+          )
+            .then((response) => {
+              if (!response.ok) {
+                throw new Error(
+                  `Server returned ${response.status}`
+                );
+              }
 
-        if (!response.ok) {
-          throw new Error(
-            `Server returned ${response.status}`
-          );
+              return response.json();
+            })
+            .then((data) => {
+              if (
+                !data.success ||
+                !Array.isArray(data.products)
+              ) {
+                throw new Error(
+                  "Invalid product API response"
+                );
+              }
+
+              productsCache = data.products;
+              return productsCache;
+            })
+            .finally(() => {
+              productsPromise = null;
+            });
         }
 
-        const data = await response.json();
-
-        if (!data.success || !Array.isArray(data.products)) {
-          throw new Error(
-            "Invalid product API response"
-          );
-        }
+        const data = await productsPromise;
 
         if (!cancelled) {
-          /*
-           * An empty catalog (brand new Products sheet
-           * that hasn't been seeded yet) falls back to
-           * the bundled list instead of showing nothing.
-           */
-          setProductsState(data.products);
+          setProductsState(data);
+          setLoading(false);
         }
-
       } catch (error) {
         console.warn(
-          "Live product API unavailable. Using bundled products.js.",
+          "Live product API unavailable.",
           error
         );
 
         if (!cancelled) {
           setProductsState([]);
-        }
-
-      } finally {
-        if (!cancelled) {
           setLoading(false);
         }
       }
+    }
+
+    if (productsCache !== null) {
+      setProductsState(productsCache);
+      setLoading(false);
+      return;
     }
 
     loadProducts();
@@ -118,29 +129,16 @@ export function useProducts() {
     return () => {
       cancelled = true;
     };
-
   }, []);
+  const setProducts = (nextProducts) => {
+    const value =
+      typeof nextProducts === "function"
+        ? nextProducts(productsCache || [])
+        : nextProducts;
 
-  /*
-  |--------------------------------------------------------------------------
-  | LOCAL STATE UPDATE
-  |--------------------------------------------------------------------------
-  |
-  | Used by the admin panel for optimistic UI updates
-  | before/while publishProducts() persists the change.
-  |
-  */
-
-  function setProducts(update) {
-    setProductsState((current) => {
-      const next =
-        typeof update === "function"
-          ? update(current)
-          : update;
-
-      return next;
-    });
-  }
+    productsCache = Array.isArray(value) ? value : [];
+    setProductsState(productsCache);
+  };
 
   return [products, setProducts, loading];
 }
