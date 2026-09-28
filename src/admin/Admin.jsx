@@ -312,6 +312,54 @@ async function postApi(
    AUTH ... LOGIN
 ========================================================= */
 
+/* =========================================================
+   DELETE ORDER
+========================================================= */
+
+async function deleteOrder(
+  orderId,
+  rowNumber
+) {
+
+  return postApi(
+    {
+      action:
+        "deleteOrder",
+
+      orderId:
+        orderId || "",
+
+      rowNumber:
+        rowNumber || "",
+    },
+    true
+  );
+
+}
+
+
+/* =========================================================
+   DELETE CUSTOMER
+========================================================= */
+
+async function deleteCustomer(
+  customerId
+) {
+
+  return postApi(
+    {
+      action:
+        "deleteCustomer",
+
+      customerId:
+        customerId || "",
+    },
+    true
+  );
+
+}
+
+
 async function loginAdmin(
   password
 ) {
@@ -997,6 +1045,11 @@ function OrdersPage({
     setUpdatingOrder,
   ] = useState(null);
 
+  const [
+    deletingOrder,
+    setDeletingOrder,
+  ] = useState(null);
+
   async function handleStatusChange(
     orderId,
     status
@@ -1025,6 +1078,57 @@ function OrdersPage({
     } finally {
       setUpdatingOrder(null);
     }
+  }
+
+  async function handleDeleteOrder(
+    order
+  ) {
+
+    const label =
+      order.orderId ||
+      "this order";
+
+    const confirmed =
+      window.confirm(
+        `Delete ${label}? This will permanently remove the order from the Orders sheet.`
+      );
+
+    if (!confirmed) {
+      return;
+    }
+
+    try {
+
+      setDeletingOrder(
+        order.orderId ||
+        order.rowNumber
+      );
+
+      await deleteOrder(
+        order.orderId,
+        order.rowNumber
+      );
+
+      await refreshOrders();
+
+    } catch (error) {
+
+      console.error(
+        "ORDER DELETE ERROR:",
+        error
+      );
+
+      window.alert(
+        error.message ||
+          "Failed to delete order."
+      );
+
+    } finally {
+
+      setDeletingOrder(null);
+
+    }
+
   }
 
   return (
@@ -1105,6 +1209,7 @@ function OrdersPage({
               <span>Payment</span>
               <span>Delivery</span>
               <span>Status</span>
+              <span>Actions</span>
             </div>
 
             {orders.map((order) => (
@@ -1223,6 +1328,37 @@ function OrdersPage({
 
                 </div>
 
+                <div className="order-actions-cell">
+
+                  <button
+                    type="button"
+                    className="order-delete-button"
+                    disabled={
+                      deletingOrder ===
+                      (
+                        order.orderId ||
+                        order.rowNumber
+                      )
+                    }
+                    onClick={() =>
+                      handleDeleteOrder(
+                        order
+                      )
+                    }
+                  >
+                    {
+                      deletingOrder ===
+                      (
+                        order.orderId ||
+                        order.rowNumber
+                      )
+                        ? "Deleting..."
+                        : "Delete"
+                    }
+                  </button>
+
+                </div>
+
               </div>
 
             ))}
@@ -1248,6 +1384,62 @@ function CustomersPage({
   error,
   refreshCustomers,
 }) {
+  const [
+    deletingCustomer,
+    setDeletingCustomer,
+  ] = useState(null);
+
+  async function handleDeleteCustomer(
+    customer
+  ) {
+
+    const label =
+      customer.name ||
+      customer.phone ||
+      customer.email ||
+      "this customer";
+
+    const confirmed =
+      window.confirm(
+        `Remove ${label} from Customers? Historical orders will NOT be deleted.`
+      );
+
+    if (!confirmed) {
+      return;
+    }
+
+    try {
+
+      setDeletingCustomer(
+        customer.id
+      );
+
+      await deleteCustomer(
+        customer.id
+      );
+
+      await refreshCustomers();
+
+    } catch (error) {
+
+      console.error(
+        "CUSTOMER DELETE ERROR:",
+        error
+      );
+
+      window.alert(
+        error.message ||
+          "Failed to delete customer."
+      );
+
+    } finally {
+
+      setDeletingCustomer(null);
+
+    }
+
+  }
+
   return (
     <section className="admin-page-section">
 
@@ -1325,6 +1517,7 @@ function CustomersPage({
               <span>Orders</span>
               <span>Total Spent</span>
               <span>Last Order</span>
+              <span>Actions</span>
             </div>
 
             {customers.map(
@@ -1386,6 +1579,31 @@ function CustomersPage({
                     {customer.lastOrder ||
                       "..."}
                   </span>
+
+                  <div className="customer-actions-cell">
+
+                    <button
+                      type="button"
+                      className="customer-delete-button"
+                      disabled={
+                        deletingCustomer ===
+                        customer.id
+                      }
+                      onClick={() =>
+                        handleDeleteCustomer(
+                          customer
+                        )
+                      }
+                    >
+                      {
+                        deletingCustomer ===
+                        customer.id
+                          ? "Deleting..."
+                          : "Delete"
+                      }
+                    </button>
+
+                  </div>
 
                 </div>
 
@@ -2866,6 +3084,18 @@ export default function Admin() {
 
   );
 }
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 

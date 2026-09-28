@@ -1,4 +1,4 @@
-﻿.admin {
+.admin {
   min-height: 100vh;
   display: flex;
   background: #f9f5ef;
@@ -573,8 +573,7 @@
     0.8fr
     0.9fr
     1fr
-    1.3fr
-    0.8fr;
+    1.3fr;
   gap: 15px;
   align-items: center;
 }
@@ -701,8 +700,7 @@
     1.4fr
     0.7fr
     1fr
-    1.1fr
-    0.8fr;
+    1.1fr;
   gap: 18px;
   align-items: center;
 }
@@ -981,7 +979,7 @@
 
 
 /* =========================================================
-   SETTINGS â€” MOBILE
+   SETTINGS — MOBILE
 ========================================================= */
 
 @media (max-width: 700px) {
@@ -1016,7 +1014,7 @@
 }
 
 /* =========================================================
-   PEARLSKINO BD â€” ADMIN LOGIN PORTAL
+   PEARLSKINO BD — ADMIN LOGIN PORTAL
 ========================================================= */
 
 .admin-login-page {
@@ -1482,7 +1480,7 @@
 }
 
 /* =========================================================
-   ADMIN LOGOUT BUTTON â€” PREMIUM STYLE
+   ADMIN LOGOUT BUTTON — PREMIUM STYLE
 ========================================================= */
 
 .admin-logout-button {
@@ -1705,46 +1703,3 @@
     z-index: 100001 !important;
   }
 }
-/* =========================================================
-   DELETE ACTIONS
-========================================================= */
-
-.order-actions-cell,
-.customer-actions-cell {
-  display: flex;
-  align-items: center;
-  justify-content: flex-start;
-}
-
-.order-delete-button,
-.customer-delete-button {
-  padding: 7px 11px;
-  border: 1px solid #e4d5e8;
-  border-radius: 8px;
-  background: #fff;
-  color: #9a5268;
-  font-size: 11px;
-  font-weight: 700;
-  cursor: pointer;
-  transition:
-    background 0.2s ease,
-    border-color 0.2s ease,
-    color 0.2s ease,
-    transform 0.2s ease;
-}
-
-.order-delete-button:hover:not(:disabled),
-.customer-delete-button:hover:not(:disabled) {
-  background: #fbf0f3;
-  border-color: #d9aabb;
-  color: #8e4058;
-  transform: translateY(-1px);
-}
-
-.order-delete-button:disabled,
-.customer-delete-button:disabled {
-  opacity: 0.55;
-  cursor: not-allowed;
-  transform: none;
-}
-
