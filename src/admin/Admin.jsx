@@ -37,6 +37,9 @@ const STATUSES = [
 ========================================================= */
 
 const DEFAULT_SETTINGS = {
+  logoUrl: "",
+  logoFileId: "",
+  logoFileName: "",
   storeName: "PearlSkino BD",
   tagline: "Beauty, fragrance & self-care",
   phone: "",
@@ -639,6 +642,87 @@ async function updateOrderStatus(
    UPDATE SETTINGS
 ========================================================= */
 
+async function uploadLogoImage(
+  dataUrl,
+  mimeType
+) {
+
+  const token =
+    getStoredAdminToken();
+
+  if (!token) {
+
+    return {
+      success: false,
+      error:
+        "Admin session is missing. Please log in again.",
+    };
+
+  }
+
+
+  try {
+
+    const response =
+      await fetch(
+        ORDERS_API,
+        {
+          method: "POST",
+
+          headers: {
+            "Content-Type":
+              "text/plain;charset=utf-8",
+          },
+
+          body:
+            JSON.stringify({
+              action:
+                "uploadLogo",
+
+              token,
+
+              image:
+                dataUrl,
+
+              mimeType,
+            }),
+        }
+      );
+
+
+    const data =
+      await response.json();
+
+
+    if (
+      !response.ok ||
+      !data.success
+    ) {
+
+      throw new Error(
+        data.error ||
+        "Logo upload failed."
+      );
+
+    }
+
+
+    return data;
+
+  } catch (error) {
+
+    return {
+      success: false,
+      error:
+        error?.message ||
+        "Logo upload failed.",
+    };
+
+  }
+
+}
+
+
 async function saveStoreSettings(
   settings
 ) {
@@ -1079,7 +1163,8 @@ function OrdersPage({
       setUpdatingOrder(null);
     }
   }
-
+
+
   async function handleDeleteOrder(
     order
   ) {
@@ -1388,7 +1473,8 @@ function CustomersPage({
     deletingCustomer,
     setDeletingCustomer,
   ] = useState(null);
-
+
+
   async function handleDeleteCustomer(
     customer
   ) {
@@ -1744,6 +1830,220 @@ function Dashboard({
    SETTINGS PAGE
 ========================================================= */
 
+function BrandingCard({ settings, onSettingsChange }) {
+
+  const [uploadingLogo, setUploadingLogo] =
+    useState(false);
+
+  const logoUrl =
+    settings?.logoUrl ||
+    "/logo.png";
+
+
+  async function handleLogoUpload(event) {
+
+    const file =
+      event.target.files?.[0];
+
+    event.target.value = "";
+
+    if (!file) {
+      return;
+    }
+
+
+    const allowedTypes = [
+      "image/png",
+      "image/jpeg",
+      "image/webp",
+    ];
+
+
+    if (!allowedTypes.includes(file.type)) {
+
+      alert(
+        "Please upload a PNG, JPG/JPEG, or WebP logo."
+      );
+
+      return;
+
+    }
+
+
+    const reader =
+      new FileReader();
+
+
+    reader.onload = async function() {
+
+      setUploadingLogo(true);
+
+
+      try {
+
+        const result =
+          await uploadLogoImage(
+            reader.result,
+            file.type
+          );
+
+
+        if (!result?.success) {
+
+          throw new Error(
+            result?.error ||
+            "Logo upload failed."
+          );
+
+        }
+
+
+        onSettingsChange(
+          function(current) {
+
+            return {
+              ...current,
+              logoUrl:
+                result.url || "",
+              logoFileId:
+                result.fileId || "",
+              logoFileName:
+                result.fileName || "",
+            };
+
+          }
+        );
+
+
+        window.dispatchEvent(
+          new CustomEvent(
+            "pearlskino-settings-updated"
+          )
+        );
+
+
+        alert(
+          "Logo uploaded successfully."
+        );
+
+      } catch (error) {
+
+        console.error(
+          "Logo upload failed:",
+          error
+        );
+
+
+        alert(
+          "Logo upload failed.\n\n" +
+          (
+            error?.message ||
+            "Unknown error."
+          )
+        );
+
+      } finally {
+
+        setUploadingLogo(false);
+
+      }
+
+    };
+
+
+    reader.readAsDataURL(file);
+
+  }
+
+
+  return (
+    <div className="admin-card branding-card">
+
+      <div className="admin-card-header">
+
+        <div>
+
+          <h3>Branding</h3>
+
+          <p>
+            Upload the logo used across the storefront.
+          </p>
+
+        </div>
+
+      </div>
+
+
+      <div className="branding-card-body">
+
+        <div className="branding-logo-preview">
+
+          <img
+            src={logoUrl}
+            alt="PearlSkino BD logo"
+          />
+
+        </div>
+
+
+        <div className="branding-logo-actions">
+
+          <label
+            className={
+              "image-upload-button " +
+              (
+                uploadingLogo
+                  ? "is-uploading"
+                  : ""
+              )
+            }
+          >
+
+            {
+              uploadingLogo
+                ? "Uploading..."
+                : "Change Logo"
+            }
+
+
+            <input
+              type="file"
+              accept="image/png,image/jpeg,image/webp"
+              hidden
+              disabled={uploadingLogo}
+              onChange={handleLogoUpload}
+            />
+
+          </label>
+
+
+          <p className="branding-logo-name">
+
+            {
+              settings?.logoFileName ||
+              "No custom logo uploaded"
+            }
+
+          </p>
+
+
+          <p className="branding-logo-help">
+
+            Recommended: transparent PNG or WebP.
+            The uploaded logo is stored in Google Drive.
+
+          </p>
+
+        </div>
+
+      </div>
+
+    </div>
+  );
+
+}
+
+
 function SettingsPage() {
   const [
     settings,
@@ -1985,7 +2285,13 @@ function SettingsPage() {
       )}
 
       {!loadingSettings && (
-        <form
+        <div>
+          <BrandingCard
+            settings={settings}
+            onSettingsChange={setSettings}
+          />
+
+          <form
           className="settings-form"
           onSubmit={saveSettings}
         >
@@ -2381,6 +2687,7 @@ function SettingsPage() {
           </div>
 
         </form>
+        </div>
       )}
 
     </section>
@@ -3084,6 +3391,12 @@ export default function Admin() {
 
   );
 }
+
+
+
+
+
+
 
 
 

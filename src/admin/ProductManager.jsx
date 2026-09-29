@@ -1358,7 +1358,7 @@ export default function ProductManager() {
                           const result =
                             await uploadProductImage(
                               dataUrl,
-                              file.name,
+                              editingProduct.name || file.name,
                               file.type
                             );
 
