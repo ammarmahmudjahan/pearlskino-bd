@@ -6,8 +6,11 @@ export default function Footer() {
 
   const brand = storeSettings?.storeName || "";
   const tagline = storeSettings?.tagline || "";
-
-  return (
+  const logoUrl =
+    storeSettings?.logoDataUrl ||
+    storeSettings?.logoUrl ||
+    "/logo.png";
+return (
     <footer className="ps-footer">
 
       <div className="ps-footer-brand">
@@ -15,12 +18,13 @@ export default function Footer() {
           href="/"
           className="ps-footer-brand-link"
           aria-label={`${brand} home`}
-        >
-          <img
-            src="/logo.png"
-            alt={brand}
-            className="ps-footer-logo"
-          />
+        >          {logoUrl && (
+            <img
+              src={logoUrl}
+              alt={brand}
+              className="ps-footer-logo"
+            />
+          )}
 
           <span className="ps-footer-brand-copy">
             <strong>{brand}</strong>
@@ -43,11 +47,17 @@ export default function Footer() {
         <p>Pickup available in selected areas.</p>
       </div>
 
-      <div className="ps-footer-bottom">
-        © {new Date().getFullYear()} {brand}. All rights reserved.
-      </div>
+      <div>&copy; {new Date().getFullYear()} {brand}. All rights reserved.</div>
 
     </footer>
   );
 }
+
+
+
+
+
+
+
+
 

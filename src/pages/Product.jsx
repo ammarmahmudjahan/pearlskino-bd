@@ -64,13 +64,6 @@ export default function Product() {
 
         <section className="product-not-found">
 
-          <div className="product-page-brand-logo">
-            <img
-              src="/logo.png"
-              alt={brand}
-            />
-          </div>
-
           <p className="eyebrow">
             {brand.toUpperCase()}
           </p>
@@ -88,7 +81,7 @@ export default function Product() {
             to="/shop"
             className="hero-button"
           >
-            ← Back to Shop
+            â† Back to Shop
           </Link>
 
         </section>
@@ -228,7 +221,7 @@ export default function Product() {
 
 
         {/* =========================
-            LEFT — PRODUCT IMAGE
+            LEFT â€” PRODUCT IMAGE
         ========================== */}
 
         <div className="product-detail-image">
@@ -243,7 +236,7 @@ export default function Product() {
           ) : (
 
             <div className="product-no-image">
-              ✦
+              âœ¦
             </div>
 
           )}
@@ -252,19 +245,10 @@ export default function Product() {
 
 
         {/* =========================
-            RIGHT — INFORMATION
+            RIGHT â€” INFORMATION
         ========================== */}
 
         <div className="product-detail-info">
-
-          {/* BRAND LOGO */}
-
-          <div className="product-page-brand-logo">
-            <img
-              src="/logo.png"
-              alt={brand}
-            />
-          </div>
 
 
           {/* BRAND */}
@@ -303,7 +287,7 @@ export default function Product() {
           {/* PRICE */}
 
           <div className="product-detail-price">
-            ৳
+            à§³
             {Number(
               product.price || 0
             ).toLocaleString()}
@@ -323,7 +307,7 @@ export default function Product() {
             ) : stock > 0 ? (
 
               <span className="stock-available">
-                ✓ {stock} available
+                âœ“ {stock} available
               </span>
 
             ) : (
@@ -347,7 +331,7 @@ export default function Product() {
             <div className="product-cart-status">
 
               <span>
-                ✦
+                âœ¦
               </span>
 
               <span>
@@ -390,7 +374,7 @@ export default function Product() {
                   }
                   aria-label="Decrease quantity"
                 >
-                  −
+                  âˆ’
                 </button>
 
 
@@ -434,8 +418,8 @@ export default function Product() {
 
                 <span className="cart-icon">
                   {added
-                    ? "✓"
-                    : "🛒"}
+                    ? "âœ“"
+                    : "ðŸ›’"}
                 </span>
 
                 <span>
@@ -479,7 +463,7 @@ export default function Product() {
             to="/shop"
             className="product-back-link"
           >
-            ← Continue Shopping
+            â† Continue Shopping
           </Link>
 
         </div>
@@ -499,14 +483,14 @@ export default function Product() {
         >
 
           <div className="cart-success-sparkles">
-            <span>✦</span>
-            <span>✧</span>
-            <span>⋆</span>
+            <span>âœ¦</span>
+            <span>âœ§</span>
+            <span>â‹†</span>
           </div>
 
 
           <div className="cart-success-icon">
-            ✓
+            âœ“
           </div>
 
 
@@ -534,6 +518,3 @@ export default function Product() {
     </main>
   );
 }
-
-
-

@@ -28,13 +28,6 @@ export default function Shop() {
 
         <section className="shop-hero">
 
-          <div className="page-brand-logo">
-            <img
-              src="/logo.png"
-              alt={brand}
-            />
-          </div>
-
           <p className="eyebrow">
             {brand.toUpperCase()} SHOP
           </p>
@@ -88,13 +81,6 @@ export default function Shop() {
       ========================== */}
 
       <section className="shop-hero">
-
-        <div className="page-brand-logo">
-          <img
-            src="/logo.png"
-            alt={brand}
-          />
-        </div>
 
         <p className="eyebrow">
           {brand.toUpperCase()} SHOP
@@ -287,5 +273,3 @@ export default function Shop() {
     </main>
   );
 }
-
-

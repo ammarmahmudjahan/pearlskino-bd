@@ -28,15 +28,6 @@ export default function About() {
 
         <div className="about-hero-content">
 
-          {/* BRAND LOGO */}
-
-          <div className="about-hero-logo">
-            <img
-              src="/logo.png"
-              alt={brand}
-            />
-          </div>
-
 
           <p className="eyebrow">
             {brand.toUpperCase()} STORY
@@ -171,7 +162,7 @@ export default function About() {
             </div>
 
             <div className="about-value-icon">
-              ◌
+              ○
             </div>
 
             <h3>
@@ -276,7 +267,7 @@ export default function About() {
         <div className="about-detail">
 
           <span className="about-detail-symbol">
-            ◇
+            ‡
           </span>
 
           <div>

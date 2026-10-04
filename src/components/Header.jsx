@@ -1,4 +1,5 @@
-﻿import { Link } from "react-router-dom";
+﻿
+import { Link } from "react-router-dom";
 import { useStore } from "../context/StoreContext";
 
 export default function Header() {
@@ -6,20 +7,24 @@ export default function Header() {
 
   const brand = storeSettings?.storeName || "";
   const tagline = storeSettings?.tagline || "";
-
-  return (
+  const logoUrl =
+    storeSettings?.logoDataUrl ||
+    storeSettings?.logoUrl ||
+    "/logo.png";
+return (
     <header className="ps-header">
 
       <Link
         to="/"
         className="ps-header-brand"
         aria-label={`${brand} home`}
-      >
-        <img
-          src="/logo.png"
-          alt={brand}
-          className="ps-header-logo"
-        />
+      >        {logoUrl && (
+          <img
+            src={logoUrl}
+            alt={brand}
+            className="ps-header-logo"
+          />
+        )}
 
         <span className="ps-header-copy">
           <strong className="ps-header-name">
@@ -50,4 +55,12 @@ export default function Header() {
     </header>
   );
 }
+
+
+
+
+
+
+
+
 

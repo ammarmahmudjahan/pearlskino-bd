@@ -1,4 +1,4 @@
-import { useState } from "react";
+﻿import { useState } from "react";
 import {
   useProducts,
   publishProducts,
@@ -167,7 +167,7 @@ function SortableProductRow({
    PRODUCT MANAGER
 ========================================================= */
 
-export default function ProductManager() {
+export default function ProductManager({ showAdminToast }) {
 
   const [
     products,
@@ -253,11 +253,11 @@ export default function ProductManager() {
         error
       );
 
-      alert(
-        "Changes were saved locally, but publishing failed.\n\n" +
-        (error?.message ||
-          "Unknown error.") +
-        "\n\nMake sure the local admin server is running on port 3001."
+      showAdminToast(
+        "Changes were saved locally, but publishing failed. " +
+          (error?.message || "Unknown error.") +
+          " Make sure the local admin server is running on port 3001.",
+        "error"
       );
 
       return false;
@@ -384,9 +384,7 @@ export default function ProductManager() {
 
     if (!name) {
 
-      alert(
-        "Please enter a product name."
-      );
+      showAdminToast("Please enter a product name.", "error");
 
       return;
     }
@@ -430,9 +428,7 @@ export default function ProductManager() {
 
     if (duplicate) {
 
-      alert(
-        `This product already exists:\n\n${duplicate.name}`
-      );
+      showAdminToast(`This product already exists: ${duplicate.name}`, "error");
 
       return;
     }
@@ -524,11 +520,7 @@ export default function ProductManager() {
 
     if (success) {
 
-      alert(
-        isAdding
-          ? "Product added and published successfully."
-          : "Product updated and published successfully."
-      );
+      showAdminToast(isAdding ? "Product added and published successfully." : "Product updated and published successfully.", "success");
 
     }
 
@@ -558,9 +550,12 @@ export default function ProductManager() {
 
 
     const confirmed =
-      window.confirm(
-        `Delete "${product.name}"?\n\nThis will remove it from the published product catalog.`
-      );
+      await requestAdminConfirm({
+        title: "Delete product?",
+        message:
+          `Delete "${product.name}"? This will remove it from the published product catalog.`,
+        confirmLabel: "Delete product",
+      });
 
 
     if (!confirmed) {
@@ -592,9 +587,7 @@ export default function ProductManager() {
 
     if (success) {
 
-      alert(
-        `"${product.name}" was deleted and published successfully.`
-      );
+      showAdminToast(`"${product.name}" was deleted and published successfully.`, "success");
 
     }
 
@@ -953,7 +946,7 @@ export default function ProductManager() {
                   cancelEdit
                 }
               >
-                ×
+                Ã—
               </button>
 
             </div>
@@ -1308,8 +1301,8 @@ export default function ProductManager() {
                 >
 
                   {uploadingImage
-                    ? "⏳ Uploading…"
-                    : "📄 Upload from PC / Phone"}
+                    ? "Uploading..."
+                    : "Upload from PC / Phone"}
 
                   <input
                     type="file"
@@ -1395,11 +1388,11 @@ export default function ProductManager() {
                             error
                           );
 
-                          alert(
-                            "Image upload failed.\n\n" +
-                            (error?.message ||
-                              "Unknown error.") +
-                            "\n\nYou can still paste an image URL below instead."
+                          showAdminToast(
+                            "Image upload failed. " +
+                              (error?.message || "Unknown error.") +
+                              " You can still paste an image URL below instead.",
+                            "error"
                           );
 
                         } finally {
@@ -1565,3 +1558,9 @@ export default function ProductManager() {
 
   );
 }
+
+
+
+
+
+

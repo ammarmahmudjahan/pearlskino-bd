@@ -229,7 +229,7 @@ export async function publishProducts(products) {
 |
 */
 
-export async function uploadProductImage(dataUrl, fileName, mimeType) {
+export async function uploadProductImage(dataUrl, productName, mimeType) {
   if (!dataUrl) {
     return {
       success: false,
@@ -258,7 +258,7 @@ export async function uploadProductImage(dataUrl, fileName, mimeType) {
         action: "uploadProductImage",
         token,
         image: dataUrl,
-        fileName,
+        productName,
         mimeType,
       }),
     });
@@ -286,6 +286,3 @@ export async function uploadProductImage(dataUrl, fileName, mimeType) {
     };
   }
 }
-
-
-

@@ -22,21 +22,14 @@ export default function Cart() {
       <main className="page cart-page-luxury">
         <section className="cart-empty-luxury">
 
-          <div className="cart-empty-logo">
-            <img
-              src="/logo.png"
-              alt={storeName}
-            />
-          </div>
-
           <div className="cart-orbit">
-            <span>âœ¦</span>
-            <span>âœ§</span>
-            <span>â—‡</span>
+            <span className="star-accent">&#10022;</span>
+            <span className="star-accent">&#10022;</span>
+            <span className="star-accent">&#10022;</span>
           </div>
 
           <p className="eyebrow">
-            {storeName.toUpperCase()} Â· YOUR COLLECTION
+            {storeName.toUpperCase()} · YOUR COLLECTION
           </p>
 
           <h1>
@@ -53,7 +46,7 @@ export default function Cart() {
             className="cart-luxury-button"
           >
             Discover the Collection
-            <span>â†’</span>
+            <span className="arrow-accent">&#8594;</span>
           </Link>
 
         </section>
@@ -68,15 +61,8 @@ export default function Cart() {
 
         <div>
 
-          <div className="cart-hero-logo">
-            <img
-              src="/logo.png"
-              alt={storeName}
-            />
-          </div>
-
           <p className="eyebrow">
-            {storeName.toUpperCase()} Â· YOUR COLLECTION
+            {storeName.toUpperCase()} · YOUR COLLECTION
           </p>
 
           <h1>
@@ -92,7 +78,7 @@ export default function Cart() {
         </div>
 
         <div className="cart-hero-count">
-          <span>{count}</span>
+          <span className="star-accent">&#10022;</span>
           <small>
             {count === 1 ? "ITEM" : "ITEMS"}
           </small>
@@ -140,7 +126,7 @@ export default function Cart() {
                 )}
 
                 <p>
-                  à§³{Number(item.price || 0).toLocaleString()}
+                  ৳{Number(item.price || 0).toLocaleString()}
                 </p>
 
               </div>
@@ -161,9 +147,7 @@ export default function Cart() {
                     −
                   </button>
 
-                  <span>
-                    {item.qty}
-                  </span>
+                  <span className="star-accent">&#10022;</span>
 
                   <button
                     type="button"
@@ -178,7 +162,7 @@ export default function Cart() {
                 </div>
 
                 <strong>
-                  à§³{itemTotal.toLocaleString()}
+                  ৳{itemTotal.toLocaleString()}
                 </strong>
 
                 <button
@@ -199,35 +183,34 @@ export default function Cart() {
 
       <section className="cart-summary">
 
-        <div className="cart-summary-row">
-          <span>Subtotal</span>
-          <strong>
-            à§³{Number(subtotal || 0).toLocaleString()}
-          </strong>
-        </div>
+  <div className="cart-summary-row">
+    <span className="star-accent">&#10022;</span>
+    <strong>
+      &#2547;{Number(subtotal || 0).toLocaleString()}
+    </strong>
+  </div>
 
-        <div className="cart-summary-row">
-          <span>Delivery</span>
-          <strong>
-            {Number(shipping || 0) === 0
-              ? "Free"
-              : `à§³${Number(shipping).toLocaleString()}`}
-          </strong>
-        </div>
+  <div className="cart-summary-row">
+    <span className="star-accent">&#10022;</span>
+    <strong>
+      {Number(shipping || 0) === 0
+        ? "Free"
+        : `&#2547;${Number(shipping).toLocaleString()}`}
+    </strong>
+  </div>
 
-        <div className="cart-summary-total">
-          <span>Total</span>
-          <strong>
-            à§³{Number(total || 0).toLocaleString()}
-          </strong>
-        </div>
-
-        <Link
+  <div className="cart-summary-total">
+    <span className="star-accent">&#10022;</span>
+    <strong>
+      &#2547;{Number(total || 0).toLocaleString()}
+    </strong>
+  </div>
+<Link
           to="/checkout"
           className="cart-luxury-button"
         >
           Proceed to Checkout
-          <span>â†’</span>
+          <span className="star-accent">&#10022;</span>
         </Link>
 
         <Link
@@ -242,20 +225,18 @@ export default function Cart() {
       <section className="cart-final-note">
 
         <div className="cart-final-pearl">
-          <span>âœ¦</span>
+          <span className="star-accent">&#10022;</span>
         </div>
 
         <p>
-          Carefully packed Â· Beautifully delivered
+          Carefully packed · Beautifully delivered
         </p>
 
         <strong>
           {storeName}
         </strong>
 
-        <span>
-          {tagline}
-        </span>
+        <span className="star-accent">&#10022;</span>
 
       </section>
 

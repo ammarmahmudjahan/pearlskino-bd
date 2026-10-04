@@ -593,3 +593,76 @@ button:focus-visible,a:focus-visible,input:focus-visible,textarea:focus-visible,
 }
 @media(max-width:420px){.site-header{height:60px}.nav-links{max-width:62vw;gap:11px}.nav-links a{font-size:12px}.cart-link{padding:7px 12px;font-size:12px}}
 @media(prefers-reduced-motion:reduce){*,*::before,*::after{animation-duration:.01ms!important;animation-iteration-count:1!important;transition-duration:.01ms!important;scroll-behavior:auto!important}.home-explore-button{animation:none}.home-explore-button::before{display:none}}
+
+.home-explore-button .arrow-accent {
+  display: inline-block;
+  transform-origin: 50% 50%;
+  transition: transform 0.35s cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.home-explore-button:hover .arrow-accent {
+  transform: rotate(-45deg);
+}
+.hero-button .arrow-accent {
+  display: inline-block;
+  transform-origin: 50% 50%;
+  transition: transform 0.35s cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.hero-button:hover .arrow-accent {
+  transform: rotate(-45deg);
+}
+.home-explore-button .arrow-accent,
+.home-story-button .arrow-accent {
+  display: inline-block;
+  transform-origin: 50% 50%;
+  transition: transform 0.35s cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.home-explore-button:hover .arrow-accent,
+.home-story-button:hover .arrow-accent {
+  transform: rotate(-45deg);
+}
+.home-explore-button,
+.home-story-button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+}
+
+.home-explore-button .arrow-accent,
+.home-story-button .arrow-accent {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 42px;
+  height: 42px;
+  min-width: 42px;
+  padding: 0;
+  margin: 0;
+  line-height: 1;
+  text-align: center;
+  transform-origin: 50% 50%;
+}
+
+.home-explore-button:hover .arrow-accent,
+.home-story-button:hover .arrow-accent {
+  transform: rotate(-45deg);
+}
+.home-explore-button,
+.home-story-button {
+  white-space: nowrap;
+  flex-wrap: nowrap;
+}
+
+.home-explore-button > span,
+.home-story-button > span {
+  white-space: nowrap;
+  display: inline-block;
+}
+
+.home-explore-button .arrow-accent,
+.home-story-button .arrow-accent {
+  flex: 0 0 42px;
+}

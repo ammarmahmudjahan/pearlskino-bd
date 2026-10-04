@@ -169,6 +169,15 @@ const DEFAULT_SETTINGS = {
     "Pearly Glow",
 
 
+
+  logoUrl:
+    "",
+
+  logoFileId:
+    "",
+
+  logoFileName:
+    "",
   /* -------------------------------------------------------
      CONTACT
   ------------------------------------------------------- */
@@ -269,7 +278,9 @@ const STRING_SETTINGS = [
   "email",
   "whatsappNumber",
   "messengerUrl",
-
+  "logoUrl",
+  "logoFileId",
+  "logoFileName",
 ];
 
 
@@ -754,7 +765,7 @@ function requireAuth(e) {
 
 
 /* =========================================================
-   WEB APP â€” GET
+   WEB APP Ã¢â‚¬â€ GET
 ========================================================= */
 
 function doGet(e) {
@@ -772,9 +783,60 @@ function doGet(e) {
 
         : "ping";
 
+    if (action === "deploymentTest") { return jsonResponse({success:true,deployment:"SETTINGS-PERFORMANCE-V2"}); }
+
+    if (action === "settingsTest") {
+      const settings = getSettings();
+      return jsonResponse({
+        success: true,
+        settingsTest: true,
+        storeName: settings.storeName
+      });
+    }
+
 
     /* =====================================================
-       PUBLIC â€” PING
+       PUBLIC ÃƒÂ¢Ã¢â€šÂ¬Ã¢â‚¬Â LOGO IMAGE PROXY
+    ===================================================== */
+
+    if (
+      action === "logo"
+    ) {
+
+      const fileId =
+        String(
+          e.parameter.id || ""
+        ).trim();
+
+      if (!fileId) {
+        return ContentService
+          .createTextOutput(
+            "Logo file ID is required."
+          )
+          .setMimeType(
+            ContentService.MimeType.TEXT
+          );
+      }
+
+      const file =
+        DriveApp.getFileById(
+          fileId
+        );
+
+      return ContentService
+        .createTextOutput(
+          Utilities.base64Encode(
+            file.getBlob().getBytes()
+          )
+        )
+        .setMimeType(
+          ContentService.MimeType.TEXT
+        );
+    }
+
+
+    /* =====================================================
+       PUBLIC Ã¢â‚¬â€ PING
     ===================================================== */
 
     if (
@@ -797,7 +859,7 @@ function doGet(e) {
 
 
     /* =====================================================
-       PUBLIC â€” STORE SETTINGS
+       PUBLIC Ã¢â‚¬â€ STORE SETTINGS
     ===================================================== */
 
     if (
@@ -821,7 +883,7 @@ function doGet(e) {
 
 
     /* =====================================================
-       PUBLIC â€” PRODUCTS
+       PUBLIC Ã¢â‚¬â€ PRODUCTS
 
        Anyone can read the product catalog.
        No admin token required, same as storeSettings.
@@ -844,7 +906,7 @@ function doGet(e) {
 
 
     /* =====================================================
-       ADMIN â€” AUTH
+       ADMIN Ã¢â‚¬â€ AUTH
     ===================================================== */
 
     if (
@@ -1009,7 +1071,7 @@ function doGet(e) {
 
 
 /* =========================================================
-   WEB APP â€” POST
+   WEB APP Ã¢â‚¬â€ POST
 ========================================================= */
 
 function doPost(e) {
@@ -1278,7 +1340,29 @@ function doPost(e) {
 
           body.image,
 
-          body.fileName,
+          body.productName,
+
+          body.mimeType
+
+        )
+
+      );
+
+    }
+
+    /* =====================================================
+       UPLOAD LOGO
+    ===================================================== */
+
+    if (
+      action === "uploadLogo"
+    ) {
+
+      return jsonResponse(
+
+        uploadLogo(
+
+          body.image,
 
           body.mimeType
 
@@ -1291,6 +1375,9 @@ function doPost(e) {
 
     /* =====================================================
        CHANGE PASSWORD
+    ===================================================== */
+
+    /* ===================================================== CHANGE PASSWORD
     ===================================================== */
 
     if (
@@ -1348,47 +1435,84 @@ function doPost(e) {
 ========================================================= */
 
 function parseRequestBody(e) {
-
-  if (
-    !e ||
-    !e.postData ||
-    !e.postData.contents
-  ) {
-
-    return {};
-
-  }
-
-
   try {
-
-    const parsed =
-      JSON.parse(
-        e.postData.contents
-      );
-
-
-    if (
-      !parsed ||
-      typeof parsed !== "object"
-    ) {
-
+    if (!e) {
       return {};
-
     }
 
+    let raw = "";
 
-    return parsed;
+    if (
+      e.postData &&
+      typeof e.postData.contents === "string"
+    ) {
+      raw = e.postData.contents;
+    }
 
+    raw = String(raw || "")
+      .replace(/^\uFEFF/, "")
+      .trim();
 
-  } catch (error) {
+    if (raw) {
+      try {
+        const parsed = JSON.parse(raw);
+
+        if (
+          parsed &&
+          typeof parsed === "object" &&
+          !Array.isArray(parsed)
+        ) {
+          return parsed;
+        }
+      } catch (jsonError) {
+        // Try parameter fallbacks below.
+      }
+    }
+
+    if (
+      e.parameter &&
+      e.parameter.payload
+    ) {
+      const parsedPayload = JSON.parse(
+        String(e.parameter.payload)
+          .replace(/^\uFEFF/, "")
+          .trim()
+      );
+
+      if (
+        parsedPayload &&
+        typeof parsedPayload === "object" &&
+        !Array.isArray(parsedPayload)
+      ) {
+        return parsedPayload;
+      }
+    }
+
+    if (
+      e.parameter &&
+      e.parameter.action
+    ) {
+      return {
+        ...e.parameter,
+      };
+    }
 
     throw new Error(
       "Invalid JSON request body."
     );
+  } catch (error) {
+    if (
+      error &&
+      error.message ===
+        "Invalid JSON request body."
+    ) {
+      throw error;
+    }
 
+    throw new Error(
+      "Invalid JSON request body."
+    );
   }
-
 }
 
 
@@ -3325,8 +3449,27 @@ function initializeSettingsSheet(
 
 function getSettings() {
 
-  const sheet =
-    getSettingsSheet();
+  const spreadsheet =
+    SpreadsheetApp
+      .getActiveSpreadsheet();
+
+  let sheet =
+    spreadsheet.getSheetByName(
+      CONFIG.SETTINGS_SHEET_NAME
+    );
+
+  if (!sheet) {
+
+    sheet =
+      spreadsheet.insertSheet(
+        CONFIG.SETTINGS_SHEET_NAME
+      );
+
+    initializeSettingsSheet(
+      sheet
+    );
+
+  }
 
 
   const lastRow =
@@ -3466,6 +3609,15 @@ function getPublicStoreSettings() {
       settings.tagline,
 
 
+
+    logoUrl:
+      settings.logoUrl || "",
+
+    logoFileId:
+      settings.logoFileId || "",
+
+    logoFileName:
+      settings.logoFileName || "",
     /* -----------------------------------------------------
        PHONE
     ----------------------------------------------------- */
@@ -3768,7 +3920,7 @@ function buildWhatsAppUrl(
      WhatsApp requires international number.
      
      01577100162
-           â†“
+           Ã¢â€ â€œ
      8801577100162
   ------------------------------------------------------- */
 
@@ -4236,7 +4388,7 @@ function formatCell(value) {
 
    This avoids having to map every product field (tags
    array, nullable oldPrice, etc.) to its own spreadsheet
-   column â€” the admin panel already works with a single
+   column Ã¢â‚¬â€ the admin panel already works with a single
    JS array, so we just persist that array as-is.
 
    NOTE: a single Google Sheets cell holds up to ~50,000
@@ -4762,9 +4914,68 @@ function updateProducts(products) {
 
 }
 
+function slugifyFileName(value) {
+
+  const text =
+    String(value || "")
+      .normalize("NFKD")
+      .replace(/[\u0300-\u036f]/g, "")
+      .trim();
+
+  const slug =
+    text
+      .replace(/[^a-zA-Z0-9]+/g, "-")
+      .replace(/^-+|-+$/g, "");
+
+  return slug || "product-image";
+
+}
+
+
+function getImageExtension(mimeType) {
+
+  const mime =
+    String(mimeType || "")
+      .toLowerCase()
+      .trim();
+
+  if (mime === "image/png") {
+    return "png";
+  }
+
+  if (mime === "image/webp") {
+    return "webp";
+  }
+
+  if (mime === "image/gif") {
+    return "gif";
+  }
+
+  return "jpg";
+
+}
+
+
+function trashFilesByName(folder, fileName) {
+
+  const files =
+    folder.getFilesByName(fileName);
+
+  while (files.hasNext()) {
+
+    const oldFile =
+      files.next();
+
+    oldFile.setTrashed(true);
+
+  }
+
+}
+
+
 function uploadProductImage(
   base64Data,
-  fileName,
+  productName,
   mimeType
 ) {
 
@@ -4802,13 +5013,22 @@ function uploadProductImage(
       "image/jpeg";
 
 
-    const resolvedFileName =
-      fileName ||
-      (
-        "product-" +
-        Date.now() +
-        ".jpg"
+    const extension =
+      getImageExtension(
+        resolvedMimeType
       );
+
+
+    const safeProductName =
+      slugifyFileName(
+        productName
+      );
+
+
+    const resolvedFileName =
+      safeProductName +
+      "." +
+      extension;
 
 
     const blob =
@@ -4821,6 +5041,12 @@ function uploadProductImage(
 
     const folder =
       getProductImagesFolder();
+
+
+    trashFilesByName(
+      folder,
+      resolvedFileName
+    );
 
 
     const file =
@@ -4839,11 +5065,6 @@ function uploadProductImage(
       file.getId();
 
 
-    /*
-     * This is the standard hotlink format for
-     * a publicly-shared Drive file.
-     */
-
     const url =
       "https://lh3.googleusercontent.com/d/" +
       fileId +
@@ -4854,11 +5075,12 @@ function uploadProductImage(
 
       success: true,
 
-      url:
-        url,
+      url: url,
 
-      fileId:
-        fileId,
+      fileId: fileId,
+
+      fileName:
+        resolvedFileName,
 
     };
 
@@ -4872,14 +5094,179 @@ function uploadProductImage(
       error:
         error &&
         error.message
-
           ? error.message
-
           : "Image upload failed.",
 
     };
 
   }
+
+}
+
+
+/* =========================================================
+   LOGO UPLOAD
+========================================================= */
+
+function uploadLogo(
+  base64Data,
+  mimeType
+) {
+
+  if (!base64Data) {
+
+    return {
+
+      success: false,
+
+      error:
+        "No logo data provided.",
+
+    };
+
+  }
+
+
+  try {
+
+    const cleanBase64 =
+      String(base64Data).replace(
+        /^data:[^;]+;base64,/,
+        ""
+      );
+
+
+    const bytes =
+      Utilities.base64Decode(
+        cleanBase64
+      );
+
+
+    const resolvedMimeType =
+      mimeType ||
+      "image/png";
+
+
+    const extension =
+      getImageExtension(
+        resolvedMimeType
+      );
+
+
+    const fileName =
+      "PearlSkino-BD-Logo." +
+      extension;
+
+
+    const blob =
+      Utilities.newBlob(
+        bytes,
+        resolvedMimeType,
+        fileName
+      );
+
+
+    const folder =
+      getBrandAssetsFolder();
+
+
+    trashFilesByName(
+      folder,
+      fileName
+    );
+
+
+    const file =
+      folder.createFile(
+        blob
+      );
+
+
+    file.setSharing(
+      DriveApp.Access.ANYONE_WITH_LINK,
+      DriveApp.Permission.VIEW
+    );
+
+
+    const fileId =
+      file.getId();
+
+
+    const url =
+      file.getDownloadUrl();
+
+
+    const currentSettings =
+      getSettings();
+
+
+    const updatedSettings = {
+      ...currentSettings,
+      logoUrl: url,
+      logoFileId: fileId,
+      logoFileName: fileName,
+    };
+
+
+    updateSettings(
+      updatedSettings
+    );
+
+
+    return {
+
+      success: true,
+
+      url: url,
+
+      fileId: fileId,
+
+      fileName: fileName,
+
+    };
+
+
+  } catch (error) {
+
+    return {
+
+      success: false,
+
+      error:
+        error &&
+        error.message
+          ? error.message
+          : "Logo upload failed.",
+
+    };
+
+  }
+
+}
+
+
+function getBrandAssetsFolder() {
+
+  const folderName =
+    "PearlSkino Brand Assets";
+
+
+  const folders =
+    DriveApp.getFoldersByName(
+      folderName
+    );
+
+
+  if (folders.hasNext()) {
+
+    return folders.next();
+
+  }
+
+
+  return DriveApp.createFolder(
+    folderName
+  );
 
 }
 

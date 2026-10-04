@@ -1,4 +1,4 @@
-﻿import React, { useState } from "react";
+import React, { useState } from "react";
 import { GOOGLE_FORMS } from "../config/googleForms";
 import { submitToGoogleForm } from "../utils/googleForms";
 import { useStore } from "../context/StoreContext";
@@ -175,9 +175,6 @@ export default function FAQ() {
             zIndex: 1,
           }}
         >
-          <div className="faq-hero-logo">
-            <img src="/logo.png" alt={brand} />
-          </div>
 
           {brand.toUpperCase()} HELP CENTER
         </div>
@@ -618,5 +615,3 @@ export default function FAQ() {
     </main>
   );
 }
-
-

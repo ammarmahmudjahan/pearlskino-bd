@@ -3138,3 +3138,21 @@
 
 }
 
+
+.cart-luxury-button .arrow-accent {
+  display: inline-block;
+  transition: transform 0.25s ease;
+}
+
+.cart-luxury-button:hover .arrow-accent {
+  transform: translateX(5px) rotate(-8deg);
+}
+.cart-luxury-button .arrow-accent {
+  display: inline-block;
+  transform-origin: 50% 50%;
+  transition: transform 0.35s cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.cart-luxury-button:hover .arrow-accent {
+  transform: rotate(-45deg);
+}

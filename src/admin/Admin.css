@@ -1748,3 +1748,572 @@
   transform: none;
 }
 
+
+/* =========================================================
+   BRANDING
+========================================================= */
+
+.branding-card-body {
+  display: flex;
+  align-items: center;
+  gap: 24px;
+  flex-wrap: wrap;
+}
+
+.branding-logo-preview {
+  width: 180px;
+  height: 120px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 18px;
+  border: 1px solid rgba(0, 0, 0, 0.08);
+  background:
+    radial-gradient(
+      circle at 30% 20%,
+      rgba(255, 255, 255, 0.95),
+      rgba(245, 235, 246, 0.75)
+    );
+  overflow: hidden;
+}
+
+.branding-logo-preview img {
+  display: block;
+  max-width: 90%;
+  max-height: 90%;
+  object-fit: contain;
+}
+
+.branding-logo-actions {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  min-width: 240px;
+}
+
+.branding-logo-name {
+  margin: 0;
+  font-size: 13px;
+  opacity: 0.7;
+  word-break: break-word;
+}
+
+.branding-logo-help {
+  margin: 0;
+  font-size: 12px;
+  opacity: 0.6;
+  max-width: 420px;
+}
+
+
+.image-upload-button { display:inline-flex; align-items:center; justify-content:center; min-height:42px; padding:0 18px; border:1px solid rgba(40,35,45,.16); border-radius:999px; background:linear-gradient(135deg,#fff 0%,#f7f1fa 100%); color:#2d2731; font-family:inherit; font-size:13px; font-weight:700; line-height:1; cursor:pointer; user-select:none; box-shadow:0 5px 16px rgba(40,35,45,.08); transition:transform .22s ease,box-shadow .22s ease,border-color .22s ease,background .22s ease; } .image-upload-button:hover { transform:translateY(-1px); border-color:rgba(110,82,130,.35); background:linear-gradient(135deg,#fff 0%,#eee4f3 100%); box-shadow:0 8px 22px rgba(40,35,45,.12); } .image-upload-button:active { transform:translateY(0); } .image-upload-button.is-uploading { opacity:.65; cursor:wait; transform:none; } .branding-logo-actions { display:flex; align-items:center; gap:14px; flex-wrap:wrap; } .branding-logo-name { margin:0; color:rgba(45,39,49,.62); font-size:12px; line-height:1.4; }
+
+.branding-logo-actions { display:flex; flex-direction:column; align-items:flex-start; justify-content:flex-start; gap:10px; width:100%; }
+
+.admin-toast {
+  position: fixed;
+  top: 24px;
+  right: 24px;
+  z-index: 9999;
+
+  display: flex;
+  align-items: center;
+  gap: 13px;
+
+  min-width: 300px;
+  max-width: 390px;
+  padding: 14px 17px 14px 14px;
+
+  border: 1px solid rgba(255,255,255,.72);
+  border-radius: 18px;
+
+  background:
+    linear-gradient(
+      135deg,
+      rgba(255,255,255,.96) 0%,
+      rgba(250,246,252,.94) 48%,
+      rgba(244,237,248,.94) 100%
+    );
+
+  color: #2d2731;
+
+  box-shadow:
+    0 18px 50px rgba(52,39,61,.16),
+    0 4px 14px rgba(52,39,61,.08),
+    inset 0 1px 0 rgba(255,255,255,.95);
+
+  backdrop-filter: blur(18px);
+  -webkit-backdrop-filter: blur(18px);
+
+  font-size: 13px;
+  font-weight: 600;
+  line-height: 1.45;
+
+  overflow: hidden;
+
+  animation:
+    adminToastIn .42s cubic-bezier(.22,1,.36,1) both,
+    adminToastGlow 2.8s ease-in-out .4s both;
+}
+
+.admin-toast::before {
+  content: "";
+  position: absolute;
+  left: 0;
+  top: 10px;
+  bottom: 10px;
+  width: 4px;
+  border-radius: 0 8px 8px 0;
+  background: linear-gradient(
+    180deg,
+    #c9a8d9,
+    #9b76ae
+  );
+}
+
+.admin-toast::after {
+  content: "";
+  position: absolute;
+  width: 110px;
+  height: 110px;
+  right: -55px;
+  top: -55px;
+  border-radius: 50%;
+  background: rgba(224,201,233,.28);
+  pointer-events: none;
+}
+
+.admin-toast-icon {
+  position: relative;
+  z-index: 1;
+
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+
+  width: 34px;
+  height: 34px;
+  flex: 0 0 34px;
+
+  border: 1px solid rgba(255,255,255,.9);
+  border-radius: 50%;
+
+  background:
+    linear-gradient(
+      145deg,
+      #fff,
+      #eee3f3
+    );
+
+  color: #79558a;
+
+  font-size: 15px;
+
+  box-shadow:
+    0 5px 14px rgba(92,65,105,.13),
+    inset 0 1px 0 rgba(255,255,255,.95);
+}
+
+.admin-toast-error .admin-toast-icon {
+  background:
+    linear-gradient(
+      145deg,
+      #fff,
+      #f7e3e5
+    );
+  color: #a44f59;
+}
+
+.admin-toast-success .admin-toast-icon {
+  background:
+    linear-gradient(
+      145deg,
+      #fff,
+      #e8f3ed
+    );
+  color: #4f8067;
+}
+
+.admin-toast-message {
+  position: relative;
+  z-index: 1;
+  flex: 1;
+}
+
+@keyframes adminToastIn {
+  from {
+    opacity: 0;
+    transform: translate3d(32px, -8px, 0) scale(.96);
+    filter: blur(4px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translate3d(0, 0, 0) scale(1);
+    filter: blur(0);
+  }
+}
+
+@keyframes adminToastGlow {
+  0% {
+    box-shadow:
+      0 18px 50px rgba(52,39,61,.16),
+      0 4px 14px rgba(52,39,61,.08),
+      inset 0 1px 0 rgba(255,255,255,.95);
+  }
+
+  45% {
+    box-shadow:
+      0 20px 55px rgba(130,91,150,.20),
+      0 5px 18px rgba(52,39,61,.10),
+      inset 0 1px 0 rgba(255,255,255,.95);
+  }
+
+  100% {
+    box-shadow:
+      0 18px 50px rgba(52,39,61,.16),
+      0 4px 14px rgba(52,39,61,.08),
+      inset 0 1px 0 rgba(255,255,255,.95);
+  }
+}
+@keyframes adminToastIn { from { opacity:0; transform:translateY(-10px); } to { opacity:1; transform:translateY(0); } }
+
+
+/* Premium Admin Toast */
+.admin-toast {
+  position: fixed;
+  top: 24px;
+  right: 24px;
+  z-index: 999999;
+
+  display: flex;
+  align-items: center;
+  gap: 12px;
+
+  min-width: 280px;
+  max-width: 380px;
+  padding: 13px 16px 15px;
+
+  border: 1px solid rgba(255,255,255,.72);
+  border-radius: 16px;
+
+  background:
+    linear-gradient(
+      135deg,
+      rgba(255,255,255,.94),
+      rgba(248,241,250,.88)
+    );
+
+  box-shadow:
+    0 18px 45px rgba(77,52,88,.16),
+    inset 0 1px 0 rgba(255,255,255,.95);
+
+  backdrop-filter: blur(18px);
+  -webkit-backdrop-filter: blur(18px);
+
+  color: #332b36;
+  font-family: "Manrope", sans-serif;
+  font-size: 13px;
+  font-weight: 600;
+
+  overflow: hidden;
+
+  animation:
+    adminToastIn .42s cubic-bezier(.22,1,.36,1) both;
+}
+
+.admin-toast::after {
+  content: "";
+  position: absolute;
+  left: 0;
+  bottom: 0;
+
+  width: 100%;
+  height: 2px;
+
+  background: linear-gradient(
+    90deg,
+    rgba(135,97,154,.15),
+    rgba(135,97,154,.75),
+    rgba(190,157,201,.18)
+  );
+
+  transform-origin: left;
+  animation: adminToastProgress 3.2s linear forwards;
+}
+
+.admin-toast-icon {
+  flex: 0 0 30px;
+
+  width: 30px;
+  height: 30px;
+
+  display: grid;
+  place-items: center;
+
+  border-radius: 50%;
+
+  background:
+    radial-gradient(
+      circle at 32% 25%,
+      #fff,
+      #f4e8f5 55%,
+      #dfc9e5
+    );
+
+  box-shadow:
+    inset 2px 2px 5px rgba(255,255,255,.9),
+    0 5px 14px rgba(103,75,113,.12);
+
+  font-size: 14px;
+  font-weight: 800;
+}
+
+.admin-toast-success .admin-toast-icon {
+  color: #617c68;
+}
+
+.admin-toast-error .admin-toast-icon {
+  color: #a45f70;
+  background:
+    radial-gradient(
+      circle at 32% 25%,
+      #fff,
+      #f8e9ee 55%,
+      #e7cbd4
+    );
+}
+
+@keyframes adminToastIn {
+  from {
+    opacity: 0;
+    transform: translate3d(28px,-8px,0) scale(.96);
+  }
+
+  to {
+    opacity: 1;
+    transform: translate3d(0,0,0) scale(1);
+  }
+}
+
+@keyframes adminToastProgress {
+  from {
+    transform: scaleX(1);
+  }
+
+  to {
+    transform: scaleX(0);
+  }
+}
+
+@media (max-width: 600px) {
+  .admin-toast {
+    top: 14px;
+    right: 14px;
+    left: 14px;
+
+    min-width: 0;
+    max-width: none;
+  }
+}
+
+/* Premium Admin Confirmation Modal */
+
+.admin-confirm-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 1000000;
+
+  display: grid;
+  place-items: center;
+
+  padding: 24px;
+
+  background: rgba(48, 38, 51, .24);
+
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+
+  animation: adminConfirmOverlayIn .22s ease both;
+}
+
+.admin-confirm-modal {
+  width: min(430px, 100%);
+
+  padding: 26px;
+
+  border: 1px solid rgba(255,255,255,.78);
+  border-radius: 24px;
+
+  background:
+    linear-gradient(
+      145deg,
+      rgba(255,255,255,.96),
+      rgba(248,241,250,.94)
+    );
+
+  box-shadow:
+    0 30px 80px rgba(61,45,68,.22),
+    inset 0 1px 0 rgba(255,255,255,.95);
+
+  backdrop-filter: blur(22px);
+  -webkit-backdrop-filter: blur(22px);
+
+  animation:
+    adminConfirmModalIn .32s cubic-bezier(.22,1,.36,1) both;
+}
+
+.admin-confirm-icon {
+  width: 46px;
+  height: 46px;
+
+  display: grid;
+  place-items: center;
+
+  margin-bottom: 18px;
+
+  border-radius: 50%;
+
+  background:
+    radial-gradient(
+      circle at 32% 25%,
+      #fff,
+      #f8e9ee 54%,
+      #e6c8d2
+    );
+
+  color: #a45f70;
+
+  font-size: 19px;
+  font-weight: 800;
+
+  box-shadow:
+    inset 2px 2px 6px rgba(255,255,255,.9),
+    0 8px 20px rgba(103,75,113,.12);
+}
+
+.admin-confirm-content h3 {
+  margin: 0;
+
+  color: #302832;
+
+  font-family: "Space Grotesk", sans-serif;
+  font-size: 20px;
+  font-weight: 650;
+  letter-spacing: -.025em;
+}
+
+.admin-confirm-content p {
+  margin: 9px 0 0;
+
+  color: #756a76;
+
+  font-family: "Manrope", sans-serif;
+  font-size: 13px;
+  line-height: 1.65;
+}
+
+.admin-confirm-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+
+  margin-top: 24px;
+}
+
+.admin-confirm-actions button {
+  min-height: 40px;
+
+  padding: 0 16px;
+
+  border-radius: 12px;
+
+  font-family: "Manrope", sans-serif;
+  font-size: 12px;
+  font-weight: 700;
+
+  cursor: pointer;
+
+  transition:
+    transform .2s ease,
+    box-shadow .2s ease,
+    background .2s ease;
+}
+
+.admin-confirm-actions button:hover {
+  transform: translateY(-1px);
+}
+
+.admin-confirm-cancel {
+  border: 1px solid rgba(125,108,130,.18);
+
+  background: rgba(255,255,255,.72);
+
+  color: #665b68;
+}
+
+.admin-confirm-cancel:hover {
+  background: rgba(255,255,255,.94);
+}
+
+.admin-confirm-danger {
+  border: 1px solid rgba(164,95,112,.22);
+
+  background:
+    linear-gradient(
+      135deg,
+      #a96878,
+      #8f596a
+    );
+
+  color: #fff;
+
+  box-shadow:
+    0 8px 18px rgba(143,89,106,.20);
+}
+
+.admin-confirm-danger:hover {
+  box-shadow:
+    0 11px 24px rgba(143,89,106,.28);
+}
+
+@keyframes adminConfirmOverlayIn {
+  from {
+    opacity: 0;
+  }
+
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes adminConfirmModalIn {
+  from {
+    opacity: 0;
+    transform: translateY(12px) scale(.97);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+@media (max-width: 600px) {
+  .admin-confirm-overlay {
+    padding: 16px;
+  }
+
+  .admin-confirm-modal {
+    padding: 22px;
+    border-radius: 20px;
+  }
+
+  .admin-confirm-actions {
+    flex-direction: column-reverse;
+  }
+
+  .admin-confirm-actions button {
+    width: 100%;
+  }
+}

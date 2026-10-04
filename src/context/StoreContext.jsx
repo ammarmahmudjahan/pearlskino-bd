@@ -35,7 +35,7 @@ const DEFAULT_STORE_SETTINGS = {
 const SETTINGS_REFRESH_MS = 30000;
 
 async function fetchStoreSettings() {
-  const response = await fetch(`${SETTINGS_API}?action=storeSettings`);
+  const response = await fetch(`${SETTINGS_API}?action=storeSettings&_ts=${Date.now()}`, { cache: "no-store" });
 
   if (!response.ok) {
     throw new Error("Unable to load store settings.");
@@ -106,13 +106,61 @@ function writeCachedStoreSettings(settings) {
   }
 }
 
+async function fetchLogoDataUrl(fileId) {
+  if (!fileId) {
+    return "";
+  }
+
+  const response = await fetch(
+    `${SETTINGS_API}?action=logo&id=${encodeURIComponent(fileId)}&_ts=${Date.now()}`,
+    { cache: "no-store" }
+  );
+
+  if (!response.ok) {
+    throw new Error("Unable to load store logo.");
+  }
+
+  const base64 =
+    (await response.text()).trim();
+
+  if (!base64) {
+    throw new Error("Store logo is empty.");
+  }
+
+  return `data:image/webp;base64,${base64}`;
+}
 export function StoreProvider({ children }) {
   const [storeSettings, setStoreSettings] =
-    useState(readCachedStoreSettings);
+    useState(null);
 
   const [settingsLoading, setSettingsLoading] =
-    useState(false);
+    useState(true);
+  useEffect(() => {
+    const logoDataUrl = storeSettings?.logoDataUrl;
 
+    if (!logoDataUrl) {
+      return;
+    }
+
+    document
+      .querySelectorAll(
+        'link[rel="icon"], link[rel="shortcut icon"], link[rel="apple-touch-icon"], link[data-pearlskino-favicon]'
+      )
+      .forEach((link) => link.remove());
+
+    const favicon = document.createElement("link");
+
+    favicon.rel = "icon";
+    favicon.type = "image/webp";
+    favicon.href = logoDataUrl;
+
+    favicon.setAttribute(
+      "data-pearlskino-favicon",
+      "true"
+    );
+
+    document.head.appendChild(favicon);
+  }, [storeSettings?.logoDataUrl]);
   useEffect(() => {
     let mounted = true;
 
@@ -120,9 +168,24 @@ export function StoreProvider({ children }) {
       try {
         const settings = await fetchStoreSettings();
 
+        let logoDataUrl = "";
+
+        if (settings.logoFileId) {
+          try {
+            logoDataUrl = await fetchLogoDataUrl(settings.logoFileId);
+          } catch (error) {
+            console.error("STORE LOGO LOAD ERROR:", error);
+          }
+        }
+
         if (mounted) {
-          setStoreSettings(settings);
-          writeCachedStoreSettings(settings);
+          const finalSettings = {
+            ...settings,
+            logoDataUrl,
+          };
+
+          setStoreSettings(finalSettings);
+          writeCachedStoreSettings(finalSettings);
         }
       } catch (error) {
         console.error("STORE SETTINGS LOAD ERROR:", error);
@@ -147,10 +210,30 @@ export function StoreProvider({ children }) {
   }, []);
 
   useEffect(() => {
-    function handleSettingsUpdated() {
-      fetchStoreSettings()
-        .then((settings) => {
-          setStoreSettings(settings);
+    function refreshSettings() {
+      fetchStoreSettings().then(async (settings) => {
+      let logoDataUrl = "";
+
+      if (settings.logoFileId) {
+        try {
+          logoDataUrl =
+            await fetchLogoDataUrl(
+              settings.logoFileId
+            );
+        } catch (error) {
+          console.error(
+            "STORE LOGO REFRESH ERROR:",
+            error
+          );
+        }
+      }
+
+      const finalSettings = {
+        ...settings,
+        logoDataUrl,
+      };
+          setStoreSettings(finalSettings);
+          writeCachedStoreSettings(finalSettings);
         })
         .catch((error) => {
           console.error(
@@ -160,15 +243,38 @@ export function StoreProvider({ children }) {
         });
     }
 
+    function handleSettingsUpdated() {
+      refreshSettings();
+    }
+
+    function handleStorage(event) {
+      if (
+        event.key === "pearlskino-settings-updated" &&
+        event.newValue
+      ) {
+        refreshSettings();
+      }
+    }
+
     window.addEventListener(
       "pearlskino-settings-updated",
       handleSettingsUpdated
+    );
+
+    window.addEventListener(
+      "storage",
+      handleStorage
     );
 
     return () => {
       window.removeEventListener(
         "pearlskino-settings-updated",
         handleSettingsUpdated
+      );
+
+      window.removeEventListener(
+        "storage",
+        handleStorage
       );
     };
   }, []);
@@ -400,21 +506,27 @@ export function StoreProvider({ children }) {
     [cart]
   );
 
+  const activeStoreSettings = storeSettings || DEFAULT_STORE_SETTINGS;
+
   const shipping = subtotal
     ? Number(
-        storeSettings.freeDeliveryThreshold || 0
+        activeStoreSettings.freeDeliveryThreshold || 0
       ) > 0 &&
       subtotal >=
         Number(
-          storeSettings.freeDeliveryThreshold
+          activeStoreSettings.freeDeliveryThreshold
         )
       ? 0
       : Number(
-          storeSettings.deliveryCharge || 0
+          activeStoreSettings.deliveryCharge || 0
         )
     : 0;
 
   const total = subtotal + shipping;
+
+  if (settingsLoading && !storeSettings) {
+    return null;
+  }
 
   const value = {
     products,
@@ -455,6 +567,18 @@ export function useStore() {
 
   return context;
 }
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 

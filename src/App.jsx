@@ -1,4 +1,4 @@
-import {
+﻿import {
   BrowserRouter,
   Routes,
   Route,
@@ -45,6 +45,23 @@ function ScrollToTop() {
    APP SHELL
 ========================================================= */
 
+function InitialLoaderExit() {
+  useEffect(() => {
+    const loader = document.getElementById("initial-loading");
+
+    if (!loader) return;
+
+    requestAnimationFrame(() => {
+      loader.classList.add("loaded");
+
+      window.setTimeout(() => {
+        loader.remove();
+      }, 500);
+    });
+  }, []);
+
+  return null;
+}
 function AppShell() {
   const { pathname } = useLocation();
 
@@ -58,63 +75,21 @@ function AppShell() {
 
       {!isAdmin && <Header />}
 
-      <Suspense
-        fallback={
-          <div className="page-loading">
-            Loading...
-          </div>
-        }
-      >
+      <Suspense fallback={null}>
         <Routes>
-
-          <Route
-            path="/"
-            element={<Home />}
-          />
-
-          <Route
-            path="/shop"
-            element={<Shop />}
-          />
-
-          <Route
-            path="/product/:id"
-            element={<Product />}
-          />
-
-          <Route
-            path="/cart"
-            element={<Cart />}
-          />
-
-          <Route
-            path="/checkout"
-            element={<Checkout />}
-          />
-
-          <Route
-            path="/about"
-            element={<About />}
-          />
-
-          <Route
-            path="/contact"
-            element={<Contact />}
-          />
-
-          <Route
-            path="/faq"
-            element={<FAQ />}
-          />
-
-          <Route
-            path="/admin"
-            element={<Admin />}
-          />
-
+          <Route path="/" element={<Home />} />
+          <Route path="/shop" element={<Shop />} />
+          <Route path="/product/:id" element={<Product />} />
+          <Route path="/cart" element={<Cart />} />
+          <Route path="/checkout" element={<Checkout />} />
+          <Route path="/about" element={<About />} />
+          <Route path="/contact" element={<Contact />} />
+          <Route path="/faq" element={<FAQ />} />
+          <Route path="/admin" element={<Admin />} />
         </Routes>
-      </Suspense>
 
+        <InitialLoaderExit />
+      </Suspense>
       {!isAdmin && <CartDrawer />}
       {!isAdmin && <Footer />}
 
@@ -134,3 +109,9 @@ export default function App() {
     </BrowserRouter>
   );
 }
+
+
+
+
+
+

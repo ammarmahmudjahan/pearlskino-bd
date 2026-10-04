@@ -1,4 +1,4 @@
-﻿
+
 import React, { useState } from "react";
 
 import { useStore } from "../context/StoreContext";
@@ -71,15 +71,6 @@ export default function Contact() {
 
 
         <div className="contact-hero-content">
-
-          {/* BRAND LOGO */}
-
-          <div className="contact-hero-logo">
-            <img
-              src="/logo.png"
-              alt={storeSettings.storeName}
-            />
-          </div>
 
 
           <p className="eyebrow">
@@ -288,22 +279,3 @@ export default function Contact() {
     </main>
   );
 }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-

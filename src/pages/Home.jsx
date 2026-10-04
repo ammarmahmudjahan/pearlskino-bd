@@ -29,15 +29,23 @@ export default function Home() {
       >
         <div className="home-marquee-track">
 
-          <span>✦ FREE PICKUP IN SELECTED AREAS</span>
-          <span>✧ COD AVAILABLE IN METROPOLITAN AREA</span>
-          <span>✦ AUTHENTIC BEAUTY & FRAGRANCE</span>
-          <span>✧ CURATED WITH CARE</span>
+          <span>PICKUP IN SELECTED AREAS</span>
+          <span className="marquee-star">&#10022;</span>
+          <span>COD AVAILABLE IN METROPOLITAN AREA</span>
+          <span className="marquee-star">&#10022;</span>
+          <span>AUTHENTIC BEAUTY &amp; FRAGRANCE</span>
+          <span className="marquee-star">&#10022;</span>
+          <span>CURATED WITH CARE</span>
+          <span className="marquee-star">&#10022;</span>
 
-          <span>✦ FREE PICKUP IN SELECTED AREAS</span>
-          <span>✧ COD AVAILABLE IN METROPOLITAN AREA</span>
-          <span>✦ AUTHENTIC BEAUTY & FRAGRANCE</span>
-          <span>✧ CURATED WITH CARE</span>
+          <span>PICKUP IN SELECTED AREAS</span>
+          <span className="marquee-star">&#10022;</span>
+          <span>COD AVAILABLE IN METROPOLITAN AREA</span>
+          <span className="marquee-star">&#10022;</span>
+          <span>AUTHENTIC BEAUTY &amp; FRAGRANCE</span>
+          <span className="marquee-star">&#10022;</span>
+          <span>CURATED WITH CARE</span>
+          <span className="marquee-star">&#10022;</span>
 
         </div>
       </div>
@@ -56,15 +64,6 @@ export default function Home() {
 
         <div className="hero-content">
 
-          {/* COMPACT BRAND LOGO */}
-
-          <div className="home-hero-logo">
-            <img
-              src="/logo.png"
-              alt={brand}
-            />
-          </div>
-
 
           <p className="eyebrow">
             CURATED BEAUTY • {brand.toUpperCase()}
@@ -74,8 +73,7 @@ export default function Home() {
           <h1>
             Your glow,
             <br />
-            <span>your story.</span>
-          </h1>
+            <em>your story.</em>          </h1>
 
 
           <p className="hero-text">
@@ -91,7 +89,7 @@ export default function Home() {
               className="hero-button"
             >
               Explore Collection
-              <span>↗</span>
+              <span className="arrow-accent">&#8594;</span>
             </Link>
 
 
@@ -100,7 +98,7 @@ export default function Home() {
               className="hero-button secondary"
             >
               Our Story
-              <span>→</span>
+              <span className="arrow-accent">&#8594;</span>
             </Link>
 
           </div>
@@ -136,7 +134,7 @@ export default function Home() {
             className="home-featured-link"
           >
             View all
-            <span>→</span>
+            <span className="arrow-accent">&#8594;</span>
           </Link>
 
         </div>
@@ -175,7 +173,7 @@ export default function Home() {
                         loading="lazy"
                       />
                     ) : (
-                      <span>✦</span>
+                      <span>âœ¦</span>
                     )}
 
                   </div>
@@ -246,31 +244,19 @@ export default function Home() {
             to="/shop"
             className="home-explore-button"
           >
-            <span>
-              Explore Collection
-            </span>
-
-            <strong>
-              ↗
-            </strong>
+            <span>Explore Collection</span>
+            <strong className="arrow-accent">&#8594;</strong>
           </Link>
-
 
           <Link
             to="/about"
             className="home-story-button"
           >
-            <span>
-              Discover Our Story
-            </span>
-
-            <strong>
-              →
-            </strong>
+            <span>Our Story</span>
+            <strong className="arrow-accent">&#8594;</strong>
           </Link>
 
         </div>
-
       </section>
 
     </main>

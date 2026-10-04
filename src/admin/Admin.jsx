@@ -499,19 +499,7 @@ async function checkAdminSession() {
 
   try {
 
-    /*
-     * The Apps Script API currently has
-     * no separate authenticated "auth"
-     * GET action.
-     *
-     * Therefore orders is used as the
-     * protected session validation request.
-     */
-
-    await getApi(
-      "orders",
-      token
-    );
+    await getApi("auth", token);
 
 
     return true;
@@ -1154,9 +1142,10 @@ function OrdersPage({
         error
       );
 
-      window.alert(
+      showAdminToast(
         error.message ||
-          "Failed to update order status."
+          "Failed to update order status.",
+        "error"
       );
 
     } finally {
@@ -1174,9 +1163,12 @@ function OrdersPage({
       "this order";
 
     const confirmed =
-      window.confirm(
-        `Delete ${label}? This will permanently remove the order from the Orders sheet.`
-      );
+      await requestAdminConfirm({
+        title: "Delete order?",
+        message:
+          `Delete ${label}? This will permanently remove the order from the Orders sheet.`,
+        confirmLabel: "Delete order",
+      });
 
     if (!confirmed) {
       return;
@@ -1203,9 +1195,10 @@ function OrdersPage({
         error
       );
 
-      window.alert(
+      showAdminToast(
         error.message ||
-          "Failed to delete order."
+          "Failed to delete order.",
+        "error"
       );
 
     } finally {
@@ -1486,9 +1479,12 @@ function CustomersPage({
       "this customer";
 
     const confirmed =
-      window.confirm(
-        `Remove ${label} from Customers? Historical orders will NOT be deleted.`
-      );
+      await requestAdminConfirm({
+        title: "Remove customer?",
+        message:
+          `Remove ${label} from Customers? Historical orders will NOT be deleted.`,
+        confirmLabel: "Remove customer",
+      });
 
     if (!confirmed) {
       return;
@@ -1513,9 +1509,10 @@ function CustomersPage({
         error
       );
 
-      window.alert(
+      showAdminToast(
         error.message ||
-          "Failed to delete customer."
+          "Failed to delete customer.",
+        "error"
       );
 
     } finally {
@@ -1830,14 +1827,66 @@ function Dashboard({
    SETTINGS PAGE
 ========================================================= */
 
-function BrandingCard({ settings, onSettingsChange }) {
+function BrandingCard({ settings, onSettingsChange, showAdminToast }) {
 
   const [uploadingLogo, setUploadingLogo] =
     useState(false);
 
-  const logoUrl =
-    settings?.logoUrl ||
-    "/logo.png";
+  const [logoUrl, setLogoUrl] = useState(
+  settings?.logoFileId
+    ? ""
+    : settings?.logoUrl || "/logo.png"
+);
+
+useEffect(() => {
+  let cancelled = false;
+
+  async function loadAdminLogo() {
+    if (!settings?.logoFileId) {
+      setLogoUrl(settings?.logoUrl || "/logo.png");
+      return;
+    }
+
+    try {
+      const response = await fetch(
+        `${ORDERS_API}?action=logo&id=${encodeURIComponent(settings.logoFileId)}&_ts=${Date.now()}`,
+        { cache: "no-store" }
+      );
+
+      if (!response.ok) {
+        throw new Error("Unable to load logo.");
+      }
+
+      const base64 =
+        (await response.text()).trim();
+
+      if (!base64 || cancelled) {
+        return;
+      }
+
+      setLogoUrl(
+        `data:image/webp;base64,${base64}`
+      );
+    } catch {
+      if (!cancelled) {
+        setLogoUrl(
+          settings?.logoUrl || "/logo.png"
+        );
+      }
+    }
+  }
+
+  loadAdminLogo();
+
+  return () => {
+    cancelled = true;
+  };
+}, [
+  settings?.logoFileId,
+  settings?.logoFileName,
+  settings?.logoUrl,
+]);
+
 
 
   async function handleLogoUpload(event) {
@@ -1851,107 +1900,205 @@ function BrandingCard({ settings, onSettingsChange }) {
       return;
     }
 
-
     const allowedTypes = [
       "image/png",
       "image/jpeg",
       "image/webp",
     ];
 
-
     if (!allowedTypes.includes(file.type)) {
-
-      alert(
-        "Please upload a PNG, JPG/JPEG, or WebP logo."
+      showAdminToast(
+        "Please upload a PNG, JPG/JPEG, or WebP logo.",
+        "error"
       );
-
       return;
-
     }
 
+    setUploadingLogo(true);
 
-    const reader =
-      new FileReader();
+    try {
 
+      const dataUrl =
+        await new Promise((resolve, reject) => {
 
-    reader.onload = async function() {
+          const reader =
+            new FileReader();
 
-      setUploadingLogo(true);
+          reader.onload = () =>
+            resolve(reader.result);
 
+          reader.onerror = () =>
+            reject(
+              new Error("Unable to read logo file.")
+            );
 
-      try {
-
-        const result =
-          await uploadLogoImage(
-            reader.result,
-            file.type
-          );
-
-
-        if (!result?.success) {
-
-          throw new Error(
-            result?.error ||
-            "Logo upload failed."
-          );
-
-        }
+          reader.readAsDataURL(file);
+        });
 
 
-        onSettingsChange(
-          function(current) {
+      const optimizedDataUrl =
+        await new Promise((resolve, reject) => {
 
-            return {
-              ...current,
-              logoUrl:
-                result.url || "",
-              logoFileId:
-                result.fileId || "",
-              logoFileName:
-                result.fileName || "",
-            };
+          const image =
+            new Image();
 
-          }
+          image.onload = () => {
+
+            const maxSize = 512;
+
+            const scale =
+              Math.min(
+                1,
+                maxSize /
+                  Math.max(
+                    image.naturalWidth,
+                    image.naturalHeight
+                  )
+              );
+
+            const width =
+              Math.max(
+                1,
+                Math.round(
+                  image.naturalWidth * scale
+                )
+              );
+
+            const height =
+              Math.max(
+                1,
+                Math.round(
+                  image.naturalHeight * scale
+                )
+              );
+
+            const canvas =
+              document.createElement("canvas");
+
+            canvas.width = width;
+            canvas.height = height;
+
+            const context =
+              canvas.getContext("2d");
+
+            if (!context) {
+              reject(
+                new Error(
+                  "Unable to process logo image."
+                )
+              );
+              return;
+            }
+
+            context.clearRect(
+              0,
+              0,
+              width,
+              height
+            );
+
+            context.drawImage(
+              image,
+              0,
+              0,
+              width,
+              height
+            );
+
+            const compressed =
+              canvas.toDataURL(
+                "image/webp",
+                0.82
+              );
+
+            resolve(compressed);
+          };
+
+          image.onerror = () =>
+            reject(
+              new Error(
+                "Unable to process logo image."
+              )
+            );
+
+          image.src = dataUrl;
+        });
+
+
+      const result =
+        await uploadLogoImage(
+          optimizedDataUrl,
+          "image/webp"
         );
 
 
-        window.dispatchEvent(
-          new CustomEvent(
-            "pearlskino-settings-updated"
-          )
+      if (!result?.success) {
+        throw new Error(
+          result?.error ||
+          "Logo upload failed."
         );
-
-
-        alert(
-          "Logo uploaded successfully."
-        );
-
-      } catch (error) {
-
-        console.error(
-          "Logo upload failed:",
-          error
-        );
-
-
-        alert(
-          "Logo upload failed.\n\n" +
-          (
-            error?.message ||
-            "Unknown error."
-          )
-        );
-
-      } finally {
-
-        setUploadingLogo(false);
-
       }
 
-    };
+
+      onSettingsChange(
+        function(current) {
+
+          return {
+            ...current,
+            logoUrl:
+              result.url || "",
+            logoFileId:
+              result.fileId || "",
+            logoFileName:
+              result.fileName || "",
+          };
+
+        }
+      );
 
 
-    reader.readAsDataURL(file);
+      window.dispatchEvent(
+        new CustomEvent(
+          "pearlskino-settings-updated"
+        )
+      );
+
+      try {
+        localStorage.setItem(
+          "pearlskino-settings-updated",
+          String(Date.now())
+        );
+      } catch {
+        // Ignore localStorage errors.
+      }
+
+
+      showAdminToast(
+        "Logo uploaded successfully.",
+        "success"
+      );
+
+    } catch (error) {
+
+      console.error(
+        "Logo upload failed:",
+        error
+      );
+
+      showAdminToast(
+        "Logo upload failed.\n\n" +
+        (
+          error?.message ||
+          "Unknown error."
+        ),
+        "error"
+      );
+
+    } finally {
+
+      setUploadingLogo(false);
+
+    }
 
   }
 
@@ -2044,13 +2191,29 @@ function BrandingCard({ settings, onSettingsChange }) {
 }
 
 
-function SettingsPage() {
+function SettingsPage({
+  showAdminToast,
+  requestAdminConfirm,
+}) {
   const [
     settings,
     setSettings,
-  ] = useState(
-    DEFAULT_SETTINGS
-  );
+  ] = useState(() => {
+    try {
+      const cached = sessionStorage.getItem(
+        "pearlskino_store_settings_v1"
+      );
+
+      return cached
+        ? {
+            ...DEFAULT_SETTINGS,
+            ...JSON.parse(cached),
+          }
+        : DEFAULT_SETTINGS;
+    } catch {
+      return DEFAULT_SETTINGS;
+    }
+  });
 
   const [
     loadingSettings,
@@ -2080,10 +2243,19 @@ function SettingsPage() {
       const data =
         await fetchSettings();
 
-      setSettings({
+      const freshSettings = {
         ...DEFAULT_SETTINGS,
         ...data,
-      });
+      };
+
+      setSettings(freshSettings);
+
+      try {
+        sessionStorage.setItem(
+          "pearlskino_store_settings_v1",
+          JSON.stringify(freshSettings)
+        );
+      } catch {}
 
     } catch (error) {
       console.error(
@@ -2197,9 +2369,12 @@ function SettingsPage() {
 
   async function resetSettings() {
     const confirmed =
-      window.confirm(
-        "Reset all admin settings to their defaults?"
-      );
+      await requestAdminConfirm({
+        title: "Reset settings?",
+        message:
+          "Reset all admin settings to their defaults?",
+        confirmLabel: "Reset settings",
+      });
 
     if (!confirmed) {
       return;
@@ -2289,6 +2464,7 @@ function SettingsPage() {
           <BrandingCard
             settings={settings}
             onSettingsChange={setSettings}
+                      showAdminToast={showAdminToast}
           />
 
           <form
@@ -2702,6 +2878,51 @@ function SettingsPage() {
 export default function Admin() {
 
   const [
+    adminToast,
+    setAdminToast,
+  ] = useState(null);
+
+  const [
+    adminConfirm,
+    setAdminConfirm,
+  ] = useState(null);
+
+  function requestAdminConfirm({
+    title = "Are you sure?",
+    message = "",
+    confirmLabel = "Confirm",
+    cancelLabel = "Cancel",
+  }) {
+    return new Promise((resolve) => {
+      setAdminConfirm({
+        title,
+        message,
+        confirmLabel,
+        cancelLabel,
+        resolve,
+      });
+    });
+  }
+
+  function closeAdminConfirm(result) {
+    if (!adminConfirm) return;
+
+    adminConfirm.resolve(result);
+    setAdminConfirm(null);
+  }
+
+  function showAdminToast(message, type = "success") {
+    setAdminToast({
+      message,
+      type,
+    });
+
+    window.setTimeout(() => {
+      setAdminToast(null);
+    }, 3200);
+  }
+
+  const [
     mobileMenuOpen,
     setMobileMenuOpen,
   ] = useState(false);
@@ -2849,7 +3070,9 @@ export default function Admin() {
 
     try {
 
-      setCustomersLoading(true);
+      if (!isBackgroundRefresh) {
+        setCustomersLoading(true);
+      }
       setCustomersError("");
 
       const data =
@@ -2878,7 +3101,9 @@ export default function Admin() {
 
     } finally {
 
-      setCustomersLoading(false);
+      if (!isBackgroundRefresh) {
+        setCustomersLoading(false);
+      }
 
     }
 
@@ -2930,7 +3155,7 @@ export default function Admin() {
         try {
           await Promise.allSettled([
             refreshOrders(),
-            refreshCustomers(),
+            refreshCustomers(true),
           ]);
         } catch (error) {
           console.warn(
@@ -3054,6 +3279,15 @@ export default function Admin() {
   return (
 
     <div className="admin">
+
+        {adminToast && (
+          <div className={"admin-toast admin-toast-" + adminToast.type}>
+            <span className="admin-toast-icon">
+              {adminToast.type === "success" ? "✓" : "!"}
+            </span>
+            <span>{adminToast.message}</span>
+          </div>
+        )}
 
       <button
         type="button"
@@ -3288,28 +3522,6 @@ export default function Admin() {
               orders={orders}
             />
 
-            <section className="admin-products">
-
-              <div className="admin-section-header">
-
-                <div>
-
-                  <p className="admin-eyebrow">
-                    CATALOG
-                  </p>
-
-                  <h2>
-                    Manage Products
-                  </h2>
-
-                </div>
-
-              </div>
-
-              <ProductManager />
-
-            </section>
-
           </>
 
         )}
@@ -3335,7 +3547,9 @@ export default function Admin() {
 
             </div>
 
-            <ProductManager />
+            <ProductManager
+              requestAdminConfirm={requestAdminConfirm}
+            />
 
           </section>
 
@@ -3374,7 +3588,12 @@ export default function Admin() {
 
         {activePage === "settings" && (
 
-          <SettingsPage />
+          <SettingsPage
+            showAdminToast={showAdminToast}
+            requestAdminConfirm={
+              requestAdminConfirm
+            }
+          />
 
         )}
 
@@ -3385,12 +3604,95 @@ export default function Admin() {
 
         )}
 
+        {adminConfirm && (
+          <div
+            className="admin-confirm-overlay"
+            onClick={() => closeAdminConfirm(false)}
+          >
+            <div
+              className="admin-confirm-modal"
+              role="dialog"
+              aria-modal="true"
+              aria-labelledby="admin-confirm-title"
+              onClick={(event) => event.stopPropagation()}
+            >
+              <div className="admin-confirm-icon">
+                !
+              </div>
+
+              <div className="admin-confirm-content">
+                <h3 id="admin-confirm-title">
+                  {adminConfirm.title}
+                </h3>
+
+                <p>
+                  {adminConfirm.message}
+                </p>
+              </div>
+
+              <div className="admin-confirm-actions">
+                <button
+                  type="button"
+                  className="admin-confirm-cancel"
+                  onClick={() =>
+                    closeAdminConfirm(false)
+                  }
+                >
+                  {adminConfirm.cancelLabel}
+                </button>
+
+                <button
+                  type="button"
+                  className="admin-confirm-danger"
+                  onClick={() =>
+                    closeAdminConfirm(true)
+                  }
+                >
+                  {adminConfirm.confirmLabel}
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
       </main>
 
     </div>
 
   );
 }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
