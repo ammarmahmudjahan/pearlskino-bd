@@ -155,6 +155,235 @@ export function useProducts() {
 |
 */
 
+/*
+|--------------------------------------------------------------------------
+| ADMIN PRODUCT LOADER
+|--------------------------------------------------------------------------
+|
+| Loads the complete product list for the authenticated admin panel.
+| Unlike useProducts(), this includes visible, hidden, and deleted
+| products so the admin can manage their visibility.
+|
+*/
+
+let adminProductsCache = null;
+let adminProductsPromise = null;
+
+export function useAdminProducts() {
+  const [products, setProductsState] = useState(
+    adminProductsCache || []
+  );
+
+  const [loading, setLoading] = useState(
+    adminProductsCache === null
+  );
+
+  useEffect(() => {
+    let cancelled = false;
+
+    async function loadAdminProducts() {
+      try {
+        const token = getStoredAdminToken();
+
+        if (!token) {
+          throw new Error(
+            "Admin session is missing. Please log in again."
+          );
+        }
+
+        if (!adminProductsPromise) {
+          adminProductsPromise = fetch(
+            ${API_URL}?action=adminProducts&token=,
+            {
+              method: "GET",
+            }
+          )
+            .then((response) => {
+              if (!response.ok) {
+                throw new Error(
+                  Server returned 
+                );
+              }
+
+              return response.json();
+            })
+            .then((data) => {
+              if (
+                !data.success ||
+                !Array.isArray(data.products)
+              ) {
+                throw new Error(
+                  data.error ||
+                    "Invalid admin product API response"
+                );
+              }
+
+              adminProductsCache = data.products;
+
+              return adminProductsCache;
+            })
+            .finally(() => {
+              adminProductsPromise = null;
+            });
+        }
+
+        const data =
+          await adminProductsPromise;
+
+        if (!cancelled) {
+          setProductsState(data);
+          setLoading(false);
+        }
+
+      } catch (error) {
+
+        console.error(
+          "Admin product API unavailable.",
+          error
+        );
+
+        if (!cancelled) {
+          setProductsState([]);
+          setLoading(false);
+        }
+
+      }
+    }
+
+    if (adminProductsCache !== null) {
+      setProductsState(
+        adminProductsCache
+      );
+
+      setLoading(false);
+
+      return;
+    }
+
+    loadAdminProducts();
+
+    return () => {
+      cancelled = true;
+    };
+
+  }, []);
+
+  const setProducts = (nextProducts) => {
+
+    const value =
+      typeof nextProducts === "function"
+        ? nextProducts(
+            adminProductsCache || []
+          )
+        : nextProducts;
+
+    adminProductsCache =
+      Array.isArray(value)
+        ? value
+        : [];
+
+    setProductsState(
+      adminProductsCache
+    );
+  };
+
+  return [
+    products,
+    setProducts,
+    loading,
+  ];
+}
+
+
+export async function updateProductVisibility(
+  id,
+  visibility
+) {
+  const allowed =
+    ["visible", "hidden", "deleted"];
+
+  if (!id) {
+    return {
+      success: false,
+      error: "Product ID is required.",
+    };
+  }
+
+  if (!allowed.includes(visibility)) {
+    return {
+      success: false,
+      error: "Invalid product visibility.",
+    };
+  }
+
+  const token =
+    getStoredAdminToken();
+
+  if (!token) {
+    return {
+      success: false,
+      error:
+        "Admin session is missing. Please log in again.",
+    };
+  }
+
+  try {
+    const response =
+      await fetch(API_URL, {
+        method: "POST",
+
+        headers: {
+          "Content-Type":
+            "text/plain;charset=utf-8",
+        },
+
+        body: JSON.stringify({
+          action:
+            "updateProductVisibility",
+
+          token,
+
+          id,
+
+          visibility,
+        }),
+      });
+
+    if (!response.ok) {
+      throw new Error(
+        Server returned 
+      );
+    }
+
+    const data =
+      await response.json();
+
+    if (!data.success) {
+      return {
+        success: false,
+        error:
+          data.error ||
+          "Unable to update product visibility.",
+      };
+    }
+
+    return data;
+  } catch (error) {
+    console.error(
+      "PRODUCT VISIBILITY UPDATE FAILED:",
+      error
+    );
+
+    return {
+      success: false,
+      error:
+        error.message ||
+        "Unable to update product visibility.",
+    };
+  }
+}
+
+
 export async function publishProducts(products) {
   if (!Array.isArray(products)) {
     return {

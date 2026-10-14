@@ -1,6 +1,6 @@
 ﻿import { useState } from "react";
 import {
-  useProducts,
+  useAdminProducts,
   publishProducts,
   uploadProductImage,
 } from "../hooks/useProducts";
@@ -172,7 +172,7 @@ export default function ProductManager({ showAdminToast }) {
   const [
     products,
     setProducts,
-  ] = useProducts();
+  ] = useAdminProducts();
 
 
   const [

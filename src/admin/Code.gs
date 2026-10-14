@@ -1,4 +1,4 @@
-﻿/* =========================================================
+/* =========================================================
    PEARLSKINO BD
    GOOGLE APPS SCRIPT API
    STORE + ADMIN + WHATSAPP + MESSENGER
@@ -898,7 +898,47 @@ function doGet(e) {
         success: true,
 
         products:
-          getProducts(),
+          getVisibleProducts(),
+
+        categories:
+          getVisibleCategories(),
+
+      });
+
+    }
+
+
+    if (
+      action === "adminProducts"
+    ) {
+
+      const auth =
+        requireAuth(e);
+
+      if (
+        !auth.success
+      ) {
+
+        return jsonResponse({
+
+          success: false,
+
+          error:
+            auth.error,
+
+        });
+
+      }
+
+      return jsonResponse({
+
+        success: true,
+
+        products:
+          getProductsRaw(),
+
+        categories:
+          getCategories(),
 
       });
 
@@ -1315,6 +1355,74 @@ function doPost(e) {
 
         updateProducts(
           body.products
+        )
+
+      );
+
+    }
+
+
+    if (
+      action === "updateProductVisibility"
+    ) {
+
+      const auth =
+        requireAuth(e);
+
+      if (!auth.success) {
+        return jsonResponse(auth);
+      }
+
+      return jsonResponse(
+
+        updateProductVisibility(
+          body.id,
+          body.visibility
+        )
+
+      );
+
+    }
+
+
+    if (
+      action === "createCategory"
+    ) {
+
+      const auth =
+        requireAuth(e);
+
+      if (!auth.success) {
+        return jsonResponse(auth);
+      }
+
+      return jsonResponse(
+
+        createCategory(
+          body.name
+        )
+
+      );
+
+    }
+
+
+    if (
+      action === "updateCategoryVisibility"
+    ) {
+
+      const auth =
+        requireAuth(e);
+
+      if (!auth.success) {
+        return jsonResponse(auth);
+      }
+
+      return jsonResponse(
+
+        updateCategoryVisibility(
+          body.id,
+          body.visibility
         )
 
       );
@@ -4397,48 +4505,44 @@ function formatCell(value) {
    the catalog ever gets huge, this is the limit to watch.
 ========================================================= */
 
-function getProductsSheet() {
+
+/* =========================================================
+   CATEGORY SYSTEM
+   ========================================================= */
+
+function normalizeCategoryName(name) {
+
+  return String(name || "")
+    .trim()
+    .replace(/\s+/g, " ")
+    .toLowerCase();
+
+}
+
+
+function getCategoriesSheet() {
 
   const spreadsheet =
-    SpreadsheetApp
-      .getActiveSpreadsheet();
+    SpreadsheetApp.getActiveSpreadsheet();
 
   let sheet =
-    spreadsheet.getSheetByName(
-      CONFIG.PRODUCTS_SHEET_NAME
-    );
+    spreadsheet.getSheetByName("Categories");
 
   if (!sheet) {
 
     sheet =
-      spreadsheet.insertSheet(
-        CONFIG.PRODUCTS_SHEET_NAME
-      );
+      spreadsheet.insertSheet("Categories");
 
     sheet
-      .getRange(1, 1, 1, 17)
+      .getRange(1, 1, 1, 3)
       .setValues([[
         "ID",
         "Name",
-        "Brand",
-        "Category",
-        "Subtitle",
-        "Tags",
-        "Price",
-        "Old Price",
-        "Rating",
-        "Reviews",
-        "Stock",
-        "Status",
-        "Description",
-        "Image",
-        "Alt",
-        "Notes",
-        "Cost Price"
+        "Visibility"
       ]]);
 
     sheet
-      .getRange(1, 1, 1, 17)
+      .getRange(1, 1, 1, 3)
       .setFontWeight("bold");
 
   }
@@ -4448,17 +4552,368 @@ function getProductsSheet() {
 }
 
 
-/* =========================================================
-   GET PRODUCTS
+function getCategories() {
 
-   Reads the normal one-product-per-row format.
+  const sheet =
+    getCategoriesSheet();
 
-   For backward compatibility, if the sheet still contains
-   the old Key | Value JSON format, it reads that format too.
-   The next successful updateProducts() call will migrate it.
-========================================================= */
+  const lastRow =
+    sheet.getLastRow();
 
-function getProducts() {
+  const categories = [];
+
+  if (lastRow >= 2) {
+
+    const rows =
+      sheet
+        .getRange(
+          2,
+          1,
+          lastRow - 1,
+          3
+        )
+        .getValues();
+
+    rows.forEach(function(row) {
+
+      const id =
+        String(row[0] || "").trim();
+
+      const name =
+        String(row[1] || "").trim();
+
+      if (!id || !name) {
+        return;
+      }
+
+      categories.push({
+
+        id: id,
+
+        name: name,
+
+        normalized:
+          normalizeCategoryName(name),
+
+        visibility:
+          String(
+            row[2] || "visible"
+          ).trim() || "visible"
+
+      });
+
+    });
+
+  }
+
+
+  /*
+     Automatically discover categories already used
+     by products. This makes existing Fragrance products
+     available even before the Categories sheet existed.
+  */
+
+  const products =
+    getProductsRaw();
+
+  const known =
+    {};
+
+  categories.forEach(function(category) {
+
+    known[
+      category.normalized
+    ] = true;
+
+  });
+
+
+  products.forEach(function(product) {
+
+    const name =
+      String(
+        product.category || ""
+      ).trim();
+
+    const normalized =
+      normalizeCategoryName(name);
+
+    if (!normalized || known[normalized]) {
+      return;
+    }
+
+    categories.push({
+
+      id:
+        "category-" +
+        normalized
+          .replace(/[^a-z0-9]+/g, "-")
+          .replace(/^-+|-+$/g, ""),
+
+      name: name,
+
+      normalized: normalized,
+
+      visibility: "visible"
+
+    });
+
+    known[normalized] = true;
+
+  });
+
+
+  return categories;
+
+}
+
+
+function getVisibleCategories() {
+
+  return getCategories()
+    .filter(function(category) {
+
+      return (
+        category.visibility !== "hidden" &&
+        category.visibility !== "deleted"
+      );
+
+    });
+
+}
+
+
+function findCategoryByName(name) {
+
+  const normalized =
+    normalizeCategoryName(name);
+
+  if (!normalized) {
+    return null;
+  }
+
+  const categories =
+    getCategories();
+
+  for (
+    let i = 0;
+    i < categories.length;
+    i++
+  ) {
+
+    if (
+      categories[i].normalized === normalized
+    ) {
+
+      return categories[i];
+
+    }
+
+  }
+
+  return null;
+
+}
+
+
+function createCategory(name) {
+
+  const cleanName =
+    String(name || "")
+      .trim()
+      .replace(/\s+/g, " ");
+
+  const normalized =
+    normalizeCategoryName(cleanName);
+
+  if (!normalized) {
+
+    return {
+
+      success: false,
+
+      error:
+        "Category name is required."
+
+    };
+
+  }
+
+
+  const existing =
+    findCategoryByName(cleanName);
+
+  if (existing) {
+
+    return {
+
+      success: true,
+
+      category: existing,
+
+      existing: true,
+
+      message:
+        "Category already exists."
+
+    };
+
+  }
+
+
+  const sheet =
+    getCategoriesSheet();
+
+  const id =
+    "category-" +
+    Date.now().toString(36) +
+    "-" +
+    Math.random()
+      .toString(36)
+      .slice(2, 8);
+
+
+  sheet.appendRow([
+    id,
+    cleanName,
+    "visible"
+  ]);
+
+
+  return {
+
+    success: true,
+
+    existing: false,
+
+    category: {
+
+      id: id,
+
+      name: cleanName,
+
+      normalized: normalized,
+
+      visibility: "visible"
+
+    },
+
+    message:
+      "Category created successfully."
+
+  };
+
+}
+
+
+function updateCategoryVisibility(
+  id,
+  visibility
+) {
+
+  const valid =
+    [
+      "visible",
+      "hidden",
+      "deleted"
+    ];
+
+  if (
+    valid.indexOf(
+      String(visibility)
+    ) === -1
+  ) {
+
+    return {
+
+      success: false,
+
+      error:
+        "Invalid category visibility."
+
+    };
+
+  }
+
+
+  const sheet =
+    getCategoriesSheet();
+
+  const lastRow =
+    sheet.getLastRow();
+
+  if (lastRow < 2) {
+
+    return {
+
+      success: false,
+
+      error:
+        "Category not found."
+
+    };
+
+  }
+
+
+  const rows =
+    sheet
+      .getRange(
+        2,
+        1,
+        lastRow - 1,
+        3
+      )
+      .getValues();
+
+
+  for (
+    let i = 0;
+    i < rows.length;
+    i++
+  ) {
+
+    if (
+      String(rows[i][0] || "").trim() ===
+      String(id || "").trim()
+    ) {
+
+      sheet
+        .getRange(
+          i + 2,
+          3
+        )
+        .setValue(
+          String(visibility)
+        );
+
+      return {
+
+        success: true,
+
+        message:
+          "Category visibility updated."
+
+      };
+
+    }
+
+  }
+
+
+  return {
+
+    success: false,
+
+    error:
+      "Category not found."
+
+  };
+
+}
+
+
+function getProductsRaw() {
 
   const sheet =
     getProductsSheet();
@@ -4471,16 +4926,24 @@ function getProducts() {
   }
 
 
-  /* -------------------------------------------------------
-     CHECK FOR NEW TABLE FORMAT
-  ------------------------------------------------------- */
-
   const headers =
     sheet
-      .getRange(1, 1, 1, Math.max(17, sheet.getLastColumn()))
+      .getRange(
+        1,
+        1,
+        1,
+        Math.max(
+          17,
+          sheet.getLastColumn()
+        )
+      )
       .getValues()[0]
       .map(function(value) {
-        return String(value || "").trim();
+
+        return String(
+          value || ""
+        ).trim();
+
       });
 
 
@@ -4488,10 +4951,6 @@ function getProducts() {
     headers[0] === "ID" &&
     headers[1] === "Name";
 
-
-  /* -------------------------------------------------------
-     BACKWARD COMPATIBILITY WITH OLD JSON BLOB
-  ------------------------------------------------------- */
 
   if (!isProductTable) {
 
@@ -4518,15 +4977,14 @@ function getProducts() {
 
       if (key === "products") {
 
-        const raw =
-          String(
-            values[i][1] || "[]"
-          );
-
         try {
 
           const parsed =
-            JSON.parse(raw);
+            JSON.parse(
+              String(
+                values[i][1] || "[]"
+              )
+            );
 
           return Array.isArray(parsed)
             ? parsed
@@ -4547,17 +5005,13 @@ function getProducts() {
   }
 
 
-  /* -------------------------------------------------------
-     READ NORMAL PRODUCT TABLE
-  ------------------------------------------------------- */
-
   const rows =
     sheet
       .getRange(
         2,
         1,
         lastRow - 1,
-        17
+        18
       )
       .getValues();
 
@@ -4588,6 +5042,7 @@ function getProducts() {
         row[16] === null
           ? 0
           : Number(row[16]);
+
 
       return {
 
@@ -4664,11 +5119,292 @@ function getProducts() {
             : String(row[15]),
 
         costPrice:
-          costPriceValue
+          costPriceValue,
+
+        visibility:
+          String(
+            row[17] || "visible"
+          ).trim() || "visible"
 
       };
 
     });
+
+}
+
+
+function isProductVisible(
+  product,
+  categories
+) {
+
+  if (!product) {
+    return false;
+  }
+
+  if (
+    product.visibility === "hidden" ||
+    product.visibility === "deleted"
+  ) {
+
+    return false;
+
+  }
+
+
+  if (
+    product.status === "inactive"
+  ) {
+
+    return false;
+
+  }
+
+
+  const categoryName =
+    normalizeCategoryName(
+      product.category
+    );
+
+  if (!categoryName) {
+    return true;
+  }
+
+
+  const category =
+    categories.find(function(item) {
+
+      return (
+        item.normalized ===
+        categoryName
+      );
+
+    });
+
+
+  if (!category) {
+    return true;
+  }
+
+
+  return (
+    category.visibility !== "hidden" &&
+    category.visibility !== "deleted"
+  );
+
+}
+
+
+function getVisibleProducts() {
+
+  const products =
+    getProductsRaw();
+
+  const categories =
+    getCategories();
+
+  return products.filter(
+    function(product) {
+
+      return isProductVisible(
+        product,
+        categories
+      );
+
+    }
+  );
+
+}
+
+
+function updateProductVisibility(
+  id,
+  visibility
+) {
+
+  const valid =
+    [
+      "visible",
+      "hidden",
+      "deleted"
+    ];
+
+  if (
+    valid.indexOf(
+      String(visibility)
+    ) === -1
+  ) {
+
+    return {
+
+      success: false,
+
+      error:
+        "Invalid product visibility."
+
+    };
+
+  }
+
+
+  const sheet =
+    getProductsSheet();
+
+  const lastColumn =
+    sheet.getLastColumn();
+
+  if (lastColumn < 18) {
+
+    sheet
+      .getRange(
+        1,
+        18
+      )
+      .setValue("Visibility");
+
+  }
+
+
+  const lastRow =
+    sheet.getLastRow();
+
+  if (lastRow < 2) {
+
+    return {
+
+      success: false,
+
+      error:
+        "Product not found."
+
+    };
+
+  }
+
+
+  const ids =
+    sheet
+      .getRange(
+        2,
+        1,
+        lastRow - 1,
+        1
+      )
+      .getValues();
+
+
+  for (
+    let i = 0;
+    i < ids.length;
+    i++
+  ) {
+
+    if (
+      String(
+        ids[i][0] || ""
+      ).trim() ===
+      String(id || "").trim()
+    ) {
+
+      sheet
+        .getRange(
+          i + 2,
+          18
+        )
+        .setValue(
+          String(visibility)
+        );
+
+      return {
+
+        success: true,
+
+        message:
+          "Product visibility updated."
+
+      };
+
+    }
+
+  }
+
+
+  return {
+
+    success: false,
+
+    error:
+      "Product not found."
+
+  };
+
+}
+
+
+function getProductsSheet() {
+
+  const spreadsheet =
+    SpreadsheetApp
+      .getActiveSpreadsheet();
+
+  let sheet =
+    spreadsheet.getSheetByName(
+      CONFIG.PRODUCTS_SHEET_NAME
+    );
+
+  if (!sheet) {
+
+    sheet =
+      spreadsheet.insertSheet(
+        CONFIG.PRODUCTS_SHEET_NAME
+      );
+
+    sheet
+      .getRange(1, 1, 1, 17)
+      .setValues([[
+        "ID",
+        "Name",
+        "Brand",
+        "Category",
+        "Subtitle",
+        "Tags",
+        "Price",
+        "Old Price",
+        "Rating",
+        "Reviews",
+        "Stock",
+        "Status",
+        "Description",
+        "Image",
+        "Alt",
+        "Notes",
+        "Cost Price"
+      ]]);
+
+    sheet
+      .getRange(1, 1, 1, 17)
+      .setFontWeight("bold");
+
+  }
+
+  return sheet;
+
+}
+
+
+/* =========================================================
+   GET PRODUCTS
+
+   Reads the normal one-product-per-row format.
+
+   For backward compatibility, if the sheet still contains
+   the old Key | Value JSON format, it reads that format too.
+   The next successful updateProducts() call will migrate it.
+========================================================= */
+
+function getProducts() {
+
+  return getProductsRaw();
 
 }
 
@@ -4732,27 +5468,20 @@ function updateProducts(products) {
       "Image",
       "Alt",
       "Notes",
-      "Cost Price"
+      "Cost Price",
+      "Visibility"
     ]];
 
 
-    /* -------------------------------------------------------
-       CLEAR OLD SHEET CONTENT
-    ------------------------------------------------------- */
-
     sheet.clearContents();
 
-
-    /* -------------------------------------------------------
-       WRITE HEADERS
-    ------------------------------------------------------- */
 
     sheet
       .getRange(
         1,
         1,
         1,
-        17
+        18
       )
       .setValues(headers);
 
@@ -4762,125 +5491,125 @@ function updateProducts(products) {
         1,
         1,
         1,
-        17
+        18
       )
       .setFontWeight("bold");
 
 
-    /* -------------------------------------------------------
-       PREPARE PRODUCT ROWS
-    ------------------------------------------------------- */
+    const rows =
+      products.map(function(product) {
 
-    if (products.length > 0) {
-
-      const rows =
-        products.map(function(product) {
-
-          const tags =
-            Array.isArray(product.tags)
-              ? product.tags
-                  .map(function(tag) {
-                    return String(tag).trim();
-                  })
-                  .filter(Boolean)
-                  .join(" | ")
-              : String(
-                  product.tags || ""
-                ).trim();
+        const tags =
+          Array.isArray(product.tags)
+            ? product.tags
+                .map(function(tag) {
+                  return String(tag).trim();
+                })
+                .filter(Boolean)
+                .join(" | ")
+            : String(
+                product.tags || ""
+              ).trim();
 
 
-          return [
+        return [
 
-            String(
-              product.id || ""
-            ),
+          String(
+            product.id || ""
+          ),
 
-            String(
-              product.name || ""
-            ),
+          String(
+            product.name || ""
+          ),
 
-            String(
-              product.brand || ""
-            ),
+          String(
+            product.brand || ""
+          ),
 
-            String(
-              product.category || ""
-            ),
+          String(
+            product.category || ""
+          ),
 
-            String(
-              product.subtitle || ""
-            ),
+          String(
+            product.subtitle || ""
+          ),
 
-            tags,
+          tags,
 
-            product.price === "" ||
-            product.price === null ||
-            product.price === undefined
-              ? 0
-              : Number(product.price),
+          product.price === "" ||
+          product.price === null ||
+          product.price === undefined
+            ? 0
+            : Number(product.price),
 
-            product.oldPrice === "" ||
-            product.oldPrice === null ||
-            product.oldPrice === undefined
-              ? ""
-              : Number(product.oldPrice),
+          product.oldPrice === "" ||
+          product.oldPrice === null ||
+          product.oldPrice === undefined
+            ? ""
+            : Number(product.oldPrice),
 
-            product.rating === "" ||
-            product.rating === null ||
-            product.rating === undefined
-              ? 0
-              : Number(product.rating),
+          product.rating === "" ||
+          product.rating === null ||
+          product.rating === undefined
+            ? 0
+            : Number(product.rating),
 
-            product.reviews === "" ||
-            product.reviews === null ||
-            product.reviews === undefined
-              ? 0
-              : Number(product.reviews),
+          product.reviews === "" ||
+          product.reviews === null ||
+          product.reviews === undefined
+            ? 0
+            : Number(product.reviews),
 
-            product.stock === "" ||
-            product.stock === null ||
-            product.stock === undefined
-              ? 0
-              : Number(product.stock),
+          product.stock === "" ||
+          product.stock === null ||
+          product.stock === undefined
+            ? 0
+            : Number(product.stock),
 
-            String(
-              product.status || "active"
-            ),
+          String(
+            product.status || "active"
+          ),
 
-            String(
-              product.description || ""
-            ),
+          String(
+            product.description || ""
+          ),
 
-            String(
-              product.image || ""
-            ),
+          String(
+            product.image || ""
+          ),
 
-            String(
-              product.alt || ""
-            ),
+          String(
+            product.alt || ""
+          ),
 
-            product.notes === null ||
-            product.notes === undefined
-              ? ""
-              : String(product.notes),
+          product.notes === null ||
+          product.notes === undefined
+            ? ""
+            : String(product.notes),
 
-            product.costPrice === "" ||
-            product.costPrice === null ||
-            product.costPrice === undefined
-              ? 0
-              : Number(product.costPrice)
+          product.costPrice === "" ||
+          product.costPrice === null ||
+          product.costPrice === undefined
+            ? 0
+            : Number(product.costPrice),
 
-          ];
+          String(
+            product.visibility || "visible"
+          )
 
-        });
+        ];
 
+      });
+
+
+    if (rows.length > 0) {
 
       sheet
         .getRange(
           2,
           1,
           rows.length,
-          17
+          18
         )
         .setValues(rows);
 
@@ -4914,194 +5643,6 @@ function updateProducts(products) {
 
 }
 
-function slugifyFileName(value) {
-
-  const text =
-    String(value || "")
-      .normalize("NFKD")
-      .replace(/[\u0300-\u036f]/g, "")
-      .trim();
-
-  const slug =
-    text
-      .replace(/[^a-zA-Z0-9]+/g, "-")
-      .replace(/^-+|-+$/g, "");
-
-  return slug || "product-image";
-
-}
-
-
-function getImageExtension(mimeType) {
-
-  const mime =
-    String(mimeType || "")
-      .toLowerCase()
-      .trim();
-
-  if (mime === "image/png") {
-    return "png";
-  }
-
-  if (mime === "image/webp") {
-    return "webp";
-  }
-
-  if (mime === "image/gif") {
-    return "gif";
-  }
-
-  return "jpg";
-
-}
-
-
-function trashFilesByName(folder, fileName) {
-
-  const files =
-    folder.getFilesByName(fileName);
-
-  while (files.hasNext()) {
-
-    const oldFile =
-      files.next();
-
-    oldFile.setTrashed(true);
-
-  }
-
-}
-
-
-function uploadProductImage(
-  base64Data,
-  productName,
-  mimeType
-) {
-
-  if (!base64Data) {
-
-    return {
-
-      success: false,
-
-      error:
-        "No image data provided.",
-
-    };
-
-  }
-
-
-  try {
-
-    const cleanBase64 =
-      String(base64Data).replace(
-        /^data:[^;]+;base64,/,
-        ""
-      );
-
-
-    const bytes =
-      Utilities.base64Decode(
-        cleanBase64
-      );
-
-
-    const resolvedMimeType =
-      mimeType ||
-      "image/jpeg";
-
-
-    const extension =
-      getImageExtension(
-        resolvedMimeType
-      );
-
-
-    const safeProductName =
-      slugifyFileName(
-        productName
-      );
-
-
-    const resolvedFileName =
-      safeProductName +
-      "." +
-      extension;
-
-
-    const blob =
-      Utilities.newBlob(
-        bytes,
-        resolvedMimeType,
-        resolvedFileName
-      );
-
-
-    const folder =
-      getProductImagesFolder();
-
-
-    trashFilesByName(
-      folder,
-      resolvedFileName
-    );
-
-
-    const file =
-      folder.createFile(
-        blob
-      );
-
-
-    file.setSharing(
-      DriveApp.Access.ANYONE_WITH_LINK,
-      DriveApp.Permission.VIEW
-    );
-
-
-    const fileId =
-      file.getId();
-
-
-    const url =
-      "https://lh3.googleusercontent.com/d/" +
-      fileId +
-      "=w2000";
-
-
-    return {
-
-      success: true,
-
-      url: url,
-
-      fileId: fileId,
-
-      fileName:
-        resolvedFileName,
-
-    };
-
-
-  } catch (error) {
-
-    return {
-
-      success: false,
-
-      error:
-        error &&
-        error.message
-          ? error.message
-          : "Image upload failed.",
-
-    };
-
-  }
-
-}
 
 
 /* =========================================================
@@ -5326,6 +5867,8 @@ function jsonResponse(data) {
     );
 
 }
+
+
 
 
 
