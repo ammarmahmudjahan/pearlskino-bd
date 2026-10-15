@@ -3,7 +3,7 @@
  * They only READ public data from your Apps Script web app.
  */
 const FALLBACK_API =
-  "https://script.google.com/macros/s/AKfycbzgl2Fr8e17tQXDLvrylxYvFc0XkMhtsTsFOvJxdBwt8c2imYAUHrdx3ovk7rJOD4Eq/exec";
+  "https://script.google.com/macros/s/AKfycby_VLzhMXlfpPuCSwUERETrCw9DbeLxufrVZXAMurklCKdg3OWar5znlxKwgqEMiaN5jA/exec";
 
 export function apiUrl() {
   /* the same address the site itself uses (Vercel > Settings > Environment Variables) */

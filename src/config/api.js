@@ -13,7 +13,7 @@
 
 export const API_URL = String(
   import.meta.env.VITE_API_URL ||
-    "https://script.google.com/macros/s/AKfycbzgl2Fr8e17tQXDLvrylxYvFc0XkMhtsTsFOvJxdBwt8c2imYAUHrdx3ovk7rJOD4Eq/exec"
+    "https://script.google.com/macros/s/AKfycby_VLzhMXlfpPuCSwUERETrCw9DbeLxufrVZXAMurklCKdg3OWar5znlxKwgqEMiaN5jA/exec"
 ).trim();
 
 export const ADMIN_TOKEN_KEY = "pearlskino_admin_token";
