@@ -3,33 +3,61 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="theme-color" content="#fffdf9" />
+
+    <title>PearlSkino BD | Skincare &amp; Fragrance in Bangladesh</title>
     <meta
       name="description"
-      content="PearlSkino BD — authentic imported skincare and fragrance, curated for Bangladesh."
+      content="Authentic skincare, cosmetics and fragrances, carefully selected and delivered across Bangladesh."
     />
-<title>PearlSkino BD — Beauty, Illuminated</title>
+
+    <!--
+      Fixed share-card tags.
+      Facebook, WhatsApp and Messenger read ONLY these - they do not run the
+      website's JavaScript. Google, and the browser tab, use the live values
+      from Admin > Settings. If you move to your own domain, change the
+      https://pearlskino-bd.vercel.app address below to the new one.
+    -->
+    <meta property="og:site_name" content="PearlSkino BD" />
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content="PearlSkino BD | Skincare &amp; Fragrance in Bangladesh" />
+    <meta
+      property="og:description"
+      content="Authentic skincare, cosmetics and fragrances, carefully selected and delivered across Bangladesh."
+    />
+    <meta property="og:url" content="https://pearlskino-bd.vercel.app/" />
+    <meta property="og:image" content="https://pearlskino-bd.vercel.app/logo.png" />
+    <meta name="twitter:card" content="summary" />
+    <meta name="twitter:title" content="PearlSkino BD | Skincare &amp; Fragrance in Bangladesh" />
+    <meta
+      name="twitter:description"
+      content="Authentic skincare, cosmetics and fragrances, carefully selected and delivered across Bangladesh."
+    />
+    <meta name="twitter:image" content="https://pearlskino-bd.vercel.app/logo.png" />
+
+    <!-- replaced by the uploaded logo as soon as the shop settings load -->
+    <link rel="icon" type="image/png" href="/logo.png" />
+
+    <!-- installable app (phone home screen) -->
+    <link rel="manifest" href="/manifest.webmanifest" />
+    <link rel="apple-touch-icon" href="/icons/apple-touch-icon.png" data-keep="true" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-title" content="PearlSkino" />
+
+    <!-- open the connections to the data server and the picture servers early -->
+    <link rel="preconnect" href="https://script.google.com" crossorigin />
+    <link rel="preconnect" href="https://script.googleusercontent.com" crossorigin />
+    <link rel="preconnect" href="https://lh3.googleusercontent.com" />
   </head>
 
   <body>
     <div id="initial-loading">
-  <div class="initial-loading-orb"></div>
+      <div class="initial-loading-orb"></div>
 
-  <div class="initial-loading-bar"><span></span></div>
-</div>
-<div id="root"></div>
+      <div class="initial-loading-bar"><span></span></div>
+    </div>
+    <div id="root"></div>
     <script type="module" src="/src/main.jsx"></script>
   </body>
 </html>
-
-
-
-
-
-
-
-
-
-
-
-
-

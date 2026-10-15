@@ -1,281 +1,350 @@
-
-import React, { useState } from "react";
+import { useState } from "react";
+import { Link } from "react-router-dom";
 
 import { useStore } from "../context/StoreContext";
-
-import { GOOGLE_FORMS } from "../config/googleForms";
-import { submitToGoogleForm } from "../utils/googleForms";
+import { useCustomer } from "../context/CustomerContext";
+import { useContent } from "../content/context";
+import { useSeo } from "../hooks/useSeo";
+import { sendContact } from "../lib/sendContact";
+import T, { useText } from "../content/T";
+import EditViewSwitch from "../components/EditViewSwitch";
 
 export default function Contact() {
   const { storeSettings } = useStore();
+  const { account } = useCustomer();
+  const content = useContent();
 
-  const [submitted, setSubmitted] = useState(false);
+  useSeo({ page: "contact" });
+
+  const [form, setForm] = useState({ name: "", phone: "", email: "", message: "" });
+  const [trap, setTrap] = useState("");
   const [sending, setSending] = useState(false);
+  const [sent, setSent] = useState(false);
+  const [error, setError] = useState("");
+  const [editView, setEditView] = useState("form");
+
+  const ph = {
+    name: useText("contact.ph.name"),
+    phone: useText("contact.ph.phone"),
+    email: useText("contact.ph.email"),
+    message: useText("contact.ph.message"),
+  };
+
+  const showSent = content.isEditing ? editView === "sent" : sent;
+
+  function change(event) {
+    const { name, value } = event.target;
+    setForm((current) => ({ ...current, [name]: value }));
+  }
 
   async function handleSubmit(event) {
     event.preventDefault();
 
-    if (sending) {
-      return;
-    }
+    if (sending) return;
 
+    setError("");
     setSending(true);
 
-    const form = event.currentTarget;
-    const formData = new FormData(form);
+    try {
+      await sendContact({
+        name: form.name,
+        phone: form.phone || account?.phone || "",
+        email: form.email || account?.email || "",
+        message: form.message,
+        hp: trap,
+      });
 
-    const result = await submitToGoogleForm(
-      GOOGLE_FORMS.contact.url,
-      {
-        [GOOGLE_FORMS.contact.fields.name]:
-          formData.get("name"),
-
-        [GOOGLE_FORMS.contact.fields.phone]:
-          formData.get("phone"),
-
-        [GOOGLE_FORMS.contact.fields.message]:
-          formData.get("message"),
-      }
-    );
-
-    setSending(false);
-
-    if (result.success) {
-      setSubmitted(true);
-    } else {
-      alert(
-        "We couldn't send your message. Please try again."
-      );
+      setSent(true);
+      setForm({ name: "", phone: "", email: "", message: "" });
+    } catch (problem) {
+      setError(problem.message || "We could not send your message. Please try again.");
+    } finally {
+      setSending(false);
     }
   }
 
+  const s = storeSettings;
+  const brand = s.storeName || "PearlSkino BD";
+
   return (
     <main className="contact-page">
-
-      {/* =====================================================
-          HERO
-      ===================================================== */}
-
       <section className="contact-hero">
-
         <div className="contact-orb contact-orb-one"></div>
         <div className="contact-orb contact-orb-two"></div>
 
-        <span className="contact-sparkle contact-sparkle-one">
-          &#10022;
-        </span>
-
-        <span className="contact-sparkle contact-sparkle-two">
-          &#10023;
-        </span>
-
+        <span className="contact-sparkle contact-sparkle-one">&#10022;</span>
+        <span className="contact-sparkle contact-sparkle-two">&#10023;</span>
 
         <div className="contact-hero-content">
+          <T k="contact.eyebrow" as="p" className="eyebrow" />
 
+          <T k="contact.title" as="h1" />
 
-          <p className="eyebrow">
-            {storeSettings.storeName.toUpperCase()} CONNECT
-          </p>
-
-
-          <h1>
-            Let's talk
-            <br />
-            <em>beauty.</em>
-          </h1>
-
-
-          <p>
-            Have a question, need help choosing a fragrance,
-            or simply want to know more? We'd love to hear
-            from you.
-          </p>
-
+          <T k="contact.text" as="p" />
         </div>
-
       </section>
 
-
-      {/* =====================================================
-          CONTACT AREA
-      ===================================================== */}
-
       <section className="contact-main">
-
         <div className="contact-info">
-
           <div className="contact-section-label">
             <span>01</span>
-            <p>GET IN TOUCH</p>
+            <T k="contact.label" as="p" />
           </div>
 
-          <h2>
-            A little
-            <br />
-            <em>conversation.</em>
-          </h2>
+          <T k="contact.heading" as="h2" />
 
-          <p className="contact-intro">
-            Whether you're looking for your next signature
-            scent, checking an order, or simply curious
-            about {storeSettings.storeName}, feel free to reach out.
-          </p>
-
+          <T k="contact.intro" as="p" className="contact-intro" />
 
           <div className="contact-methods">
+            {s.whatsappEnabled && s.whatsappUrl && (
+              <div className="contact-social-actions">
+                <a
+                  href={s.whatsappUrl}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="contact-social-button whatsapp-button"
+                >
+                  <span className="contact-social-icon">◉</span>
 
-                      <div className="contact-social-actions">
+                  <span className="contact-social-copy">
+                    <strong>
+                      <T k="contact.wa.title" />
+                    </strong>
 
-            {storeSettings.whatsappEnabled && storeSettings.whatsappNumber && (
-              <a
-                href={`https://wa.me/${String(
-                  storeSettings.whatsappNumber
-                ).replace(/\D/g, "")}`}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="contact-social-button whatsapp-button"
-              >
-                <span className="contact-social-icon">
-                  ◉
-                </span>
+                    <small>
+                      <T k="contact.wa.sub" />
+                    </small>
+                  </span>
 
-                <span className="contact-social-copy">
-                  <strong>
-                    Chat with us on WhatsApp
-                  </strong>
+                  <span className="contact-social-arrow">→</span>
+                </a>
+              </div>
+            )}
 
-                  <small>
-                    Quick support & orders
-                  </small>
-                </span>
+            {s.messengerEnabled !== false && s.messengerUrl && (
+              <a href={s.messengerUrl} target="_blank" rel="noopener noreferrer" className="contact-method contact-method-link">
+                <div className="contact-method-icon">&#10022;</div>
 
-                <span className="contact-social-arrow">
-                  →
-                </span>
+                <div>
+                  <T k="contact.messenger.tag" as="span" />
+                  <strong>{brand}</strong>
+                  <T k="contact.messenger.sub" as="small" />
+                </div>
               </a>
             )}
 
-          </div>
-
-<a
-              href={storeSettings.messengerUrl || "#"}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="contact-method contact-method-link"
-            >
-
-              <div className="contact-method-icon">
-                &#10022;
-              </div>
-
-              <div>
-                <span>MESSENGER</span>
-                <strong>{storeSettings.storeName}</strong>
-                <small>Fastest way to reach us</small>
-              </div>
-
-            </a>
-
-
-            <div className="contact-method">
-
-              <div className="contact-method-icon">
-                &#9671;
-              </div>
-
-              <div>
-                <span>ORDERS</span>
-                <strong>Cash on Delivery</strong>
-                <small>Available in selected areas</small>
-              </div>
-
-            </div>
-
-
-            <div className="contact-method">
-
-              <div className="contact-method-icon">
-                &#9825;
-              </div>
-
-              <div>
-                <span>PICKUP</span>
-                <strong>Selected Locations</strong>
-                <small>Pickup availability may vary</small>
-              </div>
-
-            </div>
-
-
-            {storeSettings.phone && (
-              <div className="contact-method">
-
-                <div className="contact-method-icon">
-                  &#9742;
-                </div>
+            {s.facebookUrl && (
+              <a href={s.facebookUrl} target="_blank" rel="noopener noreferrer" className="contact-method contact-method-link">
+                <div className="contact-method-icon">f</div>
 
                 <div>
-                  <span>PHONE</span>
-                  <strong>{storeSettings.phone}</strong>
-                  <small>Call or message us</small>
+                  <T k="contact.facebook.tag" as="span" />
+                  <strong>{brand}</strong>
+                  <T k="contact.facebook.sub" as="small" />
                 </div>
+              </a>
+            )}
 
+            {s.instagramUrl && (
+              <a href={s.instagramUrl} target="_blank" rel="noopener noreferrer" className="contact-method contact-method-link">
+                <div className="contact-method-icon">&#9675;</div>
+
+                <div>
+                  <T k="contact.instagram.tag" as="span" />
+                  <strong>{brand}</strong>
+                  <T k="contact.instagram.sub" as="small" />
+                </div>
+              </a>
+            )}
+
+            {s.codEnabled && (
+              <div className="contact-method">
+                <div className="contact-method-icon">&#9671;</div>
+
+                <div>
+                  <T k="contact.orders.tag" as="span" />
+                  <T k="contact.orders.title" as="strong" />
+                  <T k="contact.orders.sub" as="small" />
+                </div>
               </div>
             )}
 
-
-            {storeSettings.email && (
+            {s.pickupEnabled && (
               <div className="contact-method">
-
-                <div className="contact-method-icon">
-                  &#9993;
-                </div>
+                <div className="contact-method-icon">&#9825;</div>
 
                 <div>
-                  <span>EMAIL</span>
-                  <strong>{storeSettings.email}</strong>
-                  <small>Send us an email</small>
+                  <T k="contact.pickup.tag" as="span" />
+                  <T k="contact.pickup.title" as="strong" />
+                  <T k="contact.pickup.sub" as="small" />
                 </div>
-
               </div>
             )}
 
-          </div>
+            {s.phone && (
+              <a href={`tel:${s.phone}`} className="contact-method contact-method-link">
+                <div className="contact-method-icon">&#9742;</div>
 
+                <div>
+                  <T k="contact.phone.tag" as="span" />
+                  <strong>{s.phone}</strong>
+                  <T k="contact.phone.sub" as="small" />
+                </div>
+              </a>
+            )}
+
+            {s.email && (
+              <a href={`mailto:${s.email}`} className="contact-method contact-method-link">
+                <div className="contact-method-icon">&#9993;</div>
+
+                <div>
+                  <T k="contact.email.tag" as="span" />
+                  <strong>{s.email}</strong>
+                  <T k="contact.email.sub" as="small" />
+                </div>
+              </a>
+            )}
+
+            {s.storeAddress && (
+              <div className="contact-method">
+                <div className="contact-method-icon">&#9906;</div>
+
+                <div>
+                  <T k="contact.address.tag" as="span" />
+                  <strong>{s.storeAddress}</strong>
+                </div>
+              </div>
+            )}
+          </div>
         </div>
 
+        {/* ----- message form ----- */}
+        <div className="contact-form-card">
+          <div className="contact-card-decoration">
+            <span>&#10022;</span>
+            <span>&#10023;</span>
+          </div>
+
+          <EditViewSwitch
+            views={[
+              ["form", "Message form"],
+              ["sent", "After sending"],
+            ]}
+            value={editView}
+            onChange={setEditView}
+          />
+
+          {showSent ? (
+            <div className="contact-success">
+              <div className="contact-success-pearl">&#10022;</div>
+
+              <T k="contact.ok.eyebrow" as="p" className="eyebrow" />
+
+              <T k="contact.ok.title" as="h3" />
+
+              <T k="contact.ok.text" as="p" />
+
+              <button type="button" className="contact-reset" onClick={() => setSent(false)}>
+                <T k="contact.ok.again" />
+              </button>
+            </div>
+          ) : (
+            <form className="contact-form" onSubmit={handleSubmit} noValidate>
+              <div className="contact-form-heading">
+                <T k="contact.form.title" as="h3" />
+              </div>
+
+              <label>
+                <T k="contact.f.name" as="span" />
+                <input
+                  name="name"
+                  value={form.name}
+                  onChange={change}
+                  placeholder={ph.name}
+                  autoComplete="name"
+                  required
+                />
+              </label>
+
+              <label>
+                <T k="contact.f.phone" as="span" />
+                <input
+                  name="phone"
+                  type="tel"
+                  inputMode="tel"
+                  value={form.phone}
+                  onChange={change}
+                  placeholder={ph.phone}
+                  autoComplete="tel"
+                />
+              </label>
+
+              <label>
+                <T k="contact.f.email" as="span" />
+                <input
+                  name="email"
+                  type="email"
+                  value={form.email}
+                  onChange={change}
+                  placeholder={ph.email}
+                  autoComplete="email"
+                />
+              </label>
+
+              <T k="contact.f.hint" as="p" className="contact-hint" />
+
+              <label>
+                <T k="contact.f.message" as="span" />
+                <textarea
+                  name="message"
+                  value={form.message}
+                  onChange={change}
+                  placeholder={ph.message}
+                  rows={5}
+                  maxLength={2000}
+                  required
+                />
+              </label>
+
+              {/* spam trap: people never see this */}
+              <input
+                className="hp-field"
+                tabIndex={-1}
+                autoComplete="off"
+                aria-hidden="true"
+                value={trap}
+                onChange={(event) => setTrap(event.target.value)}
+              />
+
+              {error && (
+                <p className="form-error" role="alert">
+                  {error}
+                </p>
+              )}
+
+              <button type="submit" className="contact-submit" disabled={sending}>
+                <T k={sending ? "contact.sending" : "contact.submit"} as="span" className="contact-submit-label" />
+                <span>&#8594;</span>
+              </button>
+            </form>
+          )}
+        </div>
       </section>
 
-
-      {/* =====================================================
-          FINAL CTA
-      ===================================================== */}
-
       <section className="contact-final">
-
         <div className="contact-final-pearl">
           <span>&#10022;</span>
         </div>
-          <span>&#10022;</span>
-        <p className="eyebrow">
-          READY TO DISCOVER?
-        </p>
 
-        <h2>
-          Your next favorite
-          <br />
-          <em>might be waiting.</em>
-        </h2>
+        <T k="contact.final.eyebrow" as="p" className="eyebrow" />
 
-        <a
-          href="/shop"
-          className="hero-button"
-        >
-          Explore Collection<span>&#8594;</span>
-        </a>
+        <T k="contact.final.title" as="h2" />
 
+        <Link to="/shop" className="hero-button">
+          <T k="contact.final.button" />
+          <span>&#8594;</span>
+        </Link>
       </section>
-
     </main>
   );
 }

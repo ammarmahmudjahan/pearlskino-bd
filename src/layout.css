@@ -1,0 +1,535 @@
+/* =========================================================
+   PEARLSKINO — SHARED PIECES
+   header extras, bag drawer, form messages, small system pages
+   (loaded after branding.css, so it can refine the header)
+========================================================= */
+
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  margin: -1px;
+  padding: 0;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+/* spam trap field: people never see it, robots fill it in */
+.hp-field {
+  position: absolute !important;
+  left: -9999px;
+  width: 1px;
+  height: 1px;
+  opacity: 0;
+  pointer-events: none;
+}
+
+.form-error,
+.form-success {
+  margin: 4px 0 0;
+  padding: 11px 16px;
+  border-radius: 14px;
+  font-size: 13px;
+  line-height: 1.55;
+}
+
+.form-error {
+  color: #8a3a4b;
+  background: rgba(250, 226, 231, 0.75);
+  border: 1px solid rgba(190, 110, 130, 0.22);
+}
+
+.form-success {
+  color: #3f6a4b;
+  background: rgba(228, 243, 229, 0.8);
+  border: 1px solid rgba(110, 160, 120, 0.25);
+}
+
+.is-disabled {
+  opacity: 0.5;
+  pointer-events: none;
+}
+
+.star-accent {
+  color: #a58bb2;
+}
+
+.stars {
+  display: inline-flex;
+  gap: 2px;
+  letter-spacing: 0;
+  line-height: 1;
+}
+
+.stars > span {
+  color: #e2d8e4;
+}
+
+.stars > span.on {
+  color: #c9a45c;
+}
+
+/* =========================================================
+   HEADER — account link, bag counter, mobile menu
+========================================================= */
+
+.ps-header-actions {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-shrink: 0;
+}
+
+.ps-header-account {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  padding: 8px 12px;
+  border-radius: 999px;
+  color: #5d5360;
+  font-size: 13px;
+  font-weight: 500;
+  text-decoration: none;
+  white-space: nowrap;
+  transition: color 0.2s ease, background 0.2s ease;
+}
+
+.ps-header-account:hover {
+  color: #92749b;
+  background: rgba(240, 231, 239, 0.6);
+}
+
+.ps-header-account span {
+  max-width: 90px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+button.ps-header-cart {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  color: #4b3b50;
+  font-size: 13px;
+  font-weight: 500;
+  line-height: 1;
+  cursor: pointer;
+}
+
+a.ps-header-cart {
+  text-decoration: none;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.ps-cart-count {
+  min-width: 20px;
+  height: 20px;
+  padding: 0 6px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 999px;
+  background: linear-gradient(135deg, #a78bb5, #c79bb4);
+  color: #fff;
+  font-size: 11px;
+  font-weight: 700;
+  line-height: 1;
+}
+
+.ps-header-burger {
+  display: none;
+  width: 40px;
+  height: 40px;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  border: 1px solid rgba(150, 120, 155, 0.18);
+  background: rgba(255, 255, 255, 0.7);
+  color: #4b3b50;
+  padding: 0;
+}
+
+.ps-header-nav a.active {
+  color: #92749b;
+}
+
+.ps-header-nav a.active::after {
+  content: "";
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: -7px;
+  height: 2px;
+  border-radius: 2px;
+  background: linear-gradient(90deg, #a78bb5, #e3b7c9);
+}
+
+.ps-header-nav a.ps-header-cart.active::after {
+  display: none;
+}
+
+@media (max-width: 900px) {
+  .ps-header {
+    flex-wrap: nowrap;
+  }
+
+  .ps-header-burger {
+    display: inline-flex;
+  }
+
+  .ps-header-nav {
+    position: absolute;
+    top: 100%;
+    left: 0;
+    right: 0;
+    display: none;
+    flex-direction: column;
+    align-items: stretch;
+    gap: 0;
+    padding: 10px 5% 18px;
+    overflow: visible;
+    background: rgba(255, 252, 248, 0.98);
+    border-bottom: 1px solid rgba(180, 155, 170, 0.18);
+    box-shadow: 0 24px 40px rgba(80, 60, 90, 0.08);
+  }
+
+  .ps-header-nav.open {
+    display: flex;
+  }
+
+  .ps-header-nav a {
+    padding: 14px 4px;
+    font-size: 15px;
+    border-bottom: 1px solid rgba(180, 155, 170, 0.12);
+  }
+
+  .ps-header-nav a.active::after {
+    display: none;
+  }
+
+  .ps-header-account span {
+    display: none;
+  }
+
+  .ps-header-account {
+    padding: 8px;
+  }
+}
+
+@media (max-width: 480px) {
+  .ps-header-tagline {
+    display: none;
+  }
+
+  .ps-header-actions {
+    gap: 6px;
+  }
+
+  button.ps-header-cart,
+  a.ps-header-cart {
+    padding: 8px 11px;
+  }
+}
+
+/* =========================================================
+   FOOTER — social icons
+========================================================= */
+
+.ps-footer-social {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-top: 18px;
+}
+
+.ps-footer-social a {
+  width: 38px;
+  height: 38px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  color: #6d6370;
+  background: rgba(240, 231, 239, 0.6);
+  border: 1px solid rgba(150, 120, 155, 0.16);
+  transition: transform 0.25s ease, color 0.25s ease, background 0.25s ease;
+}
+
+.ps-footer-social a:hover {
+  color: #fff;
+  background: linear-gradient(135deg, #a78bb5, #c79bb4);
+  transform: translateY(-2px);
+}
+
+.ps-footer-sub {
+  margin-top: 18px !important;
+}
+
+/* =========================================================
+   BAG DRAWER — slides in from the right
+========================================================= */
+
+.drawer-shell {
+  position: fixed;
+  inset: 0;
+  z-index: 2000;
+  visibility: hidden;
+  pointer-events: none;
+  transition: visibility 0s linear 0.45s;
+}
+
+.drawer-shell.open {
+  visibility: visible;
+  pointer-events: auto;
+  transition-delay: 0s;
+}
+
+.drawer-overlay {
+  position: absolute;
+  inset: 0;
+  background: rgba(48, 41, 54, 0.34);
+  backdrop-filter: blur(3px);
+  -webkit-backdrop-filter: blur(3px);
+  opacity: 0;
+  transition: opacity 0.4s ease;
+}
+
+.drawer-shell.open .drawer-overlay {
+  opacity: 1;
+}
+
+.drawer-shell .cart-drawer {
+  position: absolute;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  width: min(440px, 100%);
+  min-height: 0;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  transform: translateX(104%);
+  transition: transform 0.45s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.drawer-shell.open .cart-drawer {
+  transform: translateX(0);
+}
+
+.drawer-shell .drawer-items {
+  max-height: none;
+  flex: 1 1 auto;
+  min-height: 120px;
+}
+
+.drawer-shell .drawer-summary,
+.drawer-shell .drawer-actions {
+  flex-shrink: 0;
+}
+
+.cart-drawer-head-tools {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.drawer-close {
+  width: 38px;
+  height: 38px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0 0 3px;
+  border-radius: 50%;
+  border: 1px solid rgba(150, 120, 155, 0.2);
+  background: rgba(255, 255, 255, 0.75);
+  color: #5d5360;
+  font-size: 22px;
+  line-height: 1;
+  transition: background 0.2s ease, transform 0.2s ease;
+}
+
+.drawer-close:hover {
+  background: #f0e7ef;
+  transform: rotate(90deg);
+}
+
+.drawer-nudge {
+  position: relative;
+  z-index: 2;
+  margin: 14px 0 0;
+  padding: 10px 14px;
+  border-radius: 14px;
+  background: rgba(240, 231, 239, 0.7);
+  color: #6d5a74;
+  font-size: 12px;
+  font-weight: 600;
+  text-align: center;
+}
+
+.drawer-item-variant {
+  display: block;
+  margin: 2px 0 0;
+  color: #8e7f93;
+  font-size: 11px;
+  font-style: normal;
+}
+
+.drawer-item-note {
+  display: block;
+  margin-top: 6px;
+  color: #a2455a;
+  font-size: 11px;
+  font-weight: 600;
+}
+
+.drawer-item.is-unavailable {
+  opacity: 0.72;
+}
+
+.drawer-item.is-unavailable .drawer-item-image {
+  filter: grayscale(0.7);
+}
+
+.drawer-primary-button.is-disabled {
+  opacity: 0.45;
+}
+
+.drawer-quantity button:disabled {
+  opacity: 0.35;
+  cursor: not-allowed;
+}
+
+.cart-toast-star {
+  color: #a58bb2;
+  font-size: 22px;
+}
+
+/* =========================================================
+   404 + MAINTENANCE
+========================================================= */
+
+.notfound-page {
+  min-height: 62vh;
+  display: grid;
+  place-items: center;
+  padding: 70px 6%;
+}
+
+.notfound-card {
+  position: relative;
+  width: min(560px, 100%);
+  padding: 56px 34px 50px;
+  text-align: center;
+  border-radius: 34px;
+  background: rgba(255, 255, 255, 0.62);
+  border: 1px solid rgba(156, 130, 170, 0.12);
+  box-shadow: 0 24px 70px rgba(80, 60, 90, 0.07);
+}
+
+.notfound-card .eyebrow {
+  margin-bottom: 12px;
+}
+
+.notfound-card h1 {
+  margin: 0 0 14px;
+  font-family: Georgia, "Times New Roman", serif;
+  font-size: clamp(32px, 6vw, 46px);
+  font-weight: 400;
+  line-height: 1.08;
+  letter-spacing: -1px;
+  color: #352d38;
+}
+
+.notfound-card p {
+  max-width: 400px;
+  margin: 0 auto 26px;
+  color: #7a6f7e;
+  font-size: 15px;
+  line-height: 1.75;
+}
+
+.notfound-orb {
+  display: block;
+  width: 74px;
+  height: 74px;
+  margin: 0 auto 22px;
+  border-radius: 50%;
+  background: radial-gradient(circle at 32% 28%, #ffffff 0%, #f8eaf2 28%, #ddd1e8 66%, #c9bfd8 100%);
+  box-shadow: 0 14px 34px rgba(130, 105, 145, 0.18), inset -6px -8px 16px rgba(160, 130, 180, 0.18);
+}
+
+.maintenance-logo {
+  display: block;
+  width: 74px;
+  height: 74px;
+  margin: -6px auto 18px;
+  object-fit: contain;
+}
+
+/* =========================================================
+   SHARED FORM FIELD EXTRAS (account, faq, track pages)
+========================================================= */
+
+.faq-form-row {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 14px;
+}
+
+.contact-submit-label {
+  display: inline-block;
+}
+
+.contact-hint {
+  margin: 4px 2px 0;
+  color: #8e8392;
+  font-size: 12px;
+  line-height: 1.6;
+}
+
+@media (max-width: 560px) {
+  .faq-form-row {
+    grid-template-columns: 1fr;
+  }
+}
+
+button.hero-button {
+  border: 0;
+  cursor: pointer;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .drawer-shell .cart-drawer,
+  .drawer-overlay {
+    transition-duration: 0.01s;
+  }
+}
+
+/* selects look like the other fields */
+.contact-form select,
+.checkout-form select {
+  width: 100%;
+  padding: 15px 16px;
+  border: 1px solid rgba(120, 100, 130, 0.13);
+  border-radius: 15px;
+  outline: none;
+  background: rgba(255, 255, 255, 0.78);
+  color: #403743;
+  font-size: 13px;
+  transition: border 0.25s ease, box-shadow 0.25s ease;
+}
+
+.contact-form select:focus {
+  border-color: rgba(156, 130, 170, 0.45);
+  box-shadow: 0 0 0 4px rgba(156, 130, 170, 0.07);
+}
+
+.contact-form input:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}

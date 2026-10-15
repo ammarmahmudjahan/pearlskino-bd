@@ -1,0 +1,334 @@
+/* =========================================================
+   HOME — banners, category islands, product tags, reviews
+========================================================= */
+
+/* ----- banner slider (Admin > Banners) ----- */
+.home-banners {
+  position: relative;
+  width: min(1180px, 92%);
+  margin: 10px auto 30px;
+}
+
+.home-banner-stage {
+  position: relative;
+  aspect-ratio: 16 / 6;
+  min-height: 220px;
+  overflow: hidden;
+  border-radius: 30px;
+  background: linear-gradient(135deg, #efe3f4, #f9dde6);
+  box-shadow: 0 22px 60px rgba(80, 60, 90, 0.1);
+}
+
+.home-banner {
+  position: absolute;
+  inset: 0;
+  opacity: 0;
+  visibility: hidden;
+  transition: opacity 0.8s ease, visibility 0s linear 0.8s;
+}
+
+.home-banner.active {
+  opacity: 1;
+  visibility: visible;
+  transition-delay: 0s;
+}
+
+.home-banner-inner {
+  position: relative;
+  display: block;
+  width: 100%;
+  height: 100%;
+  color: inherit;
+  text-decoration: none;
+}
+
+.home-banner-inner img {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.home-banner-copy {
+  position: absolute;
+  left: 0;
+  top: 0;
+  bottom: 0;
+  width: min(560px, 80%);
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: 10px;
+  padding: 0 clamp(24px, 5vw, 60px);
+  background: linear-gradient(90deg, rgba(255, 253, 249, 0.86), rgba(255, 253, 249, 0.55) 70%, transparent);
+}
+
+.home-banner-copy h2 {
+  margin: 0;
+  font-family: Georgia, "Times New Roman", serif;
+  font-size: clamp(26px, 4.4vw, 52px);
+  font-weight: 400;
+  line-height: 1.02;
+  letter-spacing: -1.5px;
+  color: #352d38;
+}
+
+.home-banner-copy p {
+  margin: 0;
+  max-width: 380px;
+  color: #6d6370;
+  font-size: clamp(13px, 1.6vw, 16px);
+  line-height: 1.6;
+}
+
+.home-banner-button {
+  align-self: flex-start;
+  margin-top: 6px;
+  padding: 11px 20px;
+  border-radius: 999px;
+  background: linear-gradient(135deg, #9678a7, #c394b2);
+  color: #fff;
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  box-shadow: 0 12px 28px rgba(145, 110, 160, 0.25);
+}
+
+.home-banner-dots {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 14px;
+  display: flex;
+  justify-content: center;
+  gap: 8px;
+}
+
+.home-banner-dots button {
+  width: 9px;
+  height: 9px;
+  padding: 0;
+  border: 0;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.7);
+  box-shadow: 0 1px 5px rgba(80, 60, 90, 0.25);
+  transition: width 0.3s ease, background 0.3s ease;
+}
+
+.home-banner-dots button.on {
+  width: 26px;
+  background: #fff;
+}
+
+/* ----- announcement strip: list editing button sits above it ----- */
+.home-marquee-track .marquee-star {
+  padding: 0 4px;
+  font-size: 8px;
+  color: rgba(155, 128, 168, 0.6);
+}
+
+/* ----- one island per category ----- */
+.home-island {
+  margin-bottom: 38px;
+}
+
+.home-island-head {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 24px;
+  margin: 0 0 4px;
+  padding: 0 4px;
+}
+
+.home-island-head h3 {
+  margin: 0;
+  font-family: Georgia, "Times New Roman", serif;
+  font-size: clamp(24px, 3vw, 32px);
+  font-weight: 400;
+  letter-spacing: -0.5px;
+  color: #403743;
+}
+
+.home-island-head p {
+  margin: 6px 0 0;
+  color: #8e8392;
+  font-size: 13px;
+}
+
+/* ----- product tile pieces ----- */
+.home-product-link {
+  display: block;
+  color: inherit;
+  text-decoration: none;
+}
+
+.home-product-card.is-soldout .home-product-image img {
+  filter: grayscale(0.55);
+  opacity: 0.7;
+}
+
+.home-product-flag {
+  position: absolute;
+  top: 11px;
+  left: 11px;
+  z-index: 2;
+  padding: 5px 10px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.92);
+  color: #6d5a74;
+  font-size: 9px;
+  font-style: normal;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  box-shadow: 0 4px 14px rgba(80, 60, 90, 0.1);
+}
+
+.home-product-flag.deal {
+  background: linear-gradient(135deg, #a78bb5, #c79bb4);
+  color: #fff;
+}
+
+.home-product-info strong s {
+  margin-left: 7px;
+  color: #aaa1aa;
+  font-weight: 400;
+}
+
+.home-product-info h3 {
+  text-decoration: none;
+}
+
+.tile-heart {
+  position: absolute;
+  right: 18px;
+  bottom: 16px;
+  width: 34px;
+  height: 34px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+  border-radius: 50%;
+  border: 1px solid rgba(156, 130, 170, 0.18);
+  background: rgba(255, 255, 255, 0.85);
+  color: #8e7a97;
+  transition: transform 0.2s ease, color 0.2s ease, background 0.2s ease;
+}
+
+.tile-heart:hover {
+  transform: scale(1.08);
+  color: #b4577a;
+}
+
+.tile-heart.on {
+  color: #c2527d;
+  background: #fff1f5;
+  border-color: rgba(194, 82, 125, 0.3);
+}
+
+/* ----- reviews ----- */
+.home-reviews {
+  width: min(1180px, 92%);
+  margin: 0 auto;
+  padding: 10px 0 80px;
+}
+
+.home-review-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(290px, 1fr));
+  gap: 18px;
+}
+
+.home-review {
+  position: relative;
+  margin: 0;
+  padding: 24px 24px 22px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  border-radius: 24px;
+  background: rgba(255, 255, 255, 0.62);
+  border: 1px solid rgba(156, 130, 170, 0.1);
+  box-shadow: 0 12px 35px rgba(80, 60, 90, 0.045);
+}
+
+.home-review strong {
+  font-family: Georgia, "Times New Roman", serif;
+  font-size: 19px;
+  font-weight: 400;
+  color: #403743;
+}
+
+.home-review blockquote {
+  margin: 0;
+  color: #6d6370;
+  font-size: 14px;
+  line-height: 1.75;
+}
+
+.home-review figcaption {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 4px 10px;
+  margin-top: auto;
+  padding-top: 12px;
+  border-top: 1px dashed rgba(156, 130, 170, 0.22);
+  font-size: 12px;
+  color: #5d5360;
+}
+
+.home-review figcaption span {
+  font-weight: 700;
+}
+
+.home-review figcaption small {
+  color: #6c9a78;
+  font-size: 11px;
+}
+
+.home-review-product {
+  width: 100%;
+  color: #8a6f98;
+  font-size: 12px;
+  text-decoration: none;
+}
+
+.home-review-product:hover {
+  text-decoration: underline;
+}
+
+@media (max-width: 700px) {
+  .home-banners {
+    width: 94%;
+  }
+
+  .home-banner-stage {
+    aspect-ratio: 4 / 3;
+    border-radius: 22px;
+  }
+
+  .home-banner-copy {
+    width: 100%;
+    justify-content: flex-end;
+    padding-bottom: 38px;
+    background: linear-gradient(0deg, rgba(255, 253, 249, 0.9), rgba(255, 253, 249, 0.5) 60%, transparent);
+  }
+
+  .home-island-head {
+    align-items: flex-start;
+    flex-direction: column;
+    gap: 8px;
+  }
+
+  .home-product-card {
+    flex-basis: 215px;
+  }
+
+  .home-product-image {
+    height: 180px;
+  }
+}

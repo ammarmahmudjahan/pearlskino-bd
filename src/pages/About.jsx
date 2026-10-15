@@ -1,20 +1,18 @@
-
-import React from "react";
 import { Link } from "react-router-dom";
-import { useStore } from "../context/StoreContext";
+
+import { useSeo } from "../hooks/useSeo";
+import T from "../content/T";
 
 export default function About() {
-  const { storeSettings } = useStore();
-  const brand = storeSettings?.storeName || "PearlSkino BD";
+  useSeo({ page: "about" });
+
   return (
     <main className="about-page">
-
       {/* =====================================================
           ABOUT HERO
       ===================================================== */}
 
       <section className="about-hero">
-
         {/* Decorative pearls */}
 
         <div className="about-pearl about-pearl-1">✦</div>
@@ -25,328 +23,149 @@ export default function About() {
         <div className="about-sparkle sparkle-2">✧</div>
         <div className="about-sparkle sparkle-3">⋆</div>
 
-
         <div className="about-hero-content">
+          <T k="about.eyebrow" as="p" className="eyebrow" />
 
+          <T k="about.title" as="h1" />
 
-          <p className="eyebrow">
-            {brand.toUpperCase()} STORY
-          </p>
-
-
-          <h1>
-            Beauty should feel
-            <br />
-            <em>beautiful.</em>
-          </h1>
-
-
-          <p className="about-hero-text">
-            {brand} is a curated beauty and fragrance
-            destination created for people who believe that
-            the little details make all the difference.
-          </p>
-
+          <T k="about.text" as="p" className="about-hero-text" />
 
           <div className="about-hero-line">
             <span></span>
             <i>✦</i>
             <span></span>
           </div>
-
         </div>
-
       </section>
-
 
       {/* =====================================================
           INTRO
       ===================================================== */}
 
       <section className="about-intro">
-
         <div className="about-intro-label">
           <span>01</span>
-          <p>OUR BEGINNING</p>
+          <T k="about.intro.label" as="p" />
         </div>
 
         <div className="about-intro-content">
-
-          <h2>
-            More than a store.
-            <br />
-            <em>A feeling.</em>
-          </h2>
+          <T k="about.intro.title" as="h2" />
 
           <div className="about-intro-copy">
-
-            <p>
-              {brand} began with a simple idea:
-              discovering something beautiful should never
-              feel ordinary.
-            </p>
-
-            <p>
-              We curate fragrances and beauty essentials
-              with attention to authenticity, quality and
-              the experience they create.
-            </p>
-
-            <p>
-              Every product is chosen with the intention of
-              helping you find something that feels
-              uniquely yours.
-            </p>
-
+            <T k="about.intro.p1" as="p" />
+            <T k="about.intro.p2" as="p" />
+            <T k="about.intro.p3" as="p" />
           </div>
-
         </div>
-
       </section>
-
 
       {/* =====================================================
           PHILOSOPHY
       ===================================================== */}
 
       <section className="about-philosophy">
-
         <div className="about-section-heading">
+          <T k="about.phil.eyebrow" as="p" className="eyebrow" />
 
-          <p className="eyebrow">
-            OUR PHILOSOPHY
-          </p>
+          <T k="about.phil.title" as="h2" />
 
-          <h2>
-            Curated with
-            <br />
-            <em>intention.</em>
-          </h2>
-
-          <p>
-            We keep things thoughtful, simple and personal.
-          </p>
-
+          <T k="about.phil.text" as="p" />
         </div>
-
 
         <div className="about-values">
-
           <article className="about-value-card">
-
-            <div className="about-value-number">
-              01
-            </div>
-
-            <div className="about-value-icon">
-              ✦
-            </div>
-
-            <h3>
-              Authentic
-            </h3>
-
-            <p>
-              We believe beauty begins with trust.
-              Authentic products and honest presentation
-              are at the heart of {brand}.
-            </p>
-
+            <div className="about-value-number">01</div>
+            <div className="about-value-icon">✦</div>
+            <T k="about.v1.title" as="h3" />
+            <T k="about.v1.text" as="p" />
           </article>
-
 
           <article className="about-value-card featured">
-
-            <div className="about-value-number">
-              02
-            </div>
-
-            <div className="about-value-icon">
-              ○
-            </div>
-
-            <h3>
-              Curated
-            </h3>
-
-            <p>
-              Instead of endless choices, we focus on
-              products worth discovering — selected for
-              character, quality and everyday appeal.
-            </p>
-
+            <div className="about-value-number">02</div>
+            <div className="about-value-icon">○</div>
+            <T k="about.v2.title" as="h3" />
+            <T k="about.v2.text" as="p" />
           </article>
-
 
           <article className="about-value-card">
-
-            <div className="about-value-number">
-              03
-            </div>
-
-            <div className="about-value-icon">
-              ♡
-            </div>
-
-            <h3>
-              Personal
-            </h3>
-
-            <p>
-              Your fragrance and beauty routine should
-              reflect you. We want every discovery to feel
-              personal and memorable.
-            </p>
-
+            <div className="about-value-number">03</div>
+            <div className="about-value-icon">♡</div>
+            <T k="about.v3.title" as="h3" />
+            <T k="about.v3.text" as="p" />
           </article>
-
         </div>
-
       </section>
-
 
       {/* =====================================================
           SIGNATURE STATEMENT
       ===================================================== */}
 
       <section className="about-statement">
-
         <div className="statement-pearl">
           <span>✦</span>
         </div>
 
-        <p className="eyebrow">
-          {brand.toUpperCase()} PROMISE
-        </p>
+        <T k="about.promise.eyebrow" as="p" className="eyebrow" />
 
-        <h2>
-          Find something
-          <br />
-          <em>worth keeping.</em>
-        </h2>
+        <T k="about.promise.title" as="h2" />
 
-        <p>
-          From the first impression to the final detail,
-          we want your {brand} experience to feel
-          effortless, elegant and distinctly yours.
-        </p>
-
+        <T k="about.promise.text" as="p" />
       </section>
-
 
       {/* =====================================================
           BRAND DETAILS
       ===================================================== */}
 
       <section className="about-details">
-
         <div className="about-detail">
-
-          <span className="about-detail-symbol">
-            ✧
-          </span>
+          <span className="about-detail-symbol">✧</span>
 
           <div>
-            <span className="about-detail-label">
-              BEAUTY
-            </span>
-
-            <h3>
-              Everyday elegance
-            </h3>
-
-            <p>
-              Beautiful products that fit naturally
-              into your everyday life.
-            </p>
+            <T k="about.d1.label" as="span" className="about-detail-label" />
+            <T k="about.d1.title" as="h3" />
+            <T k="about.d1.text" as="p" />
           </div>
-
         </div>
-
 
         <div className="about-detail">
-
-          <span className="about-detail-symbol">
-            ‡
-          </span>
+          <span className="about-detail-symbol">‡</span>
 
           <div>
-            <span className="about-detail-label">
-              FRAGRANCE
-            </span>
-
-            <h3>
-              Scents with character
-            </h3>
-
-            <p>
-              Fragrances selected to help you discover
-              something that feels like you.
-            </p>
+            <T k="about.d2.label" as="span" className="about-detail-label" />
+            <T k="about.d2.title" as="h3" />
+            <T k="about.d2.text" as="p" />
           </div>
-
         </div>
-
 
         <div className="about-detail">
-
-          <span className="about-detail-symbol">
-            ✦
-          </span>
+          <span className="about-detail-symbol">✦</span>
 
           <div>
-            <span className="about-detail-label">
-              EXPERIENCE
-            </span>
-
-            <h3>
-              Thoughtfully yours
-            </h3>
-
-            <p>
-              A shopping experience designed around
-              simplicity, beauty and trust.
-            </p>
+            <T k="about.d3.label" as="span" className="about-detail-label" />
+            <T k="about.d3.title" as="h3" />
+            <T k="about.d3.text" as="p" />
           </div>
-
         </div>
-
       </section>
-
 
       {/* =====================================================
           CTA
       ===================================================== */}
 
       <section className="about-cta">
-
         <div className="about-cta-glow"></div>
 
-        <p className="eyebrow">
-          YOUR NEXT DISCOVERY
-        </p>
+        <T k="about.cta.eyebrow" as="p" className="eyebrow" />
 
-        <h2>
-          Something beautiful
-          <br />
-          <em>is waiting.</em>
-        </h2>
+        <T k="about.cta.title" as="h2" />
 
-        <p>
-          Explore our collection and discover your
-          next favorite.
-        </p>
+        <T k="about.cta.text" as="p" />
 
-        <Link
-          to="/shop"
-          className="hero-button"
-        >
-          Explore Collection
+        <Link to="/shop" className="hero-button">
+          <T k="about.cta.button" />
           <span>→</span>
         </Link>
-
       </section>
-
     </main>
   );
 }

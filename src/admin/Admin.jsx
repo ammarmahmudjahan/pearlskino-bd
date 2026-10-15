@@ -1,3723 +1,410 @@
-﻿import React, {
-  useEffect,
-  useMemo,
-  useState,
-} from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 
-import ProductManager from "./ProductManager";
-import { useProducts } from "../hooks/useProducts";
 import "./Admin.css";
+import { useStore } from "../context/StoreContext";
+import { apiPost } from "../lib/api";
+import {
+  adminCall,
+  clearAdminSession,
+  getAdminToken,
+  getStoredAdminUser,
+  saveAdminSession,
+} from "../lib/adminApi";
+import { EDIT_MODE_KEY } from "../config/api";
+import { AdminContext, Feedback, Field, Spinner, toast } from "./ui";
 
+import Dashboard from "./pages/Dashboard";
+import { Orders, Returns } from "./pages/Orders";
+import { Products, Categories } from "./pages/Catalog";
+import Inventory from "./pages/Inventory";
+import Customers from "./pages/Customers";
+import Abandoned from "./pages/Abandoned";
+import { Coupons, Banners } from "./pages/Marketing";
+import { Reviews, Messages } from "./pages/Inbox";
+import SiteText from "./pages/SiteText";
+import Settings from "./pages/Settings";
+import Reports from "./pages/Reports";
+import { Team, Activity, Backups, Password } from "./pages/Team";
 
-/* =========================================================
-   PEARLSKINO BD
-   ADMIN DASHBOARD
-   ========================================================= */
-
-const ORDERS_API =
-  "https://script.google.com/macros/s/AKfycbzgl2Fr8e17tQXDLvrylxYvFc0XkMhtsTsFOvJxdBwt8c2imYAUHrdx3ovk7rJOD4Eq/exec";
-
-
-/* =========================================================
-   STATUSES
-========================================================= */
-
-const STATUSES = [
-  "New",
-  "Confirmed",
-  "Processing",
-  "Shipped",
-  "Delivered",
-  "Cancelled",
-];
-
-
-/* =========================================================
-   DEFAULT SETTINGS
-========================================================= */
-
-const DEFAULT_SETTINGS = {
-  logoUrl: "",
-  logoFileId: "",
-  logoFileName: "",
-  storeName: "PearlSkino BD",
-  tagline: "Beauty, fragrance & self-care",
-  phone: "",
-  email: "",
-  messengerUrl: "",
-  whatsappNumber: "",
-  deliveryCharge: 0,
-  freeDeliveryThreshold: 0,
-  codEnabled: true,
-  pickupEnabled: true,
-  lowStockThreshold: 2,
-  autoRefreshSeconds: 30,
+/* ---------- icons (one path each, so no icon library is needed) ---------- */
+const ICONS = {
+  dashboard: "M3 13h8V3H3v10zm0 8h8v-6H3v6zm10 0h8V11h-8v10zm0-18v6h8V3h-8z",
+  orders: "M7 4h10l1 3H6l1-3zM5 8h14l-1 12H6L5 8zm4 3v6m3-6v6m3-6v6",
+  returns: "M9 7H5l3-3m-3 3 3 3M5 7h9a5 5 0 0 1 0 10H8",
+  products: "M12 3 3 7.5v9L12 21l9-4.5v-9L12 3zm0 9 9-4.5M12 12 3 7.5M12 12v9",
+  categories: "M4 4h7v7H4V4zm9 0h7v7h-7V4zM4 13h7v7H4v-7zm9 0h7v7h-7v-7z",
+  inventory: "M4 7l8-4 8 4v10l-8 4-8-4V7zm4 2v4l4 2 4-2V9",
+  customers: "M16 11a4 4 0 1 0-8 0 4 4 0 0 0 8 0zM4 21a8 8 0 0 1 16 0",
+  abandoned: "M3 4h2l2.4 11h10.2L20 7H6.2M9 20a1 1 0 1 0 0-2 1 1 0 0 0 0 2zm9 0a1 1 0 1 0 0-2 1 1 0 0 0 0 2z",
+  coupons: "M3 9a2 2 0 0 0 0 6v3h18v-3a2 2 0 0 1 0-6V6H3v3zm6-1v8m6-8v8",
+  banners: "M3 5h18v14H3V5zm0 10 5-5 4 4 3-3 6 6",
+  reviews: "M12 3l2.7 5.6 6.1.9-4.4 4.3 1 6.1L12 17l-5.4 2.9 1-6.1L3.2 9.5l6.1-.9L12 3z",
+  messages: "M3 5h18v12H8l-5 4V5z",
+  text: "M5 5h14M12 5v14m-4 0h8",
+  settings: "M12 8a4 4 0 1 0 0 8 4 4 0 0 0 0-8zm0-6 1.5 3 3.3-.7.9 3.2 3 1.5-1.5 3 1.5 3-3 1.5-.9 3.2-3.3-.7L12 22l-1.5-3-3.3.7-.9-3.2-3-1.5 1.5-3-1.5-3 3-1.5.9-3.2 3.3.7L12 2z",
+  reports: "M4 20V10m6 10V4m6 16v-8m6 8H2",
+  team: "M12 3l8 3v6c0 5-3.5 8-8 9-4.5-1-8-4-8-9V6l8-3z",
+  activity: "M3 12h4l3-8 4 16 3-8h4",
+  backups: "M12 4v12m0 0-4-4m4 4 4-4M4 20h16",
+  password: "M7 11V8a5 5 0 0 1 10 0v3M5 11h14v10H5V11z",
+  storefront: "M3 9l2-5h14l2 5M3 9v11h18V9M3 9h18M9 20v-6h6v6",
 };
 
-
-/* =========================================================
-   AUTH STORAGE
-========================================================= */
-
-const ADMIN_AUTH_KEY =
-  "pearlskino_admin_authenticated";
-
-const ADMIN_TOKEN_KEY =
-  "pearlskino_admin_token";
-
-const ADMIN_EXPIRES_KEY =
-  "pearlskino_admin_expires_at";
-
-
-/* =========================================================
-   AUTH STORAGE HELPERS
-========================================================= */
-
-function getStoredAdminToken() {
-
+function Icon({ name }) {
   return (
-    localStorage.getItem(
-      ADMIN_TOKEN_KEY
-    ) || ""
-  );
-
-}
-
-
-function getStoredAdminExpiry() {
-
-  return (
-    localStorage.getItem(
-      ADMIN_EXPIRES_KEY
-    ) || ""
-  );
-
-}
-
-
-function saveAdminSession(
-  token,
-  expiresAt
-) {
-
-  if (!token) {
-
-    throw new Error(
-      "Login succeeded but no session token was returned."
-    );
-
-  }
-
-  localStorage.setItem(
-    ADMIN_AUTH_KEY,
-    "true"
-  );
-
-  localStorage.setItem(
-    ADMIN_TOKEN_KEY,
-    token
-  );
-
-  if (expiresAt) {
-
-    localStorage.setItem(
-      ADMIN_EXPIRES_KEY,
-      expiresAt
-    );
-
-  }
-
-}
-
-
-function clearAdminSession() {
-
-  localStorage.removeItem(
-    ADMIN_AUTH_KEY
-  );
-
-  localStorage.removeItem(
-    ADMIN_TOKEN_KEY
-  );
-
-  localStorage.removeItem(
-    ADMIN_EXPIRES_KEY
-  );
-
-}
-
-
-/* =========================================================
-   API ... GET
-========================================================= */
-
-async function getApi(
-  action,
-  token = ""
-) {
-
-  const params =
-    new URLSearchParams();
-
-  params.set(
-    "action",
-    action
-  );
-
-  if (token) {
-
-    params.set(
-      "token",
-      token
-    );
-
-  }
-
-  const response =
-    await fetch(
-      `${ORDERS_API}?${params.toString()}`,
-      {
-        method: "GET",
-        cache: "no-store",
-      }
-    );
-
-
-  if (!response.ok) {
-
-    throw new Error(
-      `Unable to load ${action}.`
-    );
-
-  }
-
-
-  const data =
-    await response.json();
-
-
-  if (!data.success) {
-
-    if (
-      data.authenticated ===
-      false
-    ) {
-
-      clearAdminSession();
-
-    }
-
-    throw new Error(
-      data.error ||
-        `Unable to load ${action}.`
-    );
-
-  }
-
-
-  return data;
-
-}
-
-
-/* =========================================================
-   API ... POST
-========================================================= */
-
-async function postApi(
-  payload,
-  authenticated = true
-) {
-
-  const requestPayload = {
-    ...payload,
-  };
-
-
-  if (authenticated) {
-
-    const token =
-      getStoredAdminToken();
-
-
-    if (!token) {
-
-      throw new Error(
-        "Admin session is missing. Please log in again."
-      );
-
-    }
-
-
-    requestPayload.token =
-      token;
-
-  }
-
-
-  const response =
-    await fetch(
-      ORDERS_API,
-      {
-        method: "POST",
-
-        headers: {
-          "Content-Type":
-            "text/plain;charset=utf-8",
-        },
-
-        body:
-          JSON.stringify(
-            requestPayload
-          ),
-      }
-    );
-
-
-  if (!response.ok) {
-
-    throw new Error(
-      "Unable to communicate with the PearlSkino API."
-    );
-
-  }
-
-
-  const data =
-    await response.json();
-
-
-  if (!data.success) {
-
-    if (
-      data.authenticated ===
-      false
-    ) {
-
-      clearAdminSession();
-
-    }
-
-    throw new Error(
-      data.error ||
-        "API request failed."
-    );
-
-  }
-
-
-  return data;
-
-}
-
-
-/* =========================================================
-   AUTH ... LOGIN
-========================================================= */
-
-/* =========================================================
-   DELETE ORDER
-========================================================= */
-
-async function deleteOrder(
-  orderId,
-  rowNumber
-) {
-
-  return postApi(
-    {
-      action:
-        "deleteOrder",
-
-      orderId:
-        orderId || "",
-
-      rowNumber:
-        rowNumber || "",
-    },
-    true
-  );
-
-}
-
-
-/* =========================================================
-   DELETE CUSTOMER
-========================================================= */
-
-async function deleteCustomer(
-  customerId
-) {
-
-  return postApi(
-    {
-      action:
-        "deleteCustomer",
-
-      customerId:
-        customerId || "",
-    },
-    true
-  );
-
-}
-
-
-async function loginAdmin(
-  password
-) {
-
-  const data =
-    await postApi(
-      {
-        action:
-          "login",
-
-        password,
-      },
-      false
-    );
-
-
-  saveAdminSession(
-    data.token,
-    data.expiresAt
-  );
-
-
-  return data;
-
-}
-
-
-/* =========================================================
-   AUTH ... LOGOUT
-========================================================= */
-
-async function logoutAdmin() {
-
-  try {
-
-    if (
-      getStoredAdminToken()
-    ) {
-
-      await postApi(
-        {
-          action:
-            "logout",
-        },
-        true
-      );
-
-    }
-
-  } catch (error) {
-
-    console.warn(
-      "Logout API warning:",
-      error
-    );
-
-  } finally {
-
-    clearAdminSession();
-
-  }
-
-}
-
-
-/* =========================================================
-   AUTH ... CHANGE PASSWORD
-========================================================= */
-
-async function changeAdminPassword(
-  currentPassword,
-  newPassword
-) {
-
-  return postApi(
-    {
-      action:
-        "changePassword",
-
-      currentPassword,
-
-      newPassword,
-    },
-    true
-  );
-
-}
-
-
-/* =========================================================
-   AUTH ... CHECK SESSION
-========================================================= */
-
-async function checkAdminSession() {
-
-  const token =
-    getStoredAdminToken();
-
-
-  if (!token) {
-
-    return false;
-
-  }
-
-
-  const expiresAt =
-    getStoredAdminExpiry();
-
-
-  if (expiresAt) {
-
-    const expiry =
-      new Date(
-        expiresAt
-      ).getTime();
-
-
-    if (
-      Number.isFinite(
-        expiry
-      ) &&
-      Date.now() >= expiry
-    ) {
-
-      clearAdminSession();
-
-      return false;
-
-    }
-
-  }
-
-
-  try {
-
-    await getApi("auth", token);
-
-
-    return true;
-
-  } catch (error) {
-
-    clearAdminSession();
-
-    return false;
-
-  }
-
-}
-
-
-/* =========================================================
-   ORDERS
-========================================================= */
-
-async function fetchOrders() {
-
-  const token =
-    getStoredAdminToken();
-
-
-  if (!token) {
-
-    throw new Error(
-      "Admin session is missing."
-    );
-
-  }
-
-
-  const data =
-    await getApi(
-      "orders",
-      token
-    );
-
-
-  return (
-    data.orders ||
-    []
-  );
-
-}
-
-
-/* =========================================================
-   CUSTOMERS
-========================================================= */
-
-async function fetchCustomers() {
-
-  const token =
-    getStoredAdminToken();
-
-  if (!token) {
-
-    throw new Error(
-      "Admin session is missing."
-    );
-
-  }
-
-  const data =
-    await getApi(
-      "customers",
-      token
-    );
-
-  return (
-    data.customers ||
-    []
-  );
-
-}
-
-/* =========================================================
-   SETTINGS
-========================================================= */
-
-async function fetchSettings() {
-
-  const token =
-    getStoredAdminToken();
-
-  if (!token) {
-
-    throw new Error(
-      "Admin session is missing."
-    );
-
-  }
-
-  const data =
-    await getApi(
-      "settings",
-      token
-    );
-
-  return {
-    ...DEFAULT_SETTINGS,
-    ...(data.settings || {}),
-  };
-
-}
-
-
-/* =========================================================
-   UPDATE ORDER STATUS
-========================================================= */
-
-async function updateOrderStatus(
-  orderId,
-  status
-) {
-  return postApi({
-    action: "updateStatus",
-    orderId,
-    status,
-  });
-}
-
-
-/* =========================================================
-   UPDATE SETTINGS
-========================================================= */
-
-async function uploadLogoImage(
-  dataUrl,
-  mimeType
-) {
-
-  const token =
-    getStoredAdminToken();
-
-  if (!token) {
-
-    return {
-      success: false,
-      error:
-        "Admin session is missing. Please log in again.",
-    };
-
-  }
-
-
-  try {
-
-    const response =
-      await fetch(
-        ORDERS_API,
-        {
-          method: "POST",
-
-          headers: {
-            "Content-Type":
-              "text/plain;charset=utf-8",
-          },
-
-          body:
-            JSON.stringify({
-              action:
-                "uploadLogo",
-
-              token,
-
-              image:
-                dataUrl,
-
-              mimeType,
-            }),
-        }
-      );
-
-
-    const data =
-      await response.json();
-
-
-    if (
-      !response.ok ||
-      !data.success
-    ) {
-
-      throw new Error(
-        data.error ||
-        "Logo upload failed."
-      );
-
-    }
-
-
-    return data;
-
-  } catch (error) {
-
-    return {
-      success: false,
-      error:
-        error?.message ||
-        "Logo upload failed.",
-    };
-
-  }
-
-}
-
-
-async function saveStoreSettings(
-  settings
-) {
-  return postApi({
-    action: "updateSettings",
-    settings,
-  });
-}
-
-
-/* =========================================================
-   STATUS BADGE
-========================================================= */
-
-function StatusBadge({
-  status,
-}) {
-  const safeStatus =
-    status || "New";
-
-  return (
-    <span
-      className={`order-status status-${safeStatus
-        .toLowerCase()
-        .replace(/\s+/g, "-")}`}
-    >
-      {safeStatus}
-    </span>
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+      <path d={ICONS[name] || ICONS.dashboard} />
+    </svg>
   );
 }
 
+/* label, permission needed, group */
+const PAGES = [
+  { id: "dashboard", label: "Dashboard", perm: "orders.view", group: "Sales", comp: Dashboard },
+  { id: "orders", label: "Orders", perm: "orders.view", group: "Sales", comp: Orders, badge: "newOrders" },
+  { id: "returns", label: "Returns & refunds", perm: "orders.view", group: "Sales", comp: Returns, badge: "openReturns" },
+  { id: "customers", label: "Customers", perm: "customers.view", group: "Sales", comp: Customers },
+  { id: "abandoned", label: "Abandoned carts", perm: "customers.view", group: "Sales", comp: Abandoned, badge: "abandonedOpen" },
+  { id: "products", label: "Products", perm: "products.view", group: "Catalog", comp: Products },
+  { id: "categories", label: "Categories", perm: "products.view", group: "Catalog", comp: Categories },
+  { id: "inventory", label: "Inventory", perm: "inventory.view", group: "Catalog", comp: Inventory, badge: "lowStock" },
+  { id: "coupons", label: "Coupons", perm: "coupons.manage", group: "Marketing", comp: Coupons },
+  { id: "banners", label: "Home banners", perm: "banners.manage", group: "Marketing", comp: Banners },
+  { id: "reviews", label: "Reviews", perm: "reviews.moderate", group: "Marketing", comp: Reviews, badge: "pendingReviews" },
+  { id: "messages", label: "Messages", perm: "messages.manage", group: "Marketing", comp: Messages, badge: "newMessages" },
+  { id: "text", label: "Site text", perm: "content.edit", group: "Website", comp: SiteText },
+  { id: "settings", label: "Settings", perm: "settings.edit", group: "Website", comp: Settings },
+  { id: "reports", label: "Reports", perm: "reports.view", group: "Insights", comp: Reports },
+  { id: "activity", label: "Activity log", perm: "activity.view", group: "Insights", comp: Activity },
+  { id: "backups", label: "Backups", perm: "backups.view", group: "Insights", comp: Backups },
+  { id: "team", label: "Team & access", perm: "team.manage", group: "Account", comp: Team },
+  { id: "password", label: "My password", perm: null, group: "Account", comp: Password },
+];
 
-/* =========================================================
-   LOGIN SCREEN
-========================================================= */
+/* ---------- login ---------- */
+function Login({ onDone, logo }) {
+  const [username, setUsername] = useState("owner");
+  const [password, setPassword] = useState("");
+  const [busy, setBusy] = useState(false);
+  const [error, setError] = useState("");
 
-function AdminLogin({
-  onLogin,
-}) {
-  const [
-    password,
-    setPassword,
-  ] = useState("");
+  async function submit(event) {
+    event.preventDefault();
+    if (busy) return;
 
-  const [
-    loading,
-    setLoading,
-  ] = useState(false);
-
-  const [
-    error,
-    setError,
-  ] = useState("");
-
-  async function handleSubmit(e) {
-    e.preventDefault();
-
-    if (!password.trim()) {
-      setError(
-        "Please enter your admin password."
-      );
-      return;
-    }
+    setBusy(true);
+    setError("");
 
     try {
-      setLoading(true);
-      setError("");
-
-      await loginAdmin(
-        password
-      );
-
-      localStorage.setItem(
-        ADMIN_AUTH_KEY,
-        "true"
-      );
-
-      setPassword("");
-
-      onLogin();
-
-    } catch (error) {
-      console.error(
-        "ADMIN LOGIN ERROR:",
-        error
-      );
-
-      setError(
-        error.message ||
-          "Incorrect admin password."
-      );
-
+      const data = await apiPost({ action: "login", username: username.trim(), password });
+      saveAdminSession({ token: data.token, expiresAt: data.expiresAt, user: data.user });
+      onDone(data);
+    } catch (problem) {
+      setError(problem.message || "Login failed.");
     } finally {
-      setLoading(false);
+      setBusy(false);
     }
   }
 
   return (
-    <div className="admin-login-page">
+    <div className="ad-login">
+      <div className="ad-login-card">
+        {logo && <img src={logo} alt="" />}
+        <p className="eyebrow">PearlSkino BD</p>
+        <h1>Admin login</h1>
 
-      <div className="admin-login-card">
+        <form onSubmit={submit}>
+          <Field label="Username">
+            <input
+              type="text"
+              value={username}
+              onChange={(event) => setUsername(event.target.value)}
+              autoComplete="username"
+              autoCapitalize="none"
+              required
+            />
+          </Field>
 
-        <div className="admin-login-brand">
-          PearlSkino <span>BD</span>
-        </div>
-
-        <p className="admin-eyebrow">
-          PRIVATE ADMIN AREA
-        </p>
-
-        <h1>
-          Admin Login
-        </h1>
-
-        <p className="admin-login-description">
-          Enter your admin password to
-          access the store dashboard.
-        </p>
-
-        {error && (
-          <div className="admin-error">
-            {error}
-          </div>
-        )}
-
-        <form
-          onSubmit={handleSubmit}
-          className="admin-login-form"
-        >
-
-          <label>
-            Admin Password
-
+          <Field label="Password">
             <input
               type="password"
               value={password}
-              onChange={(e) => {
-                setPassword(
-                  e.target.value
-                );
-                setError("");
-              }}
-              placeholder="Enter password"
-              autoFocus
+              onChange={(event) => setPassword(event.target.value)}
               autoComplete="current-password"
+              autoFocus
+              required
             />
-          </label>
+          </Field>
 
-          <button
-            type="submit"
-            disabled={loading}
-            className="admin-login-button"
-          >
-            {loading
-              ? "Signing in..."
-              : "Sign In"}
+          {error && <div className="ad-note bad" role="alert">{error}</div>}
+
+          <button type="submit" className="ad-btn primary" disabled={busy}>
+            {busy ? "Signing in…" : "Sign in"}
           </button>
-
         </form>
 
-        <a
-          href="/"
-          className="admin-login-store-link"
-        >
-          Back to Store
+        <a className="back" href="/">
+          ← Back to store
         </a>
-
       </div>
-
     </div>
   );
 }
 
-
-/* =========================================================
-   CHANGE PASSWORD
-========================================================= */
-
-function ChangePasswordPage() {
-  const [
-    currentPassword,
-    setCurrentPassword,
-  ] = useState("");
-
-  const [
-    newPassword,
-    setNewPassword,
-  ] = useState("");
-
-  const [
-    confirmPassword,
-    setConfirmPassword,
-  ] = useState("");
-
-  const [
-    saving,
-    setSaving,
-  ] = useState(false);
-
-  const [
-    message,
-    setMessage,
-  ] = useState("");
-
-  const [
-    error,
-    setError,
-  ] = useState("");
-
-  async function handleSubmit(e) {
-    e.preventDefault();
-
-    setMessage("");
-    setError("");
-
-    if (!currentPassword) {
-      setError(
-        "Enter your current password."
-      );
-      return;
-    }
-
-    if (
-      newPassword.length < 6
-    ) {
-      setError(
-        "New password must be at least 6 characters."
-      );
-      return;
-    }
-
-    if (
-      newPassword !==
-      confirmPassword
-    ) {
-      setError(
-        "New passwords do not match."
-      );
-      return;
-    }
-
-    try {
-      setSaving(true);
-
-      await changeAdminPassword(
-        currentPassword,
-        newPassword
-      );
-
-      setCurrentPassword("");
-      setNewPassword("");
-      setConfirmPassword("");
-
-      setMessage(
-        "Admin password changed successfully."
-      );
-
-    } catch (error) {
-      console.error(
-        "CHANGE PASSWORD ERROR:",
-        error
-      );
-
-      setError(
-        error.message ||
-          "Unable to change password."
-      );
-
-    } finally {
-      setSaving(false);
-    }
-  }
-
-  return (
-    <section className="admin-page-section">
-
-      <div className="admin-section-header">
-
-        <div>
-          <p className="admin-eyebrow">
-            SECURITY
-          </p>
-
-          <h2>
-            Change Password
-          </h2>
-
-          <p className="admin-page-description">
-            Change the password used to
-            access your PearlSkino BD
-            admin dashboard.
-          </p>
-        </div>
-
-      </div>
-
-      {error && (
-        <div className="admin-error">
-          {error}
-        </div>
-      )}
-
-      {message && (
-        <div className="admin-success">
-          ? {message}
-        </div>
-      )}
-
-      <form
-        className="settings-form"
-        onSubmit={handleSubmit}
-      >
-
-        <div className="settings-card">
-
-          <div className="settings-grid">
-
-            <label>
-              Current Password
-
-              <input
-                type="password"
-                value={currentPassword}
-                onChange={(e) =>
-                  setCurrentPassword(
-                    e.target.value
-                  )
-                }
-                autoComplete="current-password"
-              />
-            </label>
-
-            <label>
-              New Password
-
-              <input
-                type="password"
-                value={newPassword}
-                onChange={(e) =>
-                  setNewPassword(
-                    e.target.value
-                  )
-                }
-                autoComplete="new-password"
-              />
-            </label>
-
-            <label>
-              Confirm New Password
-
-              <input
-                type="password"
-                value={confirmPassword}
-                onChange={(e) =>
-                  setConfirmPassword(
-                    e.target.value
-                  )
-                }
-                autoComplete="new-password"
-              />
-            </label>
-
-          </div>
-
-          <small className="settings-help">
-            Use at least 6 characters.
-          </small>
-
-        </div>
-
-        <div className="settings-actions">
-
-          <button
-            type="submit"
-            className="settings-save-button"
-            disabled={saving}
-          >
-            {saving
-              ? "Changing..."
-              : "Change Password"}
-          </button>
-
-        </div>
-
-      </form>
-
-    </section>
-  );
+function currentPage() {
+  const id = window.location.hash.replace(/^#\/?/, "").split("?")[0];
+  return PAGES.some((p) => p.id === id) ? id : "dashboard";
 }
-
-
-/* =========================================================
-   ORDERS PAGE
-========================================================= */
-
-function OrdersPage({
-  orders,
-  loading,
-  error,
-  refreshOrders,
-}) {
-  const [
-    updatingOrder,
-    setUpdatingOrder,
-  ] = useState(null);
-
-  const [
-    deletingOrder,
-    setDeletingOrder,
-  ] = useState(null);
-
-  async function handleStatusChange(
-    orderId,
-    status
-  ) {
-    try {
-      setUpdatingOrder(orderId);
-
-      await updateOrderStatus(
-        orderId,
-        status
-      );
-
-      await refreshOrders();
-
-    } catch (error) {
-      console.error(
-        "STATUS UPDATE ERROR:",
-        error
-      );
-
-      showAdminToast(
-        error.message ||
-          "Failed to update order status.",
-        "error"
-      );
-
-    } finally {
-      setUpdatingOrder(null);
-    }
-  }
-
-
-  async function handleDeleteOrder(
-    order
-  ) {
-
-    const label =
-      order.orderId ||
-      "this order";
-
-    const confirmed =
-      await requestAdminConfirm({
-        title: "Delete order?",
-        message:
-          `Delete ${label}? This will permanently remove the order from the Orders sheet.`,
-        confirmLabel: "Delete order",
-      });
-
-    if (!confirmed) {
-      return;
-    }
-
-    try {
-
-      setDeletingOrder(
-        order.orderId ||
-        order.rowNumber
-      );
-
-      await deleteOrder(
-        order.orderId,
-        order.rowNumber
-      );
-
-      await refreshOrders();
-
-    } catch (error) {
-
-      console.error(
-        "ORDER DELETE ERROR:",
-        error
-      );
-
-      showAdminToast(
-        error.message ||
-          "Failed to delete order.",
-        "error"
-      );
-
-    } finally {
-
-      setDeletingOrder(null);
-
-    }
-
-  }
-
-  return (
-    <section className="admin-page-section">
-
-      <div className="admin-section-header">
-
-        <div>
-          <p className="admin-eyebrow">
-            SALES
-          </p>
-
-          <h2>
-            Orders
-          </h2>
-
-          <p className="admin-page-description">
-            Manage customer orders and
-            update their delivery status.
-          </p>
-        </div>
-
-        <button
-          type="button"
-          className="admin-refresh-button"
-          onClick={refreshOrders}
-          disabled={loading}
-        >
-          {loading
-            ? "Refreshing..."
-            : "Refresh"}
-        </button>
-
-      </div>
-
-      {error && (
-        <div className="admin-error">
-          {error}
-        </div>
-      )}
-
-      {loading ? (
-
-        <div className="admin-loading">
-          Loading orders...
-        </div>
-
-      ) : orders.length === 0 ? (
-
-        <div className="admin-empty">
-
-          <div className="admin-empty-icon">
-            &#128203;
-          </div>
-
-          <h3>
-            No orders yet
-          </h3>
-
-          <p>
-            New customer orders will
-            appear here automatically.
-          </p>
-
-        </div>
-
-      ) : (
-
-        <div className="orders-table-wrapper">
-
-          <div className="orders-table">
-
-            <div className="orders-table-header">
-              <span>Order</span>
-              <span>Customer</span>
-              <span>Products</span>
-              <span>Total</span>
-              <span>Payment</span>
-              <span>Delivery</span>
-              <span>Status</span>
-              <span>Actions</span>
-            </div>
-
-            {orders.map((order) => (
-
-              <div
-                className="order-row"
-                key={
-                  order.orderId ||
-                  order.rowNumber
-                }
-              >
-
-                <div className="order-id-cell">
-
-                  <strong>
-                    {order.orderId || "..."}
-                  </strong>
-
-                  <small>
-                    {order.timestamp || ""}
-                  </small>
-
-                </div>
-
-                <div>
-                  <strong>
-                    {order.name ||
-                      "Unknown"}
-                  </strong>
-
-                  <small>
-                    {order.phone ||
-                      "No phone"}
-                  </small>
-                </div>
-
-                <div className="order-products-cell">
-
-                  <span>
-                    {order.products ||
-                      "..."}
-                  </span>
-
-                  {order.quantity && (
-                    <small>
-                      Qty: {order.quantity}
-                    </small>
-                  )}
-
-                </div>
-
-                <strong>
-                  &#2547;
-                  {Number(
-                    String(
-                      order.total || "0"
-                    ).replace(
-                      /[^\d.-]/g,
-                      ""
-                    )
-                  ).toLocaleString()}
-                </strong>
-
-                <span>
-                  {order.payment || "..."}
-                </span>
-
-                <div>
-
-                  <strong>
-                    {order.delivery || "..."}
-                  </strong>
-
-                  {order.area && (
-                    <small>
-                      {order.area}
-                    </small>
-                  )}
-
-                </div>
-
-                <div className="order-status-cell">
-
-                  <StatusBadge
-                    status={order.status}
-                  />
-
-                  <select
-                    value={
-                      order.status || "New"
-                    }
-                    disabled={
-                      updatingOrder ===
-                      order.orderId
-                    }
-                    onChange={(e) =>
-                      handleStatusChange(
-                        order.orderId,
-                        e.target.value
-                      )
-                    }
-                  >
-
-                    {STATUSES.map(
-                      (status) => (
-                        <option
-                          key={status}
-                          value={status}
-                        >
-                          {status}
-                        </option>
-                      )
-                    )}
-
-                  </select>
-
-                </div>
-
-                <div className="order-actions-cell">
-
-                  <button
-                    type="button"
-                    className="order-delete-button"
-                    disabled={
-                      deletingOrder ===
-                      (
-                        order.orderId ||
-                        order.rowNumber
-                      )
-                    }
-                    onClick={() =>
-                      handleDeleteOrder(
-                        order
-                      )
-                    }
-                  >
-                    {
-                      deletingOrder ===
-                      (
-                        order.orderId ||
-                        order.rowNumber
-                      )
-                        ? "Deleting..."
-                        : "Delete"
-                    }
-                  </button>
-
-                </div>
-
-              </div>
-
-            ))}
-
-          </div>
-
-        </div>
-
-      )}
-
-    </section>
-  );
-}
-
-
-/* =========================================================
-   CUSTOMERS PAGE
-========================================================= */
-
-function CustomersPage({
-  customers,
-  loading,
-  error,
-  refreshCustomers,
-}) {
-  const [
-    deletingCustomer,
-    setDeletingCustomer,
-  ] = useState(null);
-
-
-  async function handleDeleteCustomer(
-    customer
-  ) {
-
-    const label =
-      customer.name ||
-      customer.phone ||
-      customer.email ||
-      "this customer";
-
-    const confirmed =
-      await requestAdminConfirm({
-        title: "Remove customer?",
-        message:
-          `Remove ${label} from Customers? Historical orders will NOT be deleted.`,
-        confirmLabel: "Remove customer",
-      });
-
-    if (!confirmed) {
-      return;
-    }
-
-    try {
-
-      setDeletingCustomer(
-        customer.id
-      );
-
-      await deleteCustomer(
-        customer.id
-      );
-
-      await refreshCustomers();
-
-    } catch (error) {
-
-      console.error(
-        "CUSTOMER DELETE ERROR:",
-        error
-      );
-
-      showAdminToast(
-        error.message ||
-          "Failed to delete customer.",
-        "error"
-      );
-
-    } finally {
-
-      setDeletingCustomer(null);
-
-    }
-
-  }
-
-  return (
-    <section className="admin-page-section">
-
-      <div className="admin-section-header">
-
-        <div>
-          <p className="admin-eyebrow">
-            CRM
-          </p>
-
-          <h2>
-            Customers
-          </h2>
-
-          <p className="admin-page-description">
-            Customer information collected
-            from your orders.
-          </p>
-        </div>
-
-        <button
-          type="button"
-          className="admin-refresh-button"
-          onClick={refreshCustomers}
-          disabled={loading}
-        >
-          {loading
-            ? "Refreshing..."
-            : "Refresh"}
-        </button>
-
-      </div>
-
-      {error && (
-        <div className="admin-error">
-          {error}
-        </div>
-      )}
-
-      {loading ? (
-
-        <div className="admin-loading">
-          Loading customers...
-        </div>
-
-      ) : customers.length === 0 ? (
-
-        <div className="admin-empty">
-
-          <div className="admin-empty-icon">
-            &#128203;
-          </div>
-
-          <h3>
-            No customers yet
-          </h3>
-
-          <p>
-            Customers will appear here
-            after receiving orders.
-          </p>
-
-        </div>
-
-      ) : (
-
-        <div className="customers-table-wrapper">
-
-          <div className="customers-table">
-
-            <div className="customers-table-header">
-              <span>Customer</span>
-              <span>Contact</span>
-              <span>Location</span>
-              <span>Orders</span>
-              <span>Total Spent</span>
-              <span>Last Order</span>
-              <span>Actions</span>
-            </div>
-
-            {customers.map(
-              (customer) => (
-
-                <div
-                  className="customer-row"
-                  key={customer.id}
-                >
-
-                  <div>
-                    <strong>
-                      {customer.name ||
-                        "Unknown"}
-                    </strong>
-
-                    <small>
-                      {customer.id}
-                    </small>
-                  </div>
-
-                  <div>
-                    <strong>
-                      {customer.phone ||
-                        "..."}
-                    </strong>
-
-                    <small>
-                      {customer.email ||
-                        "..."}
-                    </small>
-                  </div>
-
-                  <div>
-                    <strong>
-                      {customer.area ||
-                        "..."}
-                    </strong>
-
-                    <small>
-                      {customer.address ||
-                        ""}
-                    </small>
-                  </div>
-
-                  <strong>
-                    {customer.orders || 0}
-                  </strong>
-
-                  <strong>
-                    &#2547;
-                    {Number(
-                      customer.totalSpent ||
-                        0
-                    ).toLocaleString()}
-                  </strong>
-
-                  <span>
-                    {customer.lastOrder ||
-                      "..."}
-                  </span>
-
-                  <div className="customer-actions-cell">
-
-                    <button
-                      type="button"
-                      className="customer-delete-button"
-                      disabled={
-                        deletingCustomer ===
-                        customer.id
-                      }
-                      onClick={() =>
-                        handleDeleteCustomer(
-                          customer
-                        )
-                      }
-                    >
-                      {
-                        deletingCustomer ===
-                        customer.id
-                          ? "Deleting..."
-                          : "Delete"
-                      }
-                    </button>
-
-                  </div>
-
-                </div>
-
-              )
-            )}
-
-          </div>
-
-        </div>
-
-      )}
-
-    </section>
-  );
-}
-
-
-/* =========================================================
-   DASHBOARD
-========================================================= */
-
-function Dashboard({
-  products,
-  productsLoading,
-  orders,
-}) {
-  const totalProducts =
-    products.length;
-
-  const activeProducts =
-    products.filter(
-      (product) =>
-        product.status !== "inactive"
-    ).length;
-
-  const lowStock =
-    products.filter(
-      (product) =>
-        Number(product.stock || 0) <=
-        DEFAULT_SETTINGS.lowStockThreshold
-    ).length;
-
-  const newOrders =
-    orders.filter(
-      (order) =>
-        (order.status || "New") ===
-        "New"
-    ).length;
-
-  const revenue =
-    orders
-      .filter(
-        (order) =>
-          (order.status || "") !==
-          "Cancelled"
-      )
-      .reduce(
-        (sum, order) =>
-          sum +
-          Number(
-            String(
-              order.total || "0"
-            ).replace(
-              /[^\d.-]/g,
-              ""
-            )
-          ),
-        0
-      );
-
-  return (
-    <>
-      <section className="admin-stats">
-
-        <div className="admin-stat">
-          <span>Total Products</span>
-          <strong>
-            {productsLoading
-              ? "..."
-              : totalProducts}
-          </strong>
-        </div>
-
-        <div className="admin-stat">
-          <span>Active Products</span>
-          <strong>
-            {productsLoading
-              ? "..."
-              : activeProducts}
-          </strong>
-        </div>
-
-        <div className="admin-stat">
-          <span>Low Stock</span>
-          <strong>
-            {productsLoading
-              ? "..."
-              : lowStock}
-          </strong>
-        </div>
-
-        <div className="admin-stat">
-          <span>Orders</span>
-          <strong>
-            {orders.length}
-          </strong>
-        </div>
-
-      </section>
-
-      <section className="admin-dashboard-extra">
-
-        <div className="admin-stat">
-          <span>New Orders</span>
-          <strong>
-            {newOrders}
-          </strong>
-        </div>
-
-        <div className="admin-stat">
-          <span>
-            Non-Cancelled Revenue
-          </span>
-
-          <strong>
-            &#2547;
-            {revenue.toLocaleString()}
-          </strong>
-        </div>
-
-      </section>
-    </>
-  );
-}
-
-
-/* =========================================================
-   SETTINGS PAGE
-========================================================= */
-
-function BrandingCard({ settings, onSettingsChange, showAdminToast }) {
-
-  const [uploadingLogo, setUploadingLogo] =
-    useState(false);
-
-  const [logoUrl, setLogoUrl] = useState(
-  settings?.logoFileId
-    ? ""
-    : settings?.logoUrl || "/logo.png"
-);
-
-useEffect(() => {
-  let cancelled = false;
-
-  async function loadAdminLogo() {
-    if (!settings?.logoFileId) {
-      setLogoUrl(settings?.logoUrl || "/logo.png");
-      return;
-    }
-
-    try {
-      const response = await fetch(
-        `${ORDERS_API}?action=logo&id=${encodeURIComponent(settings.logoFileId)}&_ts=${Date.now()}`,
-        { cache: "no-store" }
-      );
-
-      if (!response.ok) {
-        throw new Error("Unable to load logo.");
-      }
-
-      const base64 =
-        (await response.text()).trim();
-
-      if (!base64 || cancelled) {
-        return;
-      }
-
-      setLogoUrl(
-        `data:image/webp;base64,${base64}`
-      );
-    } catch {
-      if (!cancelled) {
-        setLogoUrl(
-          settings?.logoUrl || "/logo.png"
-        );
-      }
-    }
-  }
-
-  loadAdminLogo();
-
-  return () => {
-    cancelled = true;
-  };
-}, [
-  settings?.logoFileId,
-  settings?.logoFileName,
-  settings?.logoUrl,
-]);
-
-
-
-  async function handleLogoUpload(event) {
-
-    const file =
-      event.target.files?.[0];
-
-    event.target.value = "";
-
-    if (!file) {
-      return;
-    }
-
-    const allowedTypes = [
-      "image/png",
-      "image/jpeg",
-      "image/webp",
-    ];
-
-    if (!allowedTypes.includes(file.type)) {
-      showAdminToast(
-        "Please upload a PNG, JPG/JPEG, or WebP logo.",
-        "error"
-      );
-      return;
-    }
-
-    setUploadingLogo(true);
-
-    try {
-
-      const dataUrl =
-        await new Promise((resolve, reject) => {
-
-          const reader =
-            new FileReader();
-
-          reader.onload = () =>
-            resolve(reader.result);
-
-          reader.onerror = () =>
-            reject(
-              new Error("Unable to read logo file.")
-            );
-
-          reader.readAsDataURL(file);
-        });
-
-
-      const optimizedDataUrl =
-        await new Promise((resolve, reject) => {
-
-          const image =
-            new Image();
-
-          image.onload = () => {
-
-            const maxSize = 512;
-
-            const scale =
-              Math.min(
-                1,
-                maxSize /
-                  Math.max(
-                    image.naturalWidth,
-                    image.naturalHeight
-                  )
-              );
-
-            const width =
-              Math.max(
-                1,
-                Math.round(
-                  image.naturalWidth * scale
-                )
-              );
-
-            const height =
-              Math.max(
-                1,
-                Math.round(
-                  image.naturalHeight * scale
-                )
-              );
-
-            const canvas =
-              document.createElement("canvas");
-
-            canvas.width = width;
-            canvas.height = height;
-
-            const context =
-              canvas.getContext("2d");
-
-            if (!context) {
-              reject(
-                new Error(
-                  "Unable to process logo image."
-                )
-              );
-              return;
-            }
-
-            context.clearRect(
-              0,
-              0,
-              width,
-              height
-            );
-
-            context.drawImage(
-              image,
-              0,
-              0,
-              width,
-              height
-            );
-
-            const compressed =
-              canvas.toDataURL(
-                "image/webp",
-                0.82
-              );
-
-            resolve(compressed);
-          };
-
-          image.onerror = () =>
-            reject(
-              new Error(
-                "Unable to process logo image."
-              )
-            );
-
-          image.src = dataUrl;
-        });
-
-
-      const result =
-        await uploadLogoImage(
-          optimizedDataUrl,
-          "image/webp"
-        );
-
-
-      if (!result?.success) {
-        throw new Error(
-          result?.error ||
-          "Logo upload failed."
-        );
-      }
-
-
-      onSettingsChange(
-        function(current) {
-
-          return {
-            ...current,
-            logoUrl:
-              result.url || "",
-            logoFileId:
-              result.fileId || "",
-            logoFileName:
-              result.fileName || "",
-          };
-
-        }
-      );
-
-
-      window.dispatchEvent(
-        new CustomEvent(
-          "pearlskino-settings-updated"
-        )
-      );
-
-      try {
-        localStorage.setItem(
-          "pearlskino-settings-updated",
-          String(Date.now())
-        );
-      } catch {
-        // Ignore localStorage errors.
-      }
-
-
-      showAdminToast(
-        "Logo uploaded successfully.",
-        "success"
-      );
-
-    } catch (error) {
-
-      console.error(
-        "Logo upload failed:",
-        error
-      );
-
-      showAdminToast(
-        "Logo upload failed.\n\n" +
-        (
-          error?.message ||
-          "Unknown error."
-        ),
-        "error"
-      );
-
-    } finally {
-
-      setUploadingLogo(false);
-
-    }
-
-  }
-
-
-  return (
-    <div className="admin-card branding-card">
-
-      <div className="admin-card-header">
-
-        <div>
-
-          <h3>Branding</h3>
-
-          <p>
-            Upload the logo used across the storefront.
-          </p>
-
-        </div>
-
-      </div>
-
-
-      <div className="branding-card-body">
-
-        <div className="branding-logo-preview">
-
-          <img
-            src={logoUrl}
-            alt="PearlSkino BD logo"
-          />
-
-        </div>
-
-
-        <div className="branding-logo-actions">
-
-          <label
-            className={
-              "image-upload-button " +
-              (
-                uploadingLogo
-                  ? "is-uploading"
-                  : ""
-              )
-            }
-          >
-
-            {
-              uploadingLogo
-                ? "Uploading..."
-                : "Change Logo"
-            }
-
-
-            <input
-              type="file"
-              accept="image/png,image/jpeg,image/webp"
-              hidden
-              disabled={uploadingLogo}
-              onChange={handleLogoUpload}
-            />
-
-          </label>
-
-
-          <p className="branding-logo-name">
-
-            {
-              settings?.logoFileName ||
-              "No custom logo uploaded"
-            }
-
-          </p>
-
-
-          <p className="branding-logo-help">
-
-            Recommended: transparent PNG or WebP.
-            The uploaded logo is stored in Google Drive.
-
-          </p>
-
-        </div>
-
-      </div>
-
-    </div>
-  );
-
-}
-
-
-function SettingsPage({
-  showAdminToast,
-  requestAdminConfirm,
-}) {
-  const [
-    settings,
-    setSettings,
-  ] = useState(() => {
-    try {
-      const cached = sessionStorage.getItem(
-        "pearlskino_store_settings_v1"
-      );
-
-      return cached
-        ? {
-            ...DEFAULT_SETTINGS,
-            ...JSON.parse(cached),
-          }
-        : DEFAULT_SETTINGS;
-    } catch {
-      return DEFAULT_SETTINGS;
-    }
-  });
-
-  const [
-    loadingSettings,
-    setLoadingSettings,
-  ] = useState(true);
-
-  const [
-    savingSettings,
-    setSavingSettings,
-  ] = useState(false);
-
-  const [
-    saved,
-    setSaved,
-  ] = useState(false);
-
-  const [
-    settingsError,
-    setSettingsError,
-  ] = useState("");
-
-  async function loadSettings() {
-    try {
-      setLoadingSettings(true);
-      setSettingsError("");
-
-      const data =
-        await fetchSettings();
-
-      const freshSettings = {
-        ...DEFAULT_SETTINGS,
-        ...data,
-      };
-
-      setSettings(freshSettings);
-
-      try {
-        sessionStorage.setItem(
-          "pearlskino_store_settings_v1",
-          JSON.stringify(freshSettings)
-        );
-      } catch {}
-
-    } catch (error) {
-      console.error(
-        "LOAD SETTINGS ERROR:",
-        error
-      );
-
-      setSettingsError(
-        error.message ||
-          "Unable to load store settings."
-      );
-
-    } finally {
-      setLoadingSettings(false);
-    }
-  }
-
-  useEffect(() => {
-    loadSettings();
-  }, []);
-
-  function handleChange(e) {
-    const {
-      name,
-      value,
-      type,
-      checked,
-    } = e.target;
-
-    setSaved(false);
-
-    setSettings(
-      (current) => ({
-        ...current,
-
-        [name]:
-          type === "checkbox"
-            ? checked
-            : [
-                "deliveryCharge",
-                "freeDeliveryThreshold",
-                "lowStockThreshold",
-                "autoRefreshSeconds",
-              ].includes(name)
-            ? value === ""
-              ? 0
-              : Number(value)
-            : value,
-      })
-    );
-  }
-
-  async function saveSettings(e) {
-    e.preventDefault();
-
-    try {
-      setSavingSettings(true);
-      setSaved(false);
-      setSettingsError("");
-
-      /*
-       * First save the current form values.
-       * postApi() automatically attaches the
-       * authenticated admin token.
-       */
-      await saveStoreSettings(settings);
-
-      /*
-       * Read the settings back from the backend.
-       * This guarantees the UI reflects what is
-       * actually stored in Google Sheets.
-       */
-      const savedData =
-        await fetchSettings();
-
-      setSettings({
-        ...DEFAULT_SETTINGS,
-        ...savedData,
-      });
-
-      setSaved(true);
-
-      window.dispatchEvent(
-        new CustomEvent(
-          "pearlskino-settings-updated"
-        )
-      );
-
-      setTimeout(() => {
-        setSaved(false);
-      }, 2500);
-
-    } catch (error) {
-
-      console.error(
-        "SAVE SETTINGS ERROR:",
-        error
-      );
-
-      setSettingsError(
-        error.message ||
-          "Unable to save store settings."
-      );
-
-    } finally {
-
-      setSavingSettings(false);
-
-    }
-  }
-
-  async function resetSettings() {
-    const confirmed =
-      await requestAdminConfirm({
-        title: "Reset settings?",
-        message:
-          "Reset all admin settings to their defaults?",
-        confirmLabel: "Reset settings",
-      });
-
-    if (!confirmed) {
-      return;
-    }
-
-    try {
-      setSavingSettings(true);
-      setSaved(false);
-      setSettingsError("");
-
-      const data =
-        await saveStoreSettings(
-          DEFAULT_SETTINGS
-        );
-
-      setSettings({
-        ...DEFAULT_SETTINGS,
-        ...(data.settings || {}),
-      });
-
-      setSaved(true);
-
-      window.dispatchEvent(
-        new CustomEvent(
-          "pearlskino-settings-updated"
-        )
-      );
-
-      setTimeout(() => {
-        setSaved(false);
-      }, 2500);
-
-    } catch (error) {
-      console.error(
-        "RESET SETTINGS ERROR:",
-        error
-      );
-
-      setSettingsError(
-        error.message ||
-          "Unable to reset settings."
-      );
-
-    } finally {
-      setSavingSettings(false);
-    }
-  }
-
-  return (
-    <section className="admin-page-section settings-page">
-
-      <div className="admin-section-header">
-
-        <div>
-
-          <p className="admin-eyebrow">
-            SYSTEM
-          </p>
-
-          <h2>
-            Settings
-          </h2>
-
-          <p className="admin-page-description">
-            Configure your PearlSkino BD
-            store and admin dashboard.
-          </p>
-
-        </div>
-
-      </div>
-
-      {loadingSettings && (
-        <div className="admin-loading">
-          Loading store settings...
-        </div>
-      )}
-
-      {settingsError && (
-        <div className="admin-error">
-          {settingsError}
-        </div>
-      )}
-
-      {!loadingSettings && (
-        <div>
-          <BrandingCard
-            settings={settings}
-            onSettingsChange={setSettings}
-                      showAdminToast={showAdminToast}
-          />
-
-          <form
-          className="settings-form"
-          onSubmit={saveSettings}
-        >
-
-          <div className="settings-card">
-
-            <div className="settings-card-header">
-
-              <div>
-
-                <p className="settings-card-eyebrow">
-                  STORE
-                </p>
-
-                <h3>
-                  Store Information
-                </h3>
-
-                <p>
-                  Basic information used
-                  throughout your store.
-                </p>
-
-              </div>
-
-            </div>
-
-            <div className="settings-grid">
-
-              <label>
-                Store Name
-
-                <input
-                  name="storeName"
-                  value={
-                    settings.storeName
-                  }
-                  onChange={
-                    handleChange
-                  }
-                />
-              </label>
-
-              <label>
-                Tagline
-
-                <input
-                  name="tagline"
-                  value={
-                    settings.tagline
-                  }
-                  onChange={
-                    handleChange
-                  }
-                />
-              </label>
-
-              <label>
-                Contact Phone
-
-                <input
-                  name="phone"
-                  value={
-                    settings.phone
-                  }
-                  onChange={
-                    handleChange
-                  }
-                  placeholder="01XXXXXXXXX"
-                />
-              </label>
-
-              <label>
-                Contact Email
-
-                <input
-                  type="email"
-                  name="email"
-                  value={
-                    settings.email
-                  }
-                  onChange={
-                    handleChange
-                  }
-                  placeholder="hello@example.com"
-                />
-              </label>
-              <label>
-                Messenger URL
-
-                <input
-                  type="url"
-                  name="messengerUrl"
-                  value={
-                    settings.messengerUrl || ""
-                  }
-                  onChange={
-                    handleChange
-                  }
-                  placeholder="https://m.me/yourpage"
-                />
-
-                <small className="settings-help">
-                  Enter your Facebook Messenger page URL.
-                </small>
-
-              </label>
-
-
-              <label>
-                WhatsApp Number
-
-                <input
-                  type="text"
-                  name="whatsappNumber"
-                  value={
-                    settings.whatsappNumber || ""
-                  }
-                  onChange={
-                    handleChange
-                  }
-                  placeholder="8801577100162"
-                />
-
-                <small className="settings-help">
-                  Use international format without + or spaces.
-                </small>
-
-              </label>
-
-
-            </div>
-
-          </div>
-
-
-          <div className="settings-card">
-
-            <div className="settings-card-header">
-
-              <div>
-
-                <p className="settings-card-eyebrow">
-                  DELIVERY
-                </p>
-
-                <h3>
-                  Delivery Settings
-                </h3>
-
-                <p>
-                  Configure delivery and
-                  payment options.
-                </p>
-
-              </div>
-
-            </div>
-
-            <div className="settings-grid">
-
-              <label>
-                Delivery Charge
-
-                <div className="settings-input-prefix">
-
-                  <span>{String.fromCharCode(2547)}</span>
-
-                  <input
-                    type="number"
-                    min="0"
-                    name="deliveryCharge"
-                    value={
-                      settings.deliveryCharge
-                    }
-                    onChange={
-                      handleChange
-                    }
-                  />
-
-                </div>
-
-              </label>
-
-              <label>
-                Free Delivery Above
-
-                <div className="settings-input-prefix">
-
-                  <span>{String.fromCharCode(2547)}</span>
-
-                  <input
-                    type="number"
-                    min="0"
-                    name="freeDeliveryThreshold"
-                    value={
-                      settings.freeDeliveryThreshold
-                    }
-                    onChange={
-                      handleChange
-                    }
-                  />
-
-                </div>
-
-              </label>
-
-            </div>
-
-            <div className="settings-toggles">
-
-              <label className="settings-toggle">
-
-                <input
-                  type="checkbox"
-                  name="codEnabled"
-                  checked={
-                    settings.codEnabled
-                  }
-                  onChange={
-                    handleChange
-                  }
-                />
-
-                <span>
-
-                  <strong>
-                    Cash on Delivery
-                  </strong>
-
-                  <small>
-                    Allow customers to
-                    place COD orders.
-                  </small>
-
-                </span>
-
-              </label>
-
-              <label className="settings-toggle">
-
-                <input
-                  type="checkbox"
-                  name="pickupEnabled"
-                  checked={
-                    settings.pickupEnabled
-                  }
-                  onChange={
-                    handleChange
-                  }
-                />
-
-                <span>
-
-                  <strong>
-                    Store Pickup
-                  </strong>
-
-                  <small>
-                    Allow customers to
-                    collect orders directly.
-                  </small>
-
-                </span>
-
-              </label>
-
-            </div>
-
-          </div>
-
-
-          <div className="settings-card">
-
-            <div className="settings-card-header">
-
-              <div>
-
-                <p className="settings-card-eyebrow">
-                  DASHBOARD
-                </p>
-
-                <h3>
-                  Admin Preferences
-                </h3>
-
-                <p>
-                  Control inventory and
-                  dashboard behaviour.
-                </p>
-
-              </div>
-
-            </div>
-
-            <div className="settings-grid">
-
-              <label>
-                Low Stock Threshold
-
-                <input
-                  type="number"
-                  min="0"
-                  name="lowStockThreshold"
-                  value={
-                    settings.lowStockThreshold
-                  }
-                  onChange={
-                    handleChange
-                  }
-                />
-
-                <small className="settings-help">
-                  Products at or below this
-                  number appear as low stock.
-                </small>
-
-              </label>
-
-              <label>
-                Auto Refresh Interval
-
-                <div className="settings-input-suffix">
-
-                  <input
-                    type="number"
-                    min="5"
-                    max="300"
-                    name="autoRefreshSeconds"
-                    value={
-                      settings.autoRefreshSeconds
-                    }
-                    onChange={
-                      handleChange
-                    }
-                  />
-
-                  <span>
-                    seconds
-                  </span>
-
-                </div>
-
-                <small className="settings-help">
-                  Orders and customers refresh
-                  automatically.
-                </small>
-
-              </label>
-
-            </div>
-
-          </div>
-
-
-          <div className="settings-actions">
-
-            <button
-              type="button"
-              className="settings-reset-button"
-              onClick={
-                resetSettings
-              }
-              disabled={
-                savingSettings
-              }
-            >
-              Reset Defaults
-            </button>
-
-            <div className="settings-save-group">
-
-              {saved && (
-                <span className="settings-saved">
-                  Settings saved
-                </span>
-              )}
-
-              <button
-                type="submit"
-                className="settings-save-button"
-                disabled={
-                  savingSettings
-                }
-              >
-                {savingSettings
-                  ? "Saving..."
-                  : "Save Settings"}
-              </button>
-
-            </div>
-
-          </div>
-
-        </form>
-        </div>
-      )}
-
-    </section>
-  );
-}
-
-
-/* =========================================================
-   ADMIN
-========================================================= */
 
 export default function Admin() {
+  const { settings } = useStore();
+  const logo = settings.logoDataUrl || settings.logoUrl || "/logo.png";
 
-  const [
-    adminToast,
-    setAdminToast,
-  ] = useState(null);
-
-  const [
-    adminConfirm,
-    setAdminConfirm,
-  ] = useState(null);
-
-  function requestAdminConfirm({
-    title = "Are you sure?",
-    message = "",
-    confirmLabel = "Confirm",
-    cancelLabel = "Cancel",
-  }) {
-    return new Promise((resolve) => {
-      setAdminConfirm({
-        title,
-        message,
-        confirmLabel,
-        cancelLabel,
-        resolve,
-      });
-    });
-  }
-
-  function closeAdminConfirm(result) {
-    if (!adminConfirm) return;
-
-    adminConfirm.resolve(result);
-    setAdminConfirm(null);
-  }
-
-  function showAdminToast(message, type = "success") {
-    setAdminToast({
-      message,
-      type,
-    });
-
-    window.setTimeout(() => {
-      setAdminToast(null);
-    }, 3200);
-  }
-
-  const [
-    mobileMenuOpen,
-    setMobileMenuOpen,
-  ] = useState(false);
-
-
-  const [
-    authenticated,
-    setAuthenticated,
-  ] = useState(false);
-
-  const [
-    checkingAuth,
-    setCheckingAuth,
-  ] = useState(true);
-
-  const [
-    activePage,
-    setActivePage,
-  ] = useState(
-    "dashboard"
-  );
-
-  const [
-    orders,
-    setOrders,
-  ] = useState([]);
-
-  const [
-    customers,
-    setCustomers,
-  ] = useState([]);
-
-  const [
-    ordersLoading,
-    setOrdersLoading,
-  ] = useState(false);
-
-  const [
-    customersLoading,
-    setCustomersLoading,
-  ] = useState(false);
-
-  const [
-    ordersError,
-    setOrdersError,
-  ] = useState("");
-
-  const [
-    customersError,
-    setCustomersError,
-  ] = useState("");
-
-  const [
-    products,
-    ,
-    productsLoading,
-  ] = useProducts();
-
-
-  /* =======================================================
-     AUTH CHECK
-  ======================================================= */
+  const [session, setSession] = useState(() => (getAdminToken() ? { checking: true } : null));
+  const [page, setPage] = useState(currentPage);
+  const [arg, setArg] = useState(null);
+  const [menu, setMenu] = useState(false);
+  const [badges, setBadges] = useState({});
+  const [warnings, setWarnings] = useState({});
 
   useEffect(() => {
+    document.title = "Admin | PearlSkino BD";
 
-    async function verifySession() {
+    const robots = document.createElement("meta");
+    robots.name = "robots";
+    robots.content = "noindex,nofollow";
+    document.head.appendChild(robots);
 
-      try {
-
-        const loggedIn =
-          await checkAdminSession();
-
-        setAuthenticated(
-          loggedIn
-        );
-
-        if (!loggedIn) {
-          localStorage.removeItem(
-            ADMIN_AUTH_KEY
-          );
-        }
-
-      } finally {
-
-        setCheckingAuth(false);
-
-      }
-
-    }
-
-    verifySession();
-
+    return () => robots.remove();
   }, []);
 
-
-  /* =======================================================
-     LOAD ORDERS
-  ======================================================= */
-
-  async function refreshOrders(isBackgroundRefresh = false) {
-
-    try {
-
-      setOrdersLoading(true);
-      setOrdersError("");
-
-      const data =
-        await fetchOrders();
-
-      setOrders(data);
-
-    } catch (error) {
-
-      console.error(
-        "ORDERS LOADING FAILED:",
-        error
-      );
-
-      if (
-        error.message ===
-        "Authentication required."
-      ) {
-        throw error;
-      }
-
-      setOrdersError(
-        error.message ||
-          "Unable to load orders."
-      );
-
-    } finally {
-
-      setOrdersLoading(false);
-
-    }
-
-  }
-
-
-  /* =======================================================
-     LOAD CUSTOMERS
-  ======================================================= */
-
-  async function refreshCustomers(isBackgroundRefresh = false) {
-
-    try {
-
-      if (!isBackgroundRefresh) {
-        setCustomersLoading(true);
-      }
-      setCustomersError("");
-
-      const data =
-        await fetchCustomers();
-
-      setCustomers(data);
-
-    } catch (error) {
-
-      console.error(
-        "CUSTOMERS LOADING FAILED:",
-        error
-      );
-
-      if (
-        error.message ===
-        "Authentication required."
-      ) {
-        throw error;
-      }
-
-      setCustomersError(
-        error.message ||
-          "Unable to load customers."
-      );
-
-    } finally {
-
-      if (!isBackgroundRefresh) {
-        setCustomersLoading(false);
-      }
-
-    }
-
-  }
-
-
-  /* =======================================================
-     LOAD DATA AFTER LOGIN
-  ======================================================= */
-
+  /* check a saved login */
   useEffect(() => {
+    if (!getAdminToken()) return undefined;
 
-    if (!authenticated) {
-      return;
-    }
+    let alive = true;
 
-    const runAutoRefresh = async () => {
-      try {
-        await Promise.all([
-          refreshOrders(),
-          refreshCustomers(),
-        ]);
-      } catch (error) {
-        console.warn(
-          "Automatic admin refresh failed:",
-          error
-        );
-      }
-    };
-
-    runAutoRefresh();
-
-  }, [authenticated]);
-
-
-  /* =======================================================
-     AUTOMATIC REFRESH
-  ======================================================= */
-
-  useEffect(() => {
-
-    if (!authenticated) {
-      return;
-    }
-
-    const refreshInterval =
-      setInterval(async () => {
-
-        try {
-          await Promise.allSettled([
-            refreshOrders(),
-            refreshCustomers(true),
-          ]);
-        } catch (error) {
-          console.warn(
-            "Automatic admin data refresh warning:",
-            error
-          );
-        }
-
-      }, Math.max(
-        5000,
-        Number(
-          DEFAULT_SETTINGS.autoRefreshSeconds || 30
-        ) * 1000
-      ));
+    adminCall("session")
+      .then((data) => alive && setSession({ user: data.user, permissions: data.permissions || [] }))
+      .catch(() => {
+        if (!alive) return;
+        clearAdminSession();
+        setSession(null);
+      });
 
     return () => {
-      clearInterval(refreshInterval);
+      alive = false;
     };
+  }, []);
 
-  }, [authenticated]);
+  /* logged out from anywhere (expired, another device) */
+  useEffect(() => {
+    function lost() {
+      setSession(null);
+    }
 
+    window.addEventListener("pearlskino-admin-auth-lost", lost);
+    return () => window.removeEventListener("pearlskino-admin-auth-lost", lost);
+  }, []);
 
-  /* =======================================================
-     PAGE TITLE
-  ======================================================= */
+  useEffect(() => {
+    function onHash() {
+      setPage(currentPage());
+      setMenu(false);
+    }
 
-  const pageTitle =
-    useMemo(() => {
+    window.addEventListener("hashchange", onHash);
+    return () => window.removeEventListener("hashchange", onHash);
+  }, []);
 
-      switch (
-        activePage
-      ) {
+  const permissions = useMemo(() => session?.permissions || [], [session]);
+  const can = useCallback((perm) => !perm || permissions.includes("*") || permissions.includes(perm), [permissions]);
 
-        case "products":
-          return "Product Dashboard";
+  const go = useCallback((id, extra) => {
+    setArg(extra || null);
+    setMenu(false);
 
-        case "orders":
-          return "Orders";
+    if (window.location.hash !== `#/${id}`) window.location.hash = `/${id}`;
+    else setPage(id);
 
-        case "customers":
-          return "Customers";
+    window.scrollTo({ top: 0 });
+  }, []);
 
-        case "settings":
-          return "Settings";
+  /* numbers shown next to menu items */
+  const loadBadges = useCallback(async () => {
+    if (!permissions.length) return;
 
-        case "security":
-          return "Security";
+    try {
+      const d = await adminCall("dashboard");
+      setBadges({
+        newOrders: d.counts?.New || 0,
+        openReturns: d.openReturns || 0,
+        lowStock: (d.lowStock || []).length,
+        pendingReviews: d.pendingReviews || 0,
+        newMessages: d.newMessages || 0,
+        abandonedOpen: d.abandonedOpen || 0,
+        stockAlertsWaiting: d.stockAlertsWaiting || 0,
+      });
+      setWarnings(d.warnings || {});
+    } catch {
+      /* badges are optional */
+    }
+  }, [permissions]);
 
-        default:
-          return "Dashboard";
+  useEffect(() => {
+    if (!permissions.length || !can("orders.view")) return undefined;
 
-      }
+    loadBadges();
+    const timer = window.setInterval(loadBadges, 60000);
+    return () => window.clearInterval(timer);
+  }, [permissions, can, loadBadges, page]);
 
-    }, [activePage]);
+  async function logout() {
+    try {
+      await apiPost({ action: "logout", token: getAdminToken() });
+    } catch {
+      /* the local logout still happens */
+    }
 
-
-  /* =======================================================
-     LOGOUT
-  ======================================================= */
-
-  async function handleLogout() {
-
-    await logoutAdmin();
-
-    setAuthenticated(false);
-    setOrders([]);
-    setCustomers([]);
-    setActivePage("dashboard");
-
+    clearAdminSession();
+    setSession(null);
   }
 
+  function openStorefrontEditor() {
+    try {
+      localStorage.setItem(EDIT_MODE_KEY, "1");
+    } catch {
+      /* the ?pk_edit=1 link below also turns it on */
+    }
 
-  /* =======================================================
-     AUTH LOADING
-  ======================================================= */
+    window.location.href = "/?pk_edit=1";
+  }
 
-  if (checkingAuth) {
+  const ctx = useMemo(
+    () => ({
+      user: session?.user || getStoredAdminUser(),
+      can,
+      go,
+      arg,
+      warnings,
+      refreshBadges: loadBadges,
+    }),
+    [session, can, go, arg, warnings, loadBadges]
+  );
 
+  if (session?.checking) {
     return (
-      <div className="admin-login-page">
-
-        <div className="admin-login-card">
-
-          <div className="admin-login-brand">
-            PearlSkino <span>BD</span>
-          </div>
-
-          <div className="admin-loading">
-            Checking admin access...
-          </div>
-
-        </div>
-
+      <div className="ad-login">
+        <Spinner label="Checking your login…" />
       </div>
     );
-
   }
 
-
-  /* =======================================================
-     LOGIN
-  ======================================================= */
-
-  if (!authenticated) {
-
+  if (!session) {
     return (
-      <AdminLogin
-        onLogin={() =>
-          setAuthenticated(true)
-        }
-      />
+      <>
+        <Login
+          logo={logo}
+          onDone={(data) => {
+            setSession({ user: data.user, permissions: data.permissions || [] });
+            setWarnings(data.warnings || {});
+            if (data.warnings?.defaultPassword) {
+              toast("You are using the default password. Please change it now (My password).", "error");
+            }
+          }}
+        />
+        <Feedback />
+      </>
     );
-
   }
 
-
-  /* =======================================================
-     ADMIN DASHBOARD
-  ======================================================= */
+  const allowed = PAGES.filter((p) => can(p.perm));
+  const active = allowed.find((p) => p.id === page) || allowed[0];
+  const Page = active?.comp;
+  const groups = [...new Set(allowed.map((p) => p.group))];
 
   return (
-
-    <div className="admin">
-
-        {adminToast && (
-          <div className={"admin-toast admin-toast-" + adminToast.type}>
-            <span className="admin-toast-icon">
-              {adminToast.type === "success" ? "✓" : "!"}
-            </span>
-            <span>{adminToast.message}</span>
-          </div>
-        )}
-
-      <button
-        type="button"
-        className={"admin-mobile-menu-button " + (mobileMenuOpen ? "open" : "")}
-        aria-label="Toggle admin menu"
-        aria-expanded={mobileMenuOpen}
-        onClick={() => setMobileMenuOpen(current => !current)}
-      >
-        <span></span>
-        <span></span>
-        <span></span>
-      </button>
-
-      {mobileMenuOpen && (
-        <button
-          type="button"
-          className="admin-mobile-overlay"
-          aria-label="Close admin menu"
-          onClick={() => setMobileMenuOpen(false)}
-        />
-      )}
-
-      <aside
-        className={"admin-sidebar " + (mobileMenuOpen ? "mobile-open" : "")}
-      >
-
-        <div className="admin-brand">
-
-          PearlSkino{" "}
-
-          <span>
-            BD
-          </span>
-
-        </div>
-
-
-        <nav>
-
-          <a
-            href="#dashboard"
-            className={
-              activePage === "dashboard"
-                ? "active"
-                : ""
-            }
-            onClick={(e) => {
-              e.preventDefault();
-              setActivePage(
-                "dashboard"
-              );
-              setMobileMenuOpen(false);
-            }}
-          >
-            Dashboard
-          </a>
-
-
-          <a
-            href="#products"
-            className={
-              activePage === "products"
-                ? "active"
-                : ""
-            }
-            onClick={(e) => {
-              e.preventDefault();
-              setActivePage(
-                "products"
-              );
-              setMobileMenuOpen(false);
-            }}
-          >
-            Products
-          </a>
-
-
-          <a
-            href="#orders"
-            className={
-              activePage === "orders"
-                ? "active"
-                : ""
-            }
-            onClick={(e) => {
-              e.preventDefault();
-              setActivePage(
-                "orders"
-              );
-              setMobileMenuOpen(false);
-            }}
-          >
-            Orders
-
-            {orders.length > 0 && (
-              <span className="sidebar-count">
-                {orders.length}
-              </span>
-            )}
-
-          </a>
-
-
-          <a
-            href="#customers"
-            className={
-              activePage === "customers"
-                ? "active"
-                : ""
-            }
-            onClick={(e) => {
-              e.preventDefault();
-              setActivePage(
-                "customers"
-              );
-              setMobileMenuOpen(false);
-            }}
-          >
-            Customers
-          </a>
-
-
-          <a
-            href="#settings"
-            className={
-              activePage === "settings"
-                ? "active"
-                : ""
-            }
-            onClick={(e) => {
-              e.preventDefault();
-              setActivePage(
-                "settings"
-              );
-              setMobileMenuOpen(false);
-            }}
-          >
-            Settings
-          </a>
-
-
-          <a
-            href="#security"
-            className={
-              activePage === "security"
-                ? "active"
-                : ""
-            }
-            onClick={(e) => {
-              e.preventDefault();
-              setActivePage(
-                "security"
-              );
-              setMobileMenuOpen(false);
-            }}
-          >
-            Security
-          </a>
-
-        </nav>
-
-
-        <div className="admin-sidebar-bottom">
-
-          <a href="/">
-            View Store
-          </a>
-
-          <button
-            type="button"
-            onClick={handleLogout}
-            className="admin-logout-button"
-          >
-            Logout
+    <AdminContext.Provider value={ctx}>
+      <div className="ad">
+        <div className="ad-topbar">
+          <strong>{settings.storeName || "PearlSkino BD"}</strong>
+          <button type="button" onClick={() => setMenu((v) => !v)}>
+            {menu ? "Close" : "Menu"}
           </button>
-
         </div>
 
-      </aside>
-
-
-      <main className="admin-main">
-
-        <header className="admin-topbar">
-
-          <div>
-
-            <p className="admin-eyebrow">
-              PEARLSKINO BD
-            </p>
-
-            <h1>
-              {pageTitle}
-            </h1>
-
+        <aside className={`ad-side${menu ? " open" : ""}`}>
+          <div className="ad-brand">
+            <img src={logo} alt="" />
+            <div>
+              <strong>{settings.storeName || "PearlSkino"}</strong>
+              <small>Admin</small>
+            </div>
           </div>
 
+          <nav className="ad-nav" aria-label="Admin menu">
+            {groups.map((group) => (
+              <div key={group}>
+                <div className="ad-nav-label">{group}</div>
 
-          <div className="admin-topbar-actions">
+                {allowed
+                  .filter((p) => p.group === group)
+                  .map((p) => (
+                    <button
+                      key={p.id}
+                      type="button"
+                      className={active?.id === p.id ? "on" : ""}
+                      onClick={() => go(p.id)}
+                    >
+                      <Icon name={p.id} />
+                      {p.label}
+                      {p.badge && badges[p.badge] > 0 && <em>{badges[p.badge]}</em>}
+                    </button>
+                  ))}
+              </div>
+            ))}
 
-            <a
-              href="/"
-              className="admin-view-store"
-            >
-              View Store
-            </a>
-
-            <button
-              type="button"
-              className="admin-logout-button"
-              onClick={
-                handleLogout
-              }
-            >
-              Logout
-            </button>
-
-          </div>
-
-        </header>
-
-
-        {activePage === "dashboard" && (
-
-          <>
-
-            <Dashboard
-              products={products}
-              productsLoading={
-                productsLoading
-              }
-              orders={orders}
-            />
-
-          </>
-
-        )}
-
-
-        {activePage === "products" && (
-
-          <section className="admin-products">
-
-            <div className="admin-section-header">
-
+            {can("content.edit") && (
               <div>
-
-                <p className="admin-eyebrow">
-                  CATALOG
-                </p>
-
-                <h2>
-                  Manage Products
-                </h2>
-
-              </div>
-
-            </div>
-
-            <ProductManager
-              requestAdminConfirm={requestAdminConfirm}
-            />
-
-          </section>
-
-        )}
-
-
-        {activePage === "orders" && (
-
-          <OrdersPage
-            orders={orders}
-            loading={ordersLoading}
-            error={ordersError}
-            refreshOrders={
-              refreshOrders
-            }
-          />
-
-        )}
-
-
-        {activePage === "customers" && (
-
-          <CustomersPage
-            customers={customers}
-            loading={
-              customersLoading
-            }
-            error={customersError}
-            refreshCustomers={
-              refreshCustomers
-            }
-          />
-
-        )}
-
-
-        {activePage === "settings" && (
-
-          <SettingsPage
-            showAdminToast={showAdminToast}
-            requestAdminConfirm={
-              requestAdminConfirm
-            }
-          />
-
-        )}
-
-
-        {activePage === "security" && (
-
-          <ChangePasswordPage />
-
-        )}
-
-        {adminConfirm && (
-          <div
-            className="admin-confirm-overlay"
-            onClick={() => closeAdminConfirm(false)}
-          >
-            <div
-              className="admin-confirm-modal"
-              role="dialog"
-              aria-modal="true"
-              aria-labelledby="admin-confirm-title"
-              onClick={(event) => event.stopPropagation()}
-            >
-              <div className="admin-confirm-icon">
-                !
-              </div>
-
-              <div className="admin-confirm-content">
-                <h3 id="admin-confirm-title">
-                  {adminConfirm.title}
-                </h3>
-
-                <p>
-                  {adminConfirm.message}
-                </p>
-              </div>
-
-              <div className="admin-confirm-actions">
-                <button
-                  type="button"
-                  className="admin-confirm-cancel"
-                  onClick={() =>
-                    closeAdminConfirm(false)
-                  }
-                >
-                  {adminConfirm.cancelLabel}
+                <div className="ad-nav-label">Visit</div>
+                <button type="button" onClick={openStorefrontEditor}>
+                  <Icon name="storefront" />
+                  Edit storefront (view as visitor)
                 </button>
-
-                <button
-                  type="button"
-                  className="admin-confirm-danger"
-                  onClick={() =>
-                    closeAdminConfirm(true)
-                  }
-                >
-                  {adminConfirm.confirmLabel}
+                <button type="button" onClick={() => window.open("/", "_blank", "noopener")}>
+                  <Icon name="storefront" />
+                  Open store
                 </button>
               </div>
+            )}
+          </nav>
+
+          <div className="ad-side-foot">
+            <div className="ad-me">
+              <strong>{session.user?.name || session.user?.username}</strong>
+              {session.user?.role}
             </div>
+            <button type="button" className="ad-btn" onClick={logout}>
+              Log out
+            </button>
           </div>
-        )}
-      </main>
+        </aside>
 
-    </div>
+        <main className="ad-main">
+          {warnings.defaultPassword && (
+            <div className="ad-note warn" style={{ marginBottom: 16 }}>
+              <strong>Security:</strong> this account still uses the default password.{" "}
+              <button type="button" className="ad-btn small" onClick={() => go("password")}>
+                Change it now
+              </button>
+            </div>
+          )}
 
+          {Page ? <Page key={active.id} /> : <Spinner />}
+        </main>
+      </div>
+
+      <Feedback />
+    </AdminContext.Provider>
   );
 }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-

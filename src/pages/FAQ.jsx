@@ -1,614 +1,282 @@
-import React, { useState } from "react";
-import { GOOGLE_FORMS } from "../config/googleForms";
-import { submitToGoogleForm } from "../utils/googleForms";
-import { useStore } from "../context/StoreContext";
+import { useMemo, useState } from "react";
 
-const faqs = [
-  {
-    category: "ORDERS",
-    question: "How can I place an order?",
-    answer:
-      "Choose your favorite product, add it to your cart, and continue through checkout. If you prefer personal assistance, you can also contact {brand} directly.",
-  },
-  {
-    category: "AUTHENTICITY",
-    question: "Are your products authentic?",
-    answer:
-      "Yes. We focus on sourcing authentic products and maintaining quality throughout the ordering process. Product details and availability are kept as transparent as possible.",
-  },
-  {
-    category: "DELIVERY",
-    question: "Do you offer Cash on Delivery?",
-    answer:
-      "Yes. Cash on Delivery is available in supported metropolitan areas. Availability may vary depending on your delivery location.",
-  },
-  {
-    category: "PICKUP",
-    question: "Can I pick up my order?",
-    answer:
-      "Yes. Pickup is available in selected areas. Contact us before ordering so we can confirm the available pickup location and timing.",
-  },
-  {
-    category: "PRODUCTS",
-    question: "Can I ask about a product before ordering?",
-    answer:
-      "Absolutely. If you have questions about a product, size, availability, fragrance, skincare item, or anything else, feel free to contact us before placing your order.",
-  },
-  {
-    category: "PRODUCTS",
-    question: "What if the product I want is out of stock?",
-    answer:
-      "Some products are restocked regularly. Contact us with the product name and we'll let you know whether it is currently available or when you can expect it back.",
-  },
-  {
-    category: "DELIVERY",
-    question: "How long does delivery take?",
-    answer:
-      "Delivery time depends on your location and the delivery method available for your order. We'll provide the relevant delivery information when your order is confirmed.",
-  },
-  {
-    category: "ORDERS",
-    question: "Can I change or cancel my order?",
-    answer:
-      "If you need to change or cancel an order, contact us as soon as possible. We'll do our best to help before the order is processed or dispatched.",
-  },
-];
-
-const categories = [
-  "ALL",
-  "ORDERS",
-  "DELIVERY",
-  "PRODUCTS",
-  "AUTHENTICITY",
-  "PICKUP",
-];
+import { useCustomer } from "../context/CustomerContext";
+import { useContent } from "../content/context";
+import { useSeo } from "../hooks/useSeo";
+import { fillVars, plainText, renderMarkup } from "../lib/markup";
+import { sendContact } from "../lib/sendContact";
+import T, { useText, useList, ListEditTrigger } from "../content/T";
+import EditViewSwitch from "../components/EditViewSwitch";
 
 export default function FAQ() {
-  const { storeSettings } = useStore();
+  const { account } = useCustomer();
+  const content = useContent();
 
-  const brand = storeSettings?.storeName || "PearlSkino BD";
+  const allWord = useText("faq.all") || "ALL";
+  const items = useList("faq.items").filter((item) => item.question && item.answer);
 
+  const [active, setActive] = useState("");
   const [openIndex, setOpenIndex] = useState(null);
-  const [submitted, setSubmitted] = useState(false);
-  const [sending, setSending] = useState(false);
-  const [activeCategory, setActiveCategory] = useState("ALL");
 
-  const filteredFaqs =
-    activeCategory === "ALL"
-      ? faqs
-      : faqs.filter((faq) => faq.category === activeCategory);
+  const [form, setForm] = useState({ name: "", phone: "", message: "" });
+  const [trap, setTrap] = useState("");
+  const [sending, setSending] = useState(false);
+  const [sent, setSent] = useState(false);
+  const [error, setError] = useState("");
+  const [editView, setEditView] = useState("form");
+
+  const ph = {
+    name: useText("faq.ph.name"),
+    phone: useText("faq.ph.phone"),
+    message: useText("faq.ph.message"),
+  };
+
+  /* tabs come from the categories the owner typed */
+  const categories = useMemo(() => {
+    const seen = [];
+
+    items.forEach((item) => {
+      const name = String(item.category || "").trim().toUpperCase();
+      if (name && !seen.includes(name)) seen.push(name);
+    });
+
+    return seen;
+  }, [items]);
+
+  const current = active && categories.includes(active) ? active : "";
+  const visible = current
+    ? items.filter((item) => String(item.category || "").trim().toUpperCase() === current)
+    : items;
+
+  /* Google can show these questions directly in search results */
+  const jsonLd = useMemo(
+    () =>
+      items.length
+        ? {
+            "@context": "https://schema.org",
+            "@type": "FAQPage",
+            mainEntity: items.map((item) => ({
+              "@type": "Question",
+              name: plainText(item.question, content.baseVars),
+              acceptedAnswer: {
+                "@type": "Answer",
+                text: plainText(item.answer, content.baseVars),
+              },
+            })),
+          }
+        : null,
+    [items, content.baseVars]
+  );
+
+  useSeo({ page: "faq", jsonLd });
+
+  const showSent = content.isEditing ? editView === "sent" : sent;
+
+  function change(event) {
+    const { name, value } = event.target;
+    setForm((currentForm) => ({ ...currentForm, [name]: value }));
+  }
 
   async function handleSubmit(event) {
     event.preventDefault();
 
-    if (sending) {
-      return;
-    }
+    if (sending) return;
 
+    setError("");
     setSending(true);
 
-    const form = event.currentTarget;
-    const formData = new FormData(form);
+    try {
+      await sendContact({
+        name: form.name,
+        phone: form.phone || account?.phone || "",
+        email: account?.email || "",
+        message: form.message,
+        hp: trap,
+      });
 
-    const result = await submitToGoogleForm(
-      GOOGLE_FORMS.contact.url,
-      {
-        [GOOGLE_FORMS.contact.fields.name]:
-          formData.get("name"),
-
-        [GOOGLE_FORMS.contact.fields.phone]:
-          formData.get("phone"),
-
-        [GOOGLE_FORMS.contact.fields.message]:
-          formData.get("message"),
-      }
-    );
-
-    setSending(false);
-
-    if (result.success) {
-      setSubmitted(true);
-      form.reset();
-    } else {
-      alert(
-        "We couldn't send your message. Please try again."
-      );
+      setSent(true);
+      setForm({ name: "", phone: "", message: "" });
+    } catch (problem) {
+      setError(problem.message || "We could not send your message. Please try again.");
+    } finally {
+      setSending(false);
     }
   }
 
-  const toggleFaq = (index) => {
-    setOpenIndex((current) => (current === index ? null : index));
-  };
-
   return (
-    <main
-      className="page"
-      style={{
-        minHeight: "100vh",
-        overflow: "hidden",
-      }}
-    >
-      <section
-        className="page-hero"
-        style={{
-          position: "relative",
-          paddingBottom: "55px",
-        }}
-      >
-        <div
-          aria-hidden="true"
-          style={{
-            position: "absolute",
-            width: "150px",
-            height: "150px",
-            borderRadius: "50%",
-            background:
-              "radial-gradient(circle at 32% 28%, #ffffff 0%, #f8eaf2 25%, #ddd1e8 60%, #c9bfd8 100%)",
-            opacity: 0.42,
-            filter: "blur(1px)",
-            right: "7%",
-            top: "10%",
-            pointerEvents: "none",
-          }}
-        />
+    <main className="faq-page page">
+      <section className="faq-hero">
+        <span className="faq-orb faq-orb-one" aria-hidden="true"></span>
+        <span className="faq-orb faq-orb-two" aria-hidden="true"></span>
 
-        <div
-          aria-hidden="true"
-          style={{
-            position: "absolute",
-            width: "55px",
-            height: "55px",
-            borderRadius: "50%",
-            background:
-              "radial-gradient(circle at 30% 25%, #ffffff, #f3dce9 45%, #d7cce2 100%)",
-            opacity: 0.55,
-            left: "8%",
-            bottom: "8%",
-            pointerEvents: "none",
-          }}
-        />
+        <T k="faq.eyebrow" as="p" className="eyebrow" />
 
-        <div
-          className="eyebrow"
-          style={{
-            position: "relative",
-            zIndex: 1,
-          }}
-        >
+        <T k="faq.title" as="h1" />
 
-          {brand.toUpperCase()} HELP CENTER
-        </div>
-
-        <h1
-          style={{
-            position: "relative",
-            zIndex: 1,
-          }}
-        >
-          Questions,
-          <br />
-          <em>answered beautifully.</em>
-        </h1>
-
-        <p
-          style={{
-            maxWidth: "600px",
-            margin: "22px auto 0",
-            lineHeight: 1.8,
-            opacity: 0.72,
-            fontSize: "15px",
-          }}
-        >
-          Everything you need to know about ordering, delivery,
-          authenticity and finding the right product for you.
-        </p>
+        <T k="faq.text" as="p" className="faq-hero-text" />
       </section>
 
-      <section
-        style={{
-          display: "flex",
-          justifyContent: "center",
-          flexWrap: "wrap",
-          gap: "10px",
-          padding: "0 20px 45px",
-        }}
-      >
-        {categories.map((category) => {
-          const active = activeCategory === category;
+      <section className="faq-body pk-list-host">
+        <ListEditTrigger k="faq.items" label="Edit questions & answers" />
 
-          return (
-            <button
-              key={category}
-              type="button"
-              onClick={() => {
-                setActiveCategory(category);
-                setOpenIndex(null);
-              }}
-              style={{
-                border: active
-                  ? "1px solid rgba(150, 120, 160, 0.35)"
-                  : "1px solid rgba(120, 100, 120, 0.14)",
-                background: active
-                  ? "linear-gradient(135deg, rgba(235,220,238,.85), rgba(248,226,235,.85))"
-                  : "rgba(255,255,255,.48)",
-                color: "inherit",
-                padding: "10px 17px",
-                borderRadius: "999px",
-                fontSize: "11px",
-                fontWeight: 600,
-                letterSpacing: "0.12em",
-                cursor: "pointer",
-                boxShadow: active
-                  ? "0 8px 25px rgba(130,105,145,.12)"
-                  : "none",
-                transition: "all .25s ease",
-              }}
-            >
-              {category}
-            </button>
-          );
-        })}
-      </section>
+        {categories.length > 1 && (
+          <div className="faq-tabs" role="tablist" aria-label="Question categories">
+            {["", ...categories].map((name) => {
+              const on = current === name;
 
-      <section
-        className="faq-list"
-        style={{
-          maxWidth: "920px",
-          margin: "0 auto",
-          padding: "0 20px 90px",
-        }}
-      >
-        <div
-          style={{
-            display: "flex",
-            flexDirection: "column",
-            gap: "12px",
-          }}
-        >
-          {filteredFaqs.map((faq, index) => {
-            const isOpen = openIndex === index;
-
-            return (
-              <div
-                key={`${activeCategory}-${index}`}
-                className="faq-item"
-                style={{
-                  position: "relative",
-                  overflow: "hidden",
-                  borderRadius: "22px",
-                  border: isOpen
-                    ? "1px solid rgba(170, 140, 175, .28)"
-                    : "1px solid rgba(120, 100, 120, .10)",
-                  background: isOpen
-                    ? "linear-gradient(135deg, rgba(255,255,255,.78), rgba(248,232,241,.62))"
-                    : "rgba(255,255,255,.52)",
-                  boxShadow: isOpen
-                    ? "0 18px 45px rgba(110,85,120,.10)"
-                    : "0 5px 22px rgba(100,80,100,.035)",
-                  transition: "all .3s ease",
-                }}
-              >
-                {isOpen && (
-                  <div
-                    aria-hidden="true"
-                    style={{
-                      position: "absolute",
-                      width: "120px",
-                      height: "120px",
-                      borderRadius: "50%",
-                      background:
-                        "radial-gradient(circle, rgba(220,190,225,.25), transparent 70%)",
-                      top: "-55px",
-                      right: "-35px",
-                      pointerEvents: "none",
-                    }}
-                  />
-                )}
-
+              return (
                 <button
+                  key={name || "all"}
                   type="button"
-                  onClick={() => toggleFaq(index)}
-                  aria-expanded={isOpen}
-                  style={{
-                    position: "relative",
-                    zIndex: 1,
-                    width: "100%",
-                    display: "grid",
-                    gridTemplateColumns: "55px 1fr 42px",
-                    alignItems: "center",
-                    gap: "14px",
-                    padding: "22px 24px",
-                    border: "none",
-                    background: "transparent",
-                    color: "inherit",
-                    textAlign: "left",
-                    cursor: "pointer",
+                  role="tab"
+                  aria-selected={on}
+                  className={`faq-tab${on ? " on" : ""}`}
+                  onClick={() => {
+                    setActive(name);
+                    setOpenIndex(null);
                   }}
                 >
-                  <span
-                    style={{
-                      width: "38px",
-                      height: "38px",
-                      display: "flex",
-                      alignItems: "center",
-                      justifyContent: "center",
-                      borderRadius: "50%",
-                      background: isOpen
-                        ? "linear-gradient(135deg, #eadbed, #f4dce8)"
-                        : "rgba(235,225,235,.55)",
-                      fontSize: "11px",
-                      fontWeight: 600,
-                      opacity: 0.7,
-                    }}
-                  >
-                    {String(index + 1).padStart(2, "0")}
+                  {name || allWord}
+                </button>
+              );
+            })}
+          </div>
+        )}
+
+        <div className="faq-list">
+          {visible.map((item, index) => {
+            const open = openIndex === index;
+            const panelId = `faq-panel-${index}`;
+
+            return (
+              <div key={`${current}-${index}`} className={`faq-item${open ? " open" : ""}`}>
+                <button
+                  type="button"
+                  className="faq-question"
+                  aria-expanded={open}
+                  aria-controls={panelId}
+                  onClick={() => setOpenIndex(open ? null : index)}
+                >
+                  <span className="faq-num">{String(index + 1).padStart(2, "0")}</span>
+
+                  <span className="faq-question-copy">
+                    {item.category && <small>{String(item.category).toUpperCase()}</small>}
+                    <strong>{fillVars(item.question, content.baseVars)}</strong>
                   </span>
 
-                  <span>
-                    <small
-                      style={{
-                        display: "block",
-                        marginBottom: "6px",
-                        fontSize: "9px",
-                        letterSpacing: "0.15em",
-                        opacity: 0.48,
-                        fontWeight: 600,
-                      }}
-                    >
-                      {faq.category}
-                    </small>
-
-                    <strong
-                      style={{
-                        display: "block",
-                        fontSize: "15px",
-                        lineHeight: 1.45,
-                        fontWeight: 600,
-                      }}
-                    >
-                      {faq.question}
-                    </strong>
-                  </span>
-
-                  <span
-                    aria-hidden="true"
-                    style={{
-                      width: "36px",
-                      height: "36px",
-                      display: "flex",
-                      alignItems: "center",
-                      justifyContent: "center",
-                      borderRadius: "50%",
-                      border: "1px solid rgba(120,100,120,.12)",
-                      background: "rgba(255,255,255,.45)",
-                      fontSize: "22px",
-                      fontWeight: 300,
-                      transform: isOpen ? "rotate(45deg)" : "rotate(0deg)",
-                      transition: "transform .3s ease",
-                    }}
-                  >
+                  <span className="faq-plus" aria-hidden="true">
                     +
                   </span>
                 </button>
 
-                <div
-                  style={{
-                    display: "grid",
-                    gridTemplateRows: isOpen ? "1fr" : "0fr",
-                    transition: "grid-template-rows .35s ease",
-                  }}
-                >
-                  <div style={{ overflow: "hidden" }}>
-                    <p
-                      style={{
-                        margin: 0,
-                        padding: "0 80px 25px 93px",
-                        fontSize: "14px",
-                        lineHeight: 1.8,
-                        opacity: 0.68,
-                      }}
-                    >
-                      {faq.answer.replaceAll("{brand}", brand)}
-                    </p>
+                <div className="faq-answer" id={panelId} role="region" aria-hidden={!open}>
+                  <div className="faq-answer-clip">
+                    <p>{renderMarkup(item.answer, content.baseVars)}</p>
                   </div>
                 </div>
               </div>
             );
           })}
+
+          {!visible.length && <T k="faq.empty" as="p" className="faq-empty" />}
         </div>
       </section>
 
-      <section
-        style={{
-          maxWidth: "920px",
-          margin: "0 auto 80px",
-          padding: "0 20px",
-        }}
-      >
-        <div
-          style={{
-            position: "relative",
-            overflow: "hidden",
-            borderRadius: "30px",
-            padding: "55px 30px",
-            textAlign: "center",
-            background:
-              "linear-gradient(135deg, rgba(239,224,240,.72), rgba(249,227,234,.72), rgba(228,237,224,.60))",
-            border: "1px solid rgba(255,255,255,.75)",
-            boxShadow: "0 20px 60px rgba(110,85,120,.10)",
-          }}
-        >
-          <span
-            aria-hidden="true"
-            style={{
-              position: "absolute",
-              top: "22px",
-              right: "35px",
-              fontSize: "22px",
-              opacity: 0.45,
-            }}
-          >
-            ✦
+      <section className="faq-cta-wrap">
+        <div className="faq-cta">
+          <span className="faq-cta-star one" aria-hidden="true">
+            &#10022;
+          </span>
+          <span className="faq-cta-star two" aria-hidden="true">
+            &#10022;
           </span>
 
-          <span
-            aria-hidden="true"
-            style={{
-              position: "absolute",
-              bottom: "25px",
-              left: "40px",
-              fontSize: "13px",
-              opacity: 0.35,
-            }}
-          >
-            ✦
-          </span>
+          <T k="faq.cta.eyebrow" as="p" className="eyebrow" />
 
-          <span
-            className="eyebrow"
-            style={{
-              display: "block",
-              marginBottom: "14px",
-              opacity: 0.6,
-            }}
-          >
-            STILL CURIOUS?
-          </span>
+          <T k="faq.cta.title" as="h2" />
 
-          <h2
-            style={{
-              margin: "0 0 12px",
-              fontSize: "clamp(28px, 5vw, 44px)",
-              lineHeight: 1.1,
-            }}
-          >
-            We're happy to
-            <br />
-            <em>help.</em>
-          </h2>
+          <T k="faq.cta.text" as="p" className="faq-cta-text" />
 
-          <p
-            style={{
-              maxWidth: "500px",
-              margin: "0 auto 25px",
-              fontSize: "14px",
-              lineHeight: 1.7,
-              opacity: 0.65,
-            }}
-          >
-            Didn't find what you were looking for? Reach out to {brand} and
-            we'll be happy to help.
-          </p>
+          <EditViewSwitch
+            views={[
+              ["form", "Help form"],
+              ["sent", "After sending"],
+            ]}
+            value={editView}
+            onChange={setEditView}
+          />
 
-          {!submitted ? (
-            <form
-              onSubmit={handleSubmit}
-              className="contact-form"
-              style={{
-                maxWidth: "620px",
-                margin: "30px auto 0",
-                textAlign: "left",
-              }}
-            >
-              <div
-                className="contact-form-grid"
-                style={{
-                  display: "grid",
-                  gridTemplateColumns:
-                    "repeat(2, minmax(0, 1fr))",
-                  gap: "14px",
-                }}
-              >
-                <div className="contact-field">
-                  <label htmlFor="faq-name">
-                    NAME
-                  </label>
+          {showSent ? (
+            <div className="contact-success faq-cta-form">
+              <div className="contact-success-pearl">&#10022;</div>
 
+              <T k="faq.ok.title" as="h3" />
+
+              <T k="faq.ok.text" as="p" />
+            </div>
+          ) : (
+            <form className="contact-form faq-cta-form" onSubmit={handleSubmit} noValidate>
+              <div className="faq-form-row">
+                <label>
+                  <T k="faq.f.name" as="span" />
                   <input
-                    id="faq-name"
                     name="name"
-                    type="text"
-                    placeholder="Your name"
+                    value={form.name}
+                    onChange={change}
+                    placeholder={ph.name}
+                    autoComplete="name"
                     required
                   />
-                </div>
-
-                <div className="contact-field">
-                  <label htmlFor="faq-phone">
-                    PHONE
-                  </label>
-
-                  <input
-                    id="faq-phone"
-                    name="phone"
-                    type="tel"
-                    placeholder="01XXXXXXXXX"
-                    required
-                  />
-                </div>
-              </div>
-
-              <div
-                className="contact-field"
-                style={{
-                  marginTop: "14px",
-                }}
-              >
-                <label htmlFor="faq-message">
-                  MESSAGE
                 </label>
 
+                <label>
+                  <T k="faq.f.phone" as="span" />
+                  <input
+                    name="phone"
+                    type="tel"
+                    inputMode="tel"
+                    value={form.phone}
+                    onChange={change}
+                    placeholder={ph.phone}
+                    autoComplete="tel"
+                    required
+                  />
+                </label>
+              </div>
+
+              <label>
+                <T k="faq.f.message" as="span" />
                 <textarea
-                  id="faq-message"
                   name="message"
-                  rows="5"
-                  placeholder="How can we help?"
+                  value={form.message}
+                  onChange={change}
+                  placeholder={ph.message}
+                  rows={5}
+                  maxLength={2000}
                   required
                 />
-              </div>
+              </label>
 
-              <button
-                type="submit"
-                disabled={sending}
-                className="contact-submit"
-                style={{
-                  width: "100%",
-                  marginTop: "16px",
-                }}
-              >
-                {sending
-                  ? "Sending..."
-                  : "Send Message"}
-                <span aria-hidden="true">
-                  →
-                </span>
+              <input
+                className="hp-field"
+                tabIndex={-1}
+                autoComplete="off"
+                aria-hidden="true"
+                value={trap}
+                onChange={(event) => setTrap(event.target.value)}
+              />
+
+              {error && (
+                <p className="form-error" role="alert">
+                  {error}
+                </p>
+              )}
+
+              <button type="submit" className="contact-submit" disabled={sending}>
+                <T k={sending ? "faq.sending" : "faq.submit"} as="span" className="contact-submit-label" />
+                <span aria-hidden="true">&#8594;</span>
               </button>
             </form>
-          ) : (
-            <div
-              className="contact-success"
-              style={{
-                maxWidth: "620px",
-                margin: "30px auto 0",
-              }}
-            >
-              <div
-                className="contact-success-icon"
-                aria-hidden="true"
-              >
-                ✦
-              </div>
-
-              <h3>
-                Message received.
-              </h3>
-
-              <p>
-                Thank you for contacting {brand}.
-                We'll get back to you as soon as
-                possible.
-              </p>
-            </div>
           )}
         </div>
       </section>

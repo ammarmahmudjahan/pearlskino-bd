@@ -1,25 +1,74 @@
-﻿import React from "react";
-import { Link , useNavigate} from "react-router-dom";
-import { useStore } from "../context/StoreContext";
+import { useEffect, useRef } from "react";
+import { Link, useLocation, useNavigate } from "react-router-dom";
 
+import { useStore } from "../context/StoreContext";
+import { freeDeliveryGap } from "../lib/delivery";
+import { money } from "../lib/format";
+import T from "../content/T";
+import Img from "./Img";
+import FreeShipBar from "./FreeShipBar";
+import { CartIcon } from "./Icons";
+
+/*
+ * The bag that slides in from the right when the Cart button is pressed.
+ * (Before, this was a plain block that sat at the bottom of every page.)
+ */
 export default function CartDrawer() {
   const navigate = useNavigate();
+  const { pathname } = useLocation();
   const {
-    cart,
+    lines,
     count,
     subtotal,
-    shipping,
+    delivery,
     total,
     storeSettings,
+    drawerOpen,
+    closeDrawer,
     changeQty,
     removeFromCart,
   } = useStore();
 
-    const brand = storeSettings?.storeName || "PearlSkino BD";
-if (!cart || cart.length === 0) {
-    return (
-      <aside className="cart-drawer">
+  const brand = storeSettings?.storeName || "PearlSkino BD";
+  const closeButton = useRef(null);
 
+  /* close on page change and on Escape; lock the page behind it */
+  useEffect(() => {
+    closeDrawer();
+  }, [pathname, closeDrawer]);
+
+  useEffect(() => {
+    if (!drawerOpen) return undefined;
+
+    const previous = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+    closeButton.current?.focus();
+
+    function onKey(event) {
+      if (event.key === "Escape") closeDrawer();
+    }
+
+    document.addEventListener("keydown", onKey);
+
+    return () => {
+      document.body.style.overflow = previous;
+      document.removeEventListener("keydown", onKey);
+    };
+  }, [drawerOpen, closeDrawer]);
+
+  const unavailable = lines.some((line) => line.unavailable);
+  const gap = freeDeliveryGap(storeSettings, subtotal, "", "");
+  const shippingText = delivery.free || delivery.max === 0
+    ? null
+    : delivery.exact
+      ? money(delivery.min)
+      : `from ${money(delivery.min)}`;
+
+  return (
+    <div className={`drawer-shell${drawerOpen ? " open" : ""}`} aria-hidden={!drawerOpen}>
+      <div className="drawer-overlay" onClick={closeDrawer} />
+
+      <aside className="cart-drawer" role="dialog" aria-modal="true" aria-label="Your cart">
         <div className="cart-drawer-sparkles">
           <span>✦</span>
           <span>✧</span>
@@ -31,271 +80,157 @@ if (!cart || cart.length === 0) {
 
         <div className="cart-drawer-header">
           <div>
-            <p className="eyebrow">
-              {brand.toUpperCase()}
-            </p>
-
+            <p className="eyebrow">{brand.toUpperCase()}</p>
             <h2>
-              Your Bag
+              <T k="drawer.title" />
             </h2>
           </div>
 
-          <span className="cart-count">
-            0
-          </span>
-        </div>
-
-        <div className="cart-drawer-empty">
-
-          <div className="empty-pearl">
-            ✦
-          </div>
-
-          <h3>
-            Your bag is waiting.
-          </h3>
-
-          <p>
-            Discover something beautiful
-            and add it to your collection.
-          </p>
-
-          <button type="button" className="cart-drawer-shop" onClick={() => { navigate("/shop"); setTimeout(() => window.scrollTo({ top: 0, left: 0, behavior: "smooth" }), 50); }}>Explore Collection</button>
-
-        </div>
-
-      </aside>
-    );
-  }
-
-  return (
-    <aside className="cart-drawer">
-
-      {/* DECORATIVE ELEMENTS */}
-
-      <div className="cart-drawer-sparkles">
-        <span>✦</span>
-        <span>✧</span>
-        <span>⋆</span>
-        <span>✦</span>
-        <span>Â·</span>
-      </div>
-
-      <div className="cart-drawer-glow"></div>
-
-
-      {/* HEADER */}
-
-      <div className="cart-drawer-header">
-
-        <div>
-
-          <p className="eyebrow">
-            {brand.toUpperCase()}
-          </p>
-
-          <h2>
-            Your Bag
-          </h2>
-
-        </div>
-
-        <span className="cart-count">
-          {count}
-        </span>
-
-      </div>
-
-
-      {/* ITEMS */}
-
-      <div className="drawer-items">
-
-        {cart.map((item) => {
-
-          const image =
-            item.image ||
-            item.images?.[0] ||
-            "";
-
-          const quantity =
-            Number(item.qty || 1);
-
-          return (
-            <div
-              className="drawer-item"
-              key={item.id || item.name}
+          <div className="cart-drawer-head-tools">
+            <span className="cart-count">{count}</span>
+            <button
+              type="button"
+              ref={closeButton}
+              className="drawer-close"
+              onClick={closeDrawer}
+              aria-label="Close cart"
             >
+              ×
+            </button>
+          </div>
+        </div>
 
-              {/* IMAGE */}
-
-              <div className="drawer-item-image">
-
-                {image ? (
-                  <img
-                    src={image}
-                    alt={item.name}
-                  />
-                ) : (
-                  <span>
-                    ✦
-                  </span>
-                )}
-
-              </div>
-
-
-              {/* DETAILS */}
-
-              <div className="drawer-item-details">
-
-                <small>
-                  {item.brand ||
-                    "{brand.toUpperCase()}"}
-                </small>
-
-                <strong>
-                  {item.name}
-                </strong>
-
-                <span className="drawer-item-price">
-                  ৳
-                  {Number(
-                    item.price || 0
-                  ).toLocaleString()}
-                </span>
-
-
-                {/* QUANTITY */}
-
-                <div className="drawer-quantity">
-
-                  <button
-                    type="button"
-                    onClick={() =>
-                      changeQty(
-                        item.id,
-                        -1
-                      )
-                    }
-                  >
-                    −
-                  </button>
-
-                  <span>
-                    {quantity}
-                  </span>
-
-                  <button
-                    type="button"
-                    onClick={() =>
-                      changeQty(
-                        item.id,
-                        1
-                      )
-                    }
-                  >
-                    +
-                  </button>
-
-                </div>
-
-              </div>
-
-
-              {/* REMOVE */}
-
-              <button
-                type="button"
-                className="drawer-remove"
-                onClick={() =>
-                  removeFromCart(item.id)
-                }
-                aria-label={`Remove ${item.name}`}
-              >
-                ×
-              </button>
-
+        {lines.length === 0 ? (
+          <div className="cart-drawer-empty">
+            <div className="empty-pearl">
+              <CartIcon size={30} />
             </div>
-          );
-        })}
 
-      </div>
+            <h3>
+              <T k="drawer.emptyTitle" />
+            </h3>
 
+            <p>
+              <T k="drawer.emptyText" />
+            </p>
 
-      {/* SUMMARY */}
+            <button
+              type="button"
+              className="cart-drawer-shop"
+              onClick={() => {
+                closeDrawer();
+                navigate("/shop");
+              }}
+            >
+              <T k="drawer.shop" />
+            </button>
+          </div>
+        ) : (
+          <>
+            <div className="drawer-items">
+              {lines.map((line) => (
+                <div className={`drawer-item${line.unavailable ? " is-unavailable" : ""}`} key={line.key}>
+                  <Link to={`/product/${line.id}`} className="drawer-item-image" onClick={closeDrawer}>
+                    {line.image ? (
+                      <Img src={line.image} alt={line.name} widths={[120, 200]} sizes="84px" width="84" height="84" />
+                    ) : (
+                      <span>✦</span>
+                    )}
+                  </Link>
 
-      <div className="drawer-summary">
+                  <div className="drawer-item-details">
+                    <small>{line.brand || brand.toUpperCase()}</small>
+                    <strong>{line.name}</strong>
+                    {line.variantLabel && <em className="drawer-item-variant">{line.variantLabel}</em>}
 
-        <div>
-          <span>
-            Subtotal
-          </span>
+                    <span className="drawer-item-price">{money(line.unitPrice)}</span>
 
-          <strong>
-            ৳
-            {Number(
-              subtotal || 0
-            ).toLocaleString()}
-          </strong>
-        </div>
+                    {line.unavailable ? (
+                      <span className="drawer-item-note">Sold out - please remove</span>
+                    ) : (
+                      <div className="drawer-quantity">
+                        <button
+                          type="button"
+                          onClick={() => changeQty(line.key, -1)}
+                          aria-label={`Less ${line.name}`}
+                        >
+                          −
+                        </button>
+                        <span>{line.qty}</span>
+                        <button
+                          type="button"
+                          onClick={() => changeQty(line.key, 1)}
+                          disabled={line.qty >= Math.min(line.stock, 20)}
+                          aria-label={`More ${line.name}`}
+                        >
+                          +
+                        </button>
+                      </div>
+                    )}
+                  </div>
 
+                  <button
+                    type="button"
+                    className="drawer-remove"
+                    onClick={() => removeFromCart(line.key)}
+                    aria-label={`Remove ${line.name}`}
+                  >
+                    ×
+                  </button>
+                </div>
+              ))}
+            </div>
 
-        <div>
-          <span>
-            Shipping
-          </span>
+            <FreeShipBar subtotal={subtotal} className="drawer-ship" />
 
-          <strong>
-            {shipping === 0
-              ? "FREE"
-              : `৳${shipping}`}
-          </strong>
-        </div>
+            {gap > 0 && storeSettings.freeShipBar === false && (
+              <p className="drawer-nudge">
+                <T k="drawer.freeGap" vars={{ amount: money(gap) }} />
+              </p>
+            )}
 
+            <div className="drawer-summary">
+              <div>
+                <span>
+                  <T k="drawer.subtotal" />
+                </span>
+                <strong>{money(subtotal)}</strong>
+              </div>
 
-        <div className="drawer-total">
+              <div>
+                <span>
+                  <T k="drawer.shipping" />
+                </span>
+                <strong>{shippingText === null ? <T k="drawer.free" /> : shippingText}</strong>
+              </div>
 
-          <span>
-            Total
-          </span>
+              <div className="drawer-total">
+                <span>
+                  <T k="drawer.total" />
+                </span>
+                <strong>{money(total)}</strong>
+              </div>
+            </div>
 
-          <strong>
-            ৳
-            {Number(
-              total || 0
-            ).toLocaleString()}
-          </strong>
+            <div className="drawer-actions">
+              <Link to="/cart" className="drawer-secondary-button" onClick={closeDrawer}>
+                <T k="drawer.view" />
+              </Link>
 
-        </div>
-
-      </div>
-
-
-      {/* ACTIONS */}
-
-      <div className="drawer-actions">
-
-        <Link
-          to="/cart"
-          className="drawer-secondary-button"
-        >
-          View Cart
-        </Link>
-
-        <Link
-          to="/checkout"
-          className="drawer-primary-button"
-        >
-          Checkout
-        </Link>
-
-      </div>
-
-    </aside>
+              <Link
+                to="/checkout"
+                className={`drawer-primary-button${unavailable ? " is-disabled" : ""}`}
+                onClick={(event) => {
+                  if (unavailable) event.preventDefault();
+                  else closeDrawer();
+                }}
+              >
+                <T k="drawer.checkout" />
+              </Link>
+            </div>
+          </>
+        )}
+      </aside>
+    </div>
   );
 }
-
-
-
-
